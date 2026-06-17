@@ -12,24 +12,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var window: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Tracer bullet (issue 01): exactly one Panel. Defaults to the user's
-        // home directory; DIPTYCHON_DIR overrides it (used for the ~50k-file
-        // performance check). The dual-panel layout arrives in issue 03.
-        let root = PanelView(directory: .startDirectory)
+        // Dual-panel workspace (issue 03). Both Panels default to the user's home
+        // directory; DIPTYCHON_DIR overrides it.
+        let root = WorkspaceView()
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 820, height: 540),
+            contentRect: NSRect(x: 0, y: 0, width: 1100, height: 620),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.title = "Diptychon"
-        window.contentMinSize = NSSize(width: 480, height: 320)
+        window.contentMinSize = NSSize(width: 720, height: 360)
         // Use NSHostingController (via contentViewController), NOT a bare
         // NSHostingView set as contentView: the controller wires SwiftUI into the
         // window's responder chain so the views actually receive clicks/scroll.
         window.contentViewController = NSHostingController(rootView: root)
-        window.setContentSize(NSSize(width: 820, height: 540)) // sensible default.
+        window.setContentSize(NSSize(width: 1100, height: 620)) // sensible default.
         // Place on the PRIMARY display (origin .zero), not whichever screen the
         // window manager last used — avoids the window landing on an external
         // monitor / a different Space, which looks like an unresponsive window.
@@ -48,16 +47,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
-    }
-}
-
-private extension URL {
-    /// The directory the single Panel opens on: `DIPTYCHON_DIR` if set, else the
-    /// current user's home directory (independent of any sandbox container).
-    static var startDirectory: URL {
-        if let override = ProcessInfo.processInfo.environment["DIPTYCHON_DIR"] {
-            return URL(fileURLWithPath: override, isDirectory: true)
-        }
-        return URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
     }
 }

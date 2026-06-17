@@ -28,7 +28,8 @@ Toolchain note: the CLT must have a *matched* compiler+SDK. A mismatch (compiler
 |-------|-------|-------|
 | 01 | Panel lists a local folder (tracer bullet) | ✅ done, PR #1 |
 | 02 | Panel navigation, sort, hidden toggle, type-ahead | ✅ done, PR #2 |
-| 03–10 | focus/dual-panel, commands, file ops, DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
+| 03 | Dual panels + focus switching | ✅ done, PR #3 |
+| 04–10 | commands/undo, file ops, DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory
@@ -51,3 +52,12 @@ load (cancels in-flight task on rapid nav). `FileListView` protocol widened to
 carry selection + sortOrder bindings + `onActivate` (still impl-agnostic, ADR
 0002). `FileItem` gained non-optional `sizeForSort`/`dateForSort` (Optional isn't
 Comparable). Verified interactively by user.
+
+### Issue 03 outcome (2026-06-17)
+`WorkspaceView` renders two Panels side by side, each owning its own `PanelModel`
+(-> independent dir, nav, selection). Active Panel tracked via `@FocusState`,
+shown with an accent border; Tab flips active, clicking a panel activates it. Nav
+keys gated by `isActive`. `PanelView` no longer owns its model (parent owns).
+`URL.startDirectory` moved to WorkspaceView. Window widened to 1100x620.
+Verified interactively by user (Tab + click focus, independent nav, per-panel
+selection).

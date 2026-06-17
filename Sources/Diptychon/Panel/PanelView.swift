@@ -2,12 +2,11 @@ import SwiftUI
 
 /// One Panel: a header (path + Up + hidden toggle + filter) above the file list.
 /// Renders whatever its `PanelModel` provides via the `PanelFileList` swap point.
+/// The model is owned by the parent `WorkspaceView`; `isActive` marks this as the
+/// Active Panel (see `/CONTEXT.md`).
 struct PanelView: View {
-    @State private var model: PanelModel
-
-    init(directory: URL) {
-        _model = State(initialValue: PanelModel(directory: directory))
-    }
+    let model: PanelModel
+    let isActive: Bool
 
     var body: some View {
         @Bindable var model = model
@@ -61,17 +60,22 @@ struct PanelView: View {
             }
         }
         .task { model.load() }
-        // Keyboard nav (keyboard-first product, PRD).
+        // Active Panel is visually distinct.
+        .overlay {
+            RoundedRectangle(cornerRadius: 6)
+                .strokeBorder(Color.accentColor, lineWidth: isActive ? 2 : 0)
+        }
+        // Keyboard nav only acts on the Active Panel (keyboard-first, PRD).
         .onKeyPress(.return) {
+            guard isActive else { return .ignored }
             activateSelection()
             return .handled
         }
         .onKeyPress { press in
-            if press.key == .upArrow, press.modifiers.contains(.command) {
-                model.navigateUp()
-                return .handled
-            }
-            return .ignored
+            guard isActive, press.key == .upArrow, press.modifiers.contains(.command)
+            else { return .ignored }
+            model.navigateUp()
+            return .handled
         }
     }
 

@@ -1,6 +1,6 @@
 # 03 — Dual panels with focus switching
 
-Status: ready-for-agent
+Status: ready-for-human
 
 ## Parent
 
@@ -14,11 +14,12 @@ Panel; Tab switches focus. Selection state lives per Panel.
 
 ## Acceptance criteria
 
-- [ ] Two Panels render side by side, each with its own directory and navigation.
-- [ ] Exactly one Panel is Active at any time; the Active Panel is visually
-      distinct.
-- [ ] Tab moves focus between Panels.
-- [ ] Each Panel maintains its own selection.
+- [x] Two Panels render side by side, each with its own directory and navigation.
+      (`WorkspaceView` HStack of two `PanelView`s, each its own `PanelModel`.)
+- [x] Exactly one Panel is Active at any time; the Active Panel is visually
+      distinct. (Accent border via `@FocusState`; click or Tab to activate.)
+- [x] Tab moves focus between Panels.
+- [x] Each Panel maintains its own selection. (Selection lives per `PanelModel`.)
 
 ## Blocked by
 
