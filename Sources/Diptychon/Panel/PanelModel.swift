@@ -54,6 +54,14 @@ final class PanelModel {
         reload()
     }
 
+    /// Re-list the current directory (after an external change, e.g. a file op).
+    func refresh() {
+        reload()
+    }
+
+    /// URLs of the currently selected rows (source set for the Commander gesture).
+    var selectionURLs: [URL] { Array(selection) }
+
     /// Enter `item` if it's a directory (files are not activatable yet).
     func navigate(into item: FileItem) {
         guard item.isDirectory else { return }

@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// One Panel: a header (path + Up + hidden toggle + filter) above the file list.
-/// Renders whatever its `PanelModel` provides via the `PanelFileList` swap point.
-/// The model is owned by the parent `WorkspaceView`; `isActive` marks this as the
-/// Active Panel (see `/CONTEXT.md`).
+/// The model is owned by the parent `WorkspaceView`. Focus is bound to the file
+/// list (`Table`) itself via `focus`/`side`, so a single click on a row both
+/// activates the Panel and selects the row.
 struct PanelView: View {
     let model: PanelModel
     let isActive: Bool
@@ -41,7 +41,6 @@ struct PanelView: View {
             // Content
             switch model.state {
             case .loading:
-                // The UI stays live here while the directory loads off-thread.
                 ProgressView("Loading…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded:
@@ -65,26 +64,5 @@ struct PanelView: View {
             RoundedRectangle(cornerRadius: 6)
                 .strokeBorder(Color.accentColor, lineWidth: isActive ? 2 : 0)
         }
-        // Keyboard nav only acts on the Active Panel (keyboard-first, PRD).
-        .onKeyPress(.return) {
-            guard isActive else { return .ignored }
-            activateSelection()
-            return .handled
-        }
-        .onKeyPress { press in
-            guard isActive, press.key == .upArrow, press.modifiers.contains(.command)
-            else { return .ignored }
-            model.navigateUp()
-            return .handled
-        }
-    }
-
-    /// Open the selected row when exactly one is selected (Return key).
-    private func activateSelection() {
-        guard model.selection.count == 1,
-              let id = model.selection.first,
-              let item = model.visibleItems.first(where: { $0.id == id })
-        else { return }
-        model.navigate(into: item)
     }
 }
