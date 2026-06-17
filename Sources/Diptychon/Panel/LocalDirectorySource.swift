@@ -3,6 +3,8 @@ import Foundation
 /// The MVP's only `PanelSource` (ADR 0003): the contents of one local directory.
 struct LocalDirectorySource: PanelSource {
     let directory: URL
+    /// Whether to include hidden (dot) files. Driven by the Panel's toggle.
+    var includeHidden: Bool = false
 
     var title: String { directory.path }
 
@@ -19,6 +21,7 @@ struct LocalDirectorySource: PanelSource {
 
     func load() async throws -> [FileItem] {
         let directory = self.directory
+        let options: FileManager.DirectoryEnumerationOptions = includeHidden ? [] : [.skipsHiddenFiles]
         // `Task.detached` guarantees the enumeration runs off the main thread —
         // marking a function `async` alone does not (ADR-adjacent; PRD §2).
         return try await Task.detached(priority: .userInitiated) {
@@ -26,7 +29,7 @@ struct LocalDirectorySource: PanelSource {
             let urls = try fm.contentsOfDirectory(
                 at: directory,
                 includingPropertiesForKeys: Self.resourceKeys,
-                options: [.skipsHiddenFiles] // hidden-file toggle is a later issue.
+                options: options
             )
 
             return urls.map { url in

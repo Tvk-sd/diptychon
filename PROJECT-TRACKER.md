@@ -26,8 +26,9 @@ Toolchain note: the CLT must have a *matched* compiler+SDK. A mismatch (compiler
 ## Status
 | Issue | Title | State |
 |-------|-------|-------|
-| 01 | Panel lists a local folder (tracer bullet) | ✅ done, awaiting human review (`ready-for-human`) |
-| 02–10 | navigation, focus, commands, file ops, DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
+| 01 | Panel lists a local folder (tracer bullet) | ✅ done, PR #1 |
+| 02 | Panel navigation, sort, hidden toggle, type-ahead | ✅ done, PR #2 |
+| 03–10 | focus/dual-panel, commands, file ops, DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory
@@ -39,5 +40,14 @@ Tracer bullet works: app launches to one Panel listing a real directory
 Verified by screenshot on home dir and on a 50k-file folder (loaded off-thread,
 virtualized render, no block/crash). Subjective scroll-smoothness left for human.
 
-Open polish (non-blocking): empty files render "Zero KB"; hidden files skipped
-(toggle is a later issue); folders show no size by design.
+Open polish (non-blocking): empty files render "Zero KB"; folders show no size
+by design.
+
+### Issue 02 outcome (2026-06-17)
+Single Panel now navigable: enter dir (Return / double-click), up (⌘↑ / button),
+column-header sort (toggle reverses), Hidden checkbox, type-ahead Filter field.
+`PanelModel` v2 owns `directory: URL` and rebuilds `LocalDirectorySource` per
+load (cancels in-flight task on rapid nav). `FileListView` protocol widened to
+carry selection + sortOrder bindings + `onActivate` (still impl-agnostic, ADR
+0002). `FileItem` gained non-optional `sizeForSort`/`dateForSort` (Optional isn't
+Comparable). Verified interactively by user.

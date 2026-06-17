@@ -15,8 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Tracer bullet (issue 01): exactly one Panel. Defaults to the user's
         // home directory; DIPTYCHON_DIR overrides it (used for the ~50k-file
         // performance check). The dual-panel layout arrives in issue 03.
-        let source = LocalDirectorySource(directory: .startDirectory)
-        let root = PanelView(source: source)
+        let root = PanelView(directory: .startDirectory)
 
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 820, height: 540),

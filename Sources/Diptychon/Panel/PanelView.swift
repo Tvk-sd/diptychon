@@ -1,44 +1,86 @@
 import SwiftUI
 
-/// One Panel: a header showing the source title and the file list below it.
-/// Renders whatever its `PanelSource` provides via the `PanelFileList` swap point.
+/// One Panel: a header (path + Up + hidden toggle + filter) above the file list.
+/// Renders whatever its `PanelModel` provides via the `PanelFileList` swap point.
 struct PanelView: View {
     @State private var model: PanelModel
 
-    init(source: PanelSource) {
-        _model = State(initialValue: PanelModel(source: source))
+    init(directory: URL) {
+        _model = State(initialValue: PanelModel(directory: directory))
     }
 
     var body: some View {
+        @Bindable var model = model
         VStack(spacing: 0) {
-            header
-            Divider()
-            content
-        }
-        .task { await model.load() }
-    }
+            // Header
+            HStack(spacing: 8) {
+                Button { model.navigateUp() } label: {
+                    Image(systemName: "chevron.up")
+                }
+                .disabled(!model.canGoUp)
+                .help("Go up (⌘↑)")
 
-    private var header: some View {
-        Text(model.title)
-            .font(.headline)
-            .lineLimit(1)
-            .truncationMode(.middle)
-            .frame(maxWidth: .infinity, alignment: .leading)
+                Text(model.title)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.head)
+
+                Spacer()
+
+                Toggle("Hidden", isOn: $model.showHidden)
+                    .toggleStyle(.checkbox)
+
+                TextField("Filter", text: $model.filter)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 160)
+            }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
+
+            Divider()
+
+            // Content
+            switch model.state {
+            case .loading:
+                // The UI stays live here while the directory loads off-thread.
+                ProgressView("Loading…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .loaded:
+                PanelFileList(
+                    items: model.visibleItems,
+                    selection: $model.selection,
+                    sortOrder: $model.sortOrder,
+                    onActivate: { model.navigate(into: $0) }
+                )
+            case .failed(let message):
+                ContentUnavailableView(
+                    "Couldn't read folder",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text(message)
+                )
+            }
+        }
+        .task { model.load() }
+        // Keyboard nav (keyboard-first product, PRD).
+        .onKeyPress(.return) {
+            activateSelection()
+            return .handled
+        }
+        .onKeyPress { press in
+            if press.key == .upArrow, press.modifiers.contains(.command) {
+                model.navigateUp()
+                return .handled
+            }
+            return .ignored
+        }
     }
 
-    @ViewBuilder
-    private var content: some View {
-        switch model.state {
-        case .idle, .loading:
-            // The UI stays live here while the directory loads off-thread.
-            ProgressView("Loading…")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        case .loaded(let items):
-            PanelFileList(items: items)
-        case .failed(let message):
-            ContentUnavailableView("Couldn't read folder", systemImage: "exclamationmark.triangle", description: Text(message))
-        }
+    /// Open the selected row when exactly one is selected (Return key).
+    private func activateSelection() {
+        guard model.selection.count == 1,
+              let id = model.selection.first,
+              let item = model.visibleItems.first(where: { $0.id == id })
+        else { return }
+        model.navigate(into: item)
     }
 }
