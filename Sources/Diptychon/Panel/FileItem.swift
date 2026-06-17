@@ -15,4 +15,9 @@ struct FileItem: Identifiable, Hashable {
     let isDirectory: Bool
 
     var id: URL { url }
+
+    // Non-optional sort keys: `Optional` isn't `Comparable`, so `Table`'s
+    // `KeyPathComparator` needs concrete keypaths. Missing values sort lowest.
+    var sizeForSort: Int64 { size ?? -1 }
+    var dateForSort: Date { modificationDate ?? .distantPast }
 }

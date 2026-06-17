@@ -1,13 +1,19 @@
 import SwiftUI
 
 /// ADR 0002 — the file list (the performance-critical heart) lives behind this
-/// narrow protocol so the `Table`-based implementation can be swapped for an
-/// AppKit `NSTableView` later without touching the rest of the Panel.
+/// protocol so the `Table`-based implementation can be swapped for an AppKit
+/// `NSTableView` later without touching the rest of the Panel.
 ///
-/// The protocol is intentionally tiny: give it rows, get a view. Everything the
-/// Panel needs from "the list" passes through here.
+/// It carries exactly what the Panel needs from "the list": the rows, bindings
+/// for selection and sort order, and a callback to activate (open) a row. Any
+/// implementation — SwiftUI `Table` or `NSTableView` — can satisfy it.
 protocol FileListView: View {
-    init(items: [FileItem])
+    init(
+        items: [FileItem],
+        selection: Binding<Set<FileItem.ID>>,
+        sortOrder: Binding<[KeyPathComparator<FileItem>]>,
+        onActivate: @escaping (FileItem) -> Void
+    )
 }
 
 /// The swap point. The Panel refers to `PanelFileList`, never to a concrete list
@@ -19,10 +25,21 @@ typealias PanelFileList = TableFileListView
 /// bridged to `NSTableView` internally, so it virtualizes rows for free.
 struct TableFileListView: FileListView {
     let items: [FileItem]
-    // Selection lives inside the list impl so the `FileListView` protocol stays
-    // narrow (just `init(items:)`). Makes the list visibly respond to clicks;
-    // it drives nothing else yet (operations arrive in later issues).
-    @State private var selection = Set<FileItem.ID>()
+    @Binding var selection: Set<FileItem.ID>
+    @Binding var sortOrder: [KeyPathComparator<FileItem>]
+    let onActivate: (FileItem) -> Void
+
+    init(
+        items: [FileItem],
+        selection: Binding<Set<FileItem.ID>>,
+        sortOrder: Binding<[KeyPathComparator<FileItem>]>,
+        onActivate: @escaping (FileItem) -> Void
+    ) {
+        self.items = items
+        self._selection = selection
+        self._sortOrder = sortOrder
+        self.onActivate = onActivate
+    }
 
     private static let sizeFormatter: ByteCountFormatter = {
         let f = ByteCountFormatter()
@@ -38,22 +55,27 @@ struct TableFileListView: FileListView {
     }()
 
     var body: some View {
-        Table(items, selection: $selection) {
-            TableColumn("Name") { item in
+        Table(items, selection: $selection, sortOrder: $sortOrder) {
+            // `value:` makes each column header sortable; the trailing closure
+            // renders the cell.
+            TableColumn("Name", value: \.name) { item in
                 Label {
                     Text(item.name)
                 } icon: {
                     Image(systemName: item.isDirectory ? "folder" : "doc")
                         .foregroundStyle(item.isDirectory ? .blue : .secondary)
                 }
+                // Double-click a row to open it (directories navigate in).
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2) { onActivate(item) }
             }
-            TableColumn("Size") { item in
+            TableColumn("Size", value: \.sizeForSort) { item in
                 // Product default: folders show no size (see PLAN.md).
                 Text(item.size.map { Self.sizeFormatter.string(fromByteCount: $0) } ?? "—")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
-            TableColumn("Date Modified") { item in
+            TableColumn("Date Modified", value: \.dateForSort) { item in
                 Text(item.modificationDate.map(Self.dateFormatter.string(from:)) ?? "—")
                     .foregroundStyle(.secondary)
             }

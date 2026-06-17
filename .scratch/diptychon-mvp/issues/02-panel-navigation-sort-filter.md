@@ -1,6 +1,6 @@
 # 02 — Panel navigation, sorting, hidden files, type-ahead filter
 
-Status: ready-for-agent
+Status: ready-for-human
 
 ## Parent
 
@@ -14,12 +14,14 @@ the listing as the user types (type-ahead). Still one Panel.
 
 ## Acceptance criteria
 
-- [ ] Keyboard: enter a directory and go back up; current path is visible.
-- [ ] Clicking a column header sorts by it; toggling reverses order.
-- [ ] A toggle shows/hides hidden (dot) files.
-- [ ] Type-ahead narrows the visible entries to those matching what the user
-      types, within the current Panel.
-- [ ] Navigation re-lists asynchronously without blocking the UI.
+- [x] Keyboard: enter a directory and go back up; current path is visible.
+      (Return / double-click to enter; ⌘↑ or Up button to leave; path in header.)
+- [x] Clicking a column header sorts by it; toggling reverses order.
+- [x] A toggle shows/hides hidden (dot) files. ("Hidden" checkbox.)
+- [x] Type-ahead narrows the visible entries to those matching what the user
+      types, within the current Panel. (Filter field, case-insensitive contains.)
+- [x] Navigation re-lists asynchronously without blocking the UI.
+      (`PanelModel.reload()` cancels in-flight + reloads via `Task.detached`.)
 
 ## Blocked by
 
