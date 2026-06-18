@@ -1,6 +1,6 @@
 # 07 — Batch rename
 
-Status: ready-for-agent
+Status: ready-for-human
 
 ## Parent
 
@@ -17,13 +17,18 @@ Regex is out of MVP scope (→ v1.1).
 
 ## Acceptance criteria
 
-- [ ] Renames the Active Panel selection using find&replace, numbering,
-      prefix/suffix, and case change.
-- [ ] A before/after preview updates live as the user adjusts the rule; nothing
+- [x] Renames the Active Panel selection using find&replace, numbering,
+      prefix/suffix, and case change. (Sheet modeled on Finder: Replace Text /
+      Add Text / Name + Number / Case.)
+- [x] A before/after preview updates live as the user adjusts the rule; nothing
       is written until confirmed.
-- [ ] Name collisions are detected and the rename is blocked with a clear
-      indication of which entries collide.
-- [ ] The whole batch is undoable as one Operation (⌘Z).
+- [x] Name collisions are detected and the rename is blocked with a clear
+      indication of which entries collide. (Colliding rows red; Rename disabled.)
+- [x] The whole batch is undoable as one Operation (⌘Z). (`RenameOperation`,
+      two-phase to handle intra-batch swaps.)
+
+Opened via ⌘R (app has no other use for it; macOS has no standard rename key).
+Inline single-file rename split out to issue 11 (user request).
 
 ## Blocked by
 

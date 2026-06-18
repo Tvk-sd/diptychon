@@ -15,6 +15,7 @@ enum AppAction {
     case duplicate       // ⌘D  — duplicate selection in place
     case newFolder       // ⇧⌘N
     case newFile         // ⌃⌘N (non-standard; macOS has no native new-file key)
+    case rename          // ⌘R  — batch-rename the selection
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -72,6 +73,7 @@ enum Keymap {
         (KeyChord(.character("d"), command: true), .duplicate),
         (KeyChord(.character("n"), command: true, shift: true), .newFolder),
         (KeyChord(.character("n"), command: true, control: true), .newFile),
+        (KeyChord(.character("r"), command: true), .rename),
     ]
 
     static func action(for event: NSEvent,
