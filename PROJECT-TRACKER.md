@@ -34,6 +34,15 @@ Bugs found + fixed this slice (good lessons):
 - `visibleItems` recomputed every render -> cache it (recompute on filter/sort/
   contents change only).
 
+### Issue 05 outcome (2026-06-18)
+Remaining core operations on the 04 spine: `MoveOperation`, `TrashOperation`
+(`trashItem`, revert restores from Trash), `CreateOperation` (folder/file,
+`untitled …`); Duplicate reuses `CopyOperation` into the same dir. Real
+`NSPasteboard` clipboard: ⌘C / ⌘V (copy into Active) / ⌥⌘V (move into Active,
+Finder convention); ⌘⌫ Trash, ⌘D Duplicate, ⇧⌘N New Folder, ⌃⌘N New File.
+Collision flow generalized to any copy/move (`write(kind:)`). All new ops
+unit-tested vs temp dirs; user-verified end to end.
+
 ### Gotchas (no-Xcode / SwiftPM bundle)
 - **SwiftUI needs `NSHostingController`, not the `App`/`WindowGroup` lifecycle.**
   Under a hand-wrapped `.app`, SwiftUI windows render but get NO input events.
@@ -52,7 +61,8 @@ Bugs found + fixed this slice (good lessons):
 | 02 | Panel navigation, sort, hidden toggle, type-ahead | ✅ done, PR #2 |
 | 03 | Dual panels + focus switching | ✅ done, PR #3 |
 | 04 | Operation/undo spine + copy-to-Inactive | ✅ done, PR #5 |
-| 05–10 | file ops, DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
+| 05 | Remaining file operations + clipboard | ✅ done, PR #6 |
+| 06–10 | DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory
