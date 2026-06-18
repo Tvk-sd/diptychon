@@ -14,22 +14,28 @@ import Observation
 final class PanelModel {
     enum LoadState {
         case loading
-        case loaded([FileItem])
+        case loaded
         case failed(String)
     }
 
     private(set) var state: LoadState = .loading
     private(set) var directory: URL
 
+    /// Loaded rows after filter + sort. **Cached** — recomputed only when the
+    /// contents, filter, or sort change, never on every render. (Recomputing on
+    /// each access made the `Table` reload mid-click and eat the selection.)
+    private(set) var visibleItems: [FileItem] = []
+
     /// Show hidden (dot) files. Reloads on change.
     var showHidden = false { didSet { reload() } }
     /// Type-ahead filter text; narrows the visible entries.
-    var filter = ""
+    var filter = "" { didSet { recomputeVisible() } }
     /// Column sort order, driven by the `Table` header.
-    var sortOrder = [KeyPathComparator(\FileItem.name)]
-    /// Current row selection (lifted here so Return/activate can act on it).
+    var sortOrder = [KeyPathComparator(\FileItem.name)] { didSet { recomputeVisible() } }
+    /// Current row selection (lifted here so the Commander gesture can act on it).
     var selection = Set<FileItem.ID>()
 
+    private var loadedItems: [FileItem] = []
     private var loadTask: Task<Void, Never>?
 
     init(directory: URL) {
@@ -40,33 +46,27 @@ final class PanelModel {
     /// Can we go up? False at the filesystem root.
     var canGoUp: Bool { directory.path != "/" }
 
-    /// All loaded rows after applying the type-ahead filter and the sort order.
-    var visibleItems: [FileItem] {
-        guard case .loaded(let items) = state else { return [] }
-        let trimmed = filter.trimmingCharacters(in: .whitespaces)
-        let filtered = trimmed.isEmpty
-            ? items
-            : items.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
-        return filtered.sorted(using: sortOrder)
-    }
-
-    func load() {
-        reload()
-    }
-
-    /// Re-list the current directory (after an external change, e.g. a file op).
-    func refresh() {
-        reload()
-    }
-
     /// URLs of the currently selected rows (source set for the Commander gesture).
     var selectionURLs: [URL] { Array(selection) }
+
+    func load() { reload() }
+
+    /// Re-list the current directory (after an external change, e.g. a file op).
+    func refresh() { reload() }
 
     /// Enter `item` if it's a directory (files are not activatable yet).
     func navigate(into item: FileItem) {
         guard item.isDirectory else { return }
         directory = item.url
         afterNavigation()
+    }
+
+    /// Open the single selected row if it's a directory (double-click / Return).
+    func openSelection() {
+        guard selection.count == 1, let id = selection.first,
+              let item = visibleItems.first(where: { $0.id == id })
+        else { return }
+        navigate(into: item)
     }
 
     func navigateUp() {
@@ -91,11 +91,22 @@ final class PanelModel {
             do {
                 let items = try await source.load()
                 if Task.isCancelled { return }
-                state = .loaded(items)
+                loadedItems = items
+                recomputeVisible()
+                state = .loaded
             } catch {
                 if Task.isCancelled { return }
                 state = .failed(error.localizedDescription)
             }
         }
+    }
+
+    /// Apply the current filter + sort to the loaded rows, into the cache.
+    private func recomputeVisible() {
+        let trimmed = filter.trimmingCharacters(in: .whitespaces)
+        let filtered = trimmed.isEmpty
+            ? loadedItems
+            : loadedItems.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
+        visibleItems = filtered.sorted(using: sortOrder)
     }
 }

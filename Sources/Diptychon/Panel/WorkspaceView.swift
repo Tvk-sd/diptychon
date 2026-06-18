@@ -12,6 +12,7 @@ import AppKit
 struct WorkspaceView: View {
     @State private var model = WorkspaceModel()
     @State private var keyMonitor: Any?
+    @State private var mouseMonitor: Any?
 
     var body: some View {
         @Bindable var model = model
@@ -20,13 +21,8 @@ struct WorkspaceView: View {
             Divider()
             PanelView(model: model.right, isActive: model.active == .right)
         }
-        .onAppear(perform: installKeyMonitor)
-        .onDisappear(perform: removeKeyMonitor)
-        // Active Panel follows the last interaction (selection or navigation).
-        .onChange(of: model.left.selection) { model.active = .left }
-        .onChange(of: model.right.selection) { model.active = .right }
-        .onChange(of: model.left.directory) { model.active = .left }
-        .onChange(of: model.right.directory) { model.active = .right }
+        .onAppear(perform: installMonitors)
+        .onDisappear(perform: removeMonitors)
         .confirmationDialog(
             "Items already exist in the destination",
             isPresented: Binding(get: { model.pendingCopy != nil },
@@ -63,16 +59,36 @@ struct WorkspaceView: View {
         }
     }
 
-    private func installKeyMonitor() {
-        guard keyMonitor == nil else { return }
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            model.handleKeyDown(event) ? nil : event
+    private func installMonitors() {
+        if keyMonitor == nil {
+            keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                model.handleKeyDown(event) ? nil : event
+            }
+        }
+        if mouseMonitor == nil {
+            // A click activates the Panel it landed in (by window half), regardless
+            // of whether the selection changed. Not consumed — the Table still
+            // gets the click to select the row.
+            mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
+                if let contentView = event.window?.contentView {
+                    let x = event.locationInWindow.x
+                    model.active = x < contentView.bounds.midX ? .left : .right
+                }
+                // Double-click opens the selected row (first click already selected
+                // it). Handled here so the Table keeps native single-click select.
+                if event.clickCount == 2 {
+                    DispatchQueue.main.async { model.activeModel.openSelection() }
+                }
+                return event
+            }
         }
     }
 
-    private func removeKeyMonitor() {
+    private func removeMonitors() {
         if let m = keyMonitor { NSEvent.removeMonitor(m) }
+        if let m = mouseMonitor { NSEvent.removeMonitor(m) }
         keyMonitor = nil
+        mouseMonitor = nil
     }
 }
 

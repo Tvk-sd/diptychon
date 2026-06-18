@@ -47,8 +47,7 @@ struct PanelView: View {
                 PanelFileList(
                     items: model.visibleItems,
                     selection: $model.selection,
-                    sortOrder: $model.sortOrder,
-                    onActivate: { model.navigate(into: $0) }
+                    sortOrder: $model.sortOrder
                 )
             case .failed(let message):
                 ContentUnavailableView(

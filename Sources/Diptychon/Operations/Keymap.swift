@@ -10,17 +10,25 @@ enum AppAction {
     case switchPanel
 }
 
-/// A key (by hardware key code) + required modifier flags.
+/// What identifies a key. Letters are matched by **character** (layout-aware, so
+/// ⌘Z works on QWERTZ/AZERTY etc.); arrows/Tab by **hardware key code** (those
+/// have no character and are layout-independent).
+enum KeyTrigger {
+    case character(Character)
+    case code(UInt16)
+}
+
+/// A key trigger + required modifier flags.
 struct KeyChord {
-    let keyCode: UInt16
+    let trigger: KeyTrigger
     let command: Bool
     let option: Bool
     let shift: Bool
     let control: Bool
 
-    init(_ keyCode: UInt16, command: Bool = false, option: Bool = false,
+    init(_ trigger: KeyTrigger, command: Bool = false, option: Bool = false,
          shift: Bool = false, control: Bool = false) {
-        self.keyCode = keyCode
+        self.trigger = trigger
         self.command = command
         self.option = option
         self.shift = shift
@@ -28,9 +36,8 @@ struct KeyChord {
     }
 }
 
-/// macOS hardware key codes we map.
+/// macOS hardware key codes (layout-independent keys only).
 private enum Key {
-    static let z: UInt16 = 6
     static let tab: UInt16 = 48
     static let leftArrow: UInt16 = 123
     static let rightArrow: UInt16 = 124
@@ -44,25 +51,33 @@ enum Keymap {
     static let `default`: [(chord: KeyChord, action: AppAction)] = [
         // Commander gesture: copy the Active selection into the Inactive Panel.
         // Either arrow triggers it (direction is just which side is inactive).
-        (KeyChord(Key.rightArrow, command: true, option: true), .copyToInactive),
-        (KeyChord(Key.leftArrow, command: true, option: true), .copyToInactive),
-        (KeyChord(Key.z, command: true), .undo),
-        (KeyChord(Key.z, command: true, shift: true), .redo),
-        (KeyChord(Key.upArrow, command: true), .goUp),       // ⌘↑ leave directory
-        (KeyChord(Key.tab), .switchPanel),                   // Tab switch Active Panel
+        (KeyChord(.code(Key.rightArrow), command: true, option: true), .copyToInactive),
+        (KeyChord(.code(Key.leftArrow), command: true, option: true), .copyToInactive),
+        (KeyChord(.character("z"), command: true), .undo),
+        (KeyChord(.character("z"), command: true, shift: true), .redo),
+        (KeyChord(.code(Key.upArrow), command: true), .goUp),   // ⌘↑ leave directory
+        (KeyChord(.code(Key.tab)), .switchPanel),               // Tab switch Active Panel
     ]
 
     static func action(for event: NSEvent,
                        in map: [(chord: KeyChord, action: AppAction)] = Keymap.default) -> AppAction? {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        // Layout-aware character, ignoring modifiers (so ⇧ doesn't give "Z").
+        let character = event.charactersIgnoringModifiers?.lowercased()
+
         for entry in map {
             let c = entry.chord
-            if event.keyCode == c.keyCode,
-               flags.contains(.command) == c.command,
-               flags.contains(.option) == c.option,
-               flags.contains(.shift) == c.shift,
-               flags.contains(.control) == c.control {
-                return entry.action
+            guard flags.contains(.command) == c.command,
+                  flags.contains(.option) == c.option,
+                  flags.contains(.shift) == c.shift,
+                  flags.contains(.control) == c.control
+            else { continue }
+
+            switch c.trigger {
+            case .character(let ch):
+                if character == String(ch) { return entry.action }
+            case .code(let code):
+                if event.keyCode == code { return entry.action }
             }
         }
         return nil
