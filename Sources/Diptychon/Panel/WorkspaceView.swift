@@ -17,9 +17,13 @@ struct WorkspaceView: View {
     var body: some View {
         @Bindable var model = model
         HStack(spacing: 0) {
-            PanelView(model: model.left, isActive: model.active == .left)
+            PanelView(model: model.left, isActive: model.active == .left) { urls, folder in
+                model.handleDrop(urls, on: model.left, targetFolder: folder)
+            }
             Divider()
-            PanelView(model: model.right, isActive: model.active == .right)
+            PanelView(model: model.right, isActive: model.active == .right) { urls, folder in
+                model.handleDrop(urls, on: model.right, targetFolder: folder)
+            }
         }
         .onAppear(perform: installMonitors)
         .onDisappear(perform: removeMonitors)
