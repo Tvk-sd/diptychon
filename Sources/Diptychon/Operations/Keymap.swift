@@ -8,6 +8,13 @@ enum AppAction {
     case redo
     case goUp
     case switchPanel
+    case clipboardCopy   // ⌘C  — mark selection on the clipboard
+    case paste           // ⌘V  — copy clipboard into Active Panel
+    case pasteMove       // ⌥⌘V — move clipboard into Active Panel (Finder convention)
+    case trash           // ⌘⌫  — move selection to Trash
+    case duplicate       // ⌘D  — duplicate selection in place
+    case newFolder       // ⇧⌘N
+    case newFile         // ⌃⌘N (non-standard; macOS has no native new-file key)
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -39,6 +46,7 @@ struct KeyChord {
 /// macOS hardware key codes (layout-independent keys only).
 private enum Key {
     static let tab: UInt16 = 48
+    static let delete: UInt16 = 51 // ⌫ (Backspace)
     static let leftArrow: UInt16 = 123
     static let rightArrow: UInt16 = 124
     static let upArrow: UInt16 = 126
@@ -57,6 +65,13 @@ enum Keymap {
         (KeyChord(.character("z"), command: true, shift: true), .redo),
         (KeyChord(.code(Key.upArrow), command: true), .goUp),   // ⌘↑ leave directory
         (KeyChord(.code(Key.tab)), .switchPanel),               // Tab switch Active Panel
+        (KeyChord(.character("c"), command: true), .clipboardCopy),
+        (KeyChord(.character("v"), command: true), .paste),
+        (KeyChord(.character("v"), command: true, option: true), .pasteMove),
+        (KeyChord(.code(Key.delete), command: true), .trash),   // ⌘⌫ to Trash
+        (KeyChord(.character("d"), command: true), .duplicate),
+        (KeyChord(.character("n"), command: true, shift: true), .newFolder),
+        (KeyChord(.character("n"), command: true, control: true), .newFile),
     ]
 
     static func action(for event: NSEvent,

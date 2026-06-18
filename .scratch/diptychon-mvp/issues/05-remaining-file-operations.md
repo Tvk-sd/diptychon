@@ -1,6 +1,6 @@
 # 05 — Remaining file operations + clipboard
 
-Status: ready-for-agent
+Status: ready-for-human
 
 ## Parent
 
@@ -16,11 +16,18 @@ from the Commander gesture, which targets the Inactive Panel — see `/CONTEXT.m
 
 ## Acceptance criteria
 
-- [ ] Move, Delete-to-Trash, Duplicate, Create folder/file all work as reversible
-      Commands (undo/redo via the 04 spine).
-- [ ] Delete goes to the macOS Trash, not a hard delete.
-- [ ] ⌘C / ⌘V copies into the Active Panel's directory.
-- [ ] All writing operations route through the same collision resolution as 04.
+- [x] Move, Delete-to-Trash, Duplicate, Create folder/file all work as reversible
+      Commands (undo/redo via the 04 spine). (`MoveOperation`, `TrashOperation`,
+      `CreateOperation`; Duplicate reuses `CopyOperation`.)
+- [x] Delete goes to the macOS Trash, not a hard delete. (`FileManager.trashItem`;
+      revert restores from Trash.)
+- [x] ⌘C / ⌘V copies into the Active Panel's directory. (Real `NSPasteboard`;
+      ⌥⌘V pastes-as-move, Finder convention.)
+- [x] All writing operations route through the same collision resolution as 04.
+      (Generalized `write(kind:)` → shared collision dialog.)
+
+Notes: New File uses ⌃⌘N (macOS has no native new-file key). Create makes an
+`untitled …` name since single-file rename isn't built yet (rename = issue 07).
 
 ## Blocked by
 

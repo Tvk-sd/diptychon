@@ -25,16 +25,16 @@ struct WorkspaceView: View {
         .onDisappear(perform: removeMonitors)
         .confirmationDialog(
             "Items already exist in the destination",
-            isPresented: Binding(get: { model.pendingCopy != nil },
-                                 set: { if !$0 { model.pendingCopy = nil } }),
-            presenting: model.pendingCopy
+            isPresented: Binding(get: { model.pendingWrite != nil },
+                                 set: { if !$0 { model.pendingWrite = nil } }),
+            presenting: model.pendingWrite
         ) { pending in
             Button("Overwrite (cannot be undone)", role: .destructive) {
-                model.startCopy(pending, resolution: .overwrite)
+                model.resolvePendingWrite(pending, resolution: .overwrite)
             }
-            Button("Keep Both") { model.startCopy(pending, resolution: .rename) }
-            Button("Skip") { model.startCopy(pending, resolution: .skip) }
-            Button("Cancel", role: .cancel) { model.pendingCopy = nil }
+            Button("Keep Both") { model.resolvePendingWrite(pending, resolution: .rename) }
+            Button("Skip") { model.resolvePendingWrite(pending, resolution: .skip) }
+            Button("Cancel", role: .cancel) { model.pendingWrite = nil }
         } message: { pending in
             Text("\(pending.collisionCount) item(s) with the same name already exist. "
                  + "Overwriting destroys the originals and cannot be undone.")
