@@ -12,14 +12,17 @@ protocol FileListView: View {
     init(
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
-        sortOrder: Binding<[KeyPathComparator<FileItem>]>
+        sortOrder: Binding<[KeyPathComparator<FileItem>]>,
+        onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void
     )
 }
 
 /// The swap point. The Panel refers to `PanelFileList`, never to a concrete list
-/// type. Escape hatch (ADR 0002): if a ~50k-file folder visibly stutters, write
-/// an `NSTableViewFileList: FileListView` and change only this line.
-typealias PanelFileList = TableFileListView
+/// type. Per ADR 0002 we took the AppKit escape hatch: SwiftUI `Table` couldn't
+/// do row-drag + reliable click-selection together, so the list is backed by
+/// `NSTableViewFileList`. `TableFileListView` (SwiftUI) is kept as the reference
+/// implementation behind the same protocol.
+typealias PanelFileList = NSTableViewFileList
 
 /// SwiftUI `Table` implementation of the file list. `Table` is column-based and
 /// bridged to `NSTableView` internally, so it virtualizes rows for free.
@@ -27,15 +30,18 @@ struct TableFileListView: FileListView {
     let items: [FileItem]
     @Binding var selection: Set<FileItem.ID>
     @Binding var sortOrder: [KeyPathComparator<FileItem>]
+    let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
 
     init(
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
-        sortOrder: Binding<[KeyPathComparator<FileItem>]>
+        sortOrder: Binding<[KeyPathComparator<FileItem>]>,
+        onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void
     ) {
         self.items = items
         self._selection = selection
         self._sortOrder = sortOrder
+        self.onDrop = onDrop
     }
 
     private static let sizeFormatter: ByteCountFormatter = {
@@ -62,6 +68,11 @@ struct TableFileListView: FileListView {
                     Image(systemName: item.isDirectory ? "folder" : "doc")
                         .foregroundStyle(item.isDirectory ? .blue : .secondary)
                 }
+                // Drag this row out (to Finder, the other Panel, or a subfolder).
+                // `onDrag` (not `draggable`) so a plain click still selects the row.
+                .onDrag { NSItemProvider(object: item.url as NSURL) }
+                // Folder rows accept drops (drop INTO the folder) + highlight.
+                .modifier(FolderDropModifier(item: item, onDrop: onDrop))
             }
             TableColumn("Size", value: \.sizeForSort) { item in
                 // Product default: folders show no size (see PLAN.md).
@@ -73,6 +84,35 @@ struct TableFileListView: FileListView {
                 Text(item.modificationDate.map(Self.dateFormatter.string(from:)) ?? "—")
                     .foregroundStyle(.secondary)
             }
+        }
+        // Drops on the list background target the Panel's current directory.
+        .dropDestination(for: URL.self) { urls, _ in
+            onDrop(urls, nil)
+            return true
+        }
+    }
+}
+
+/// Makes a folder row a drop target (drops land inside that folder), highlighting
+/// it while a drag hovers. Non-folder rows are inert.
+private struct FolderDropModifier: ViewModifier {
+    let item: FileItem
+    let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
+    @State private var targeted = false
+
+    func body(content: Content) -> some View {
+        if item.isDirectory {
+            content
+                .background {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.accentColor.opacity(targeted ? 0.25 : 0))
+                }
+                .dropDestination(for: URL.self) { urls, _ in
+                    onDrop(urls, item)
+                    return true
+                } isTargeted: { targeted = $0 }
+        } else {
+            content
         }
     }
 }

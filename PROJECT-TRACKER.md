@@ -43,6 +43,20 @@ Finder convention); ⌘⌫ Trash, ⌘D Duplicate, ⇧⌘N New Folder, ⌃⌘N Ne
 Collision flow generalized to any copy/move (`write(kind:)`). All new ops
 unit-tested vs temp dirs; user-verified end to end.
 
+### Issue 06 outcome (2026-06-18)
+Drag & drop, routed through the same `write(kind:)` Operations (free progress,
+collision dialog, undo). Drag between Panels, into subfolders (with hover
+highlight), and to/from Finder. **Took the ADR 0002 AppKit escape hatch**:
+SwiftUI `Table` can't combine row-drag with reliable single-click selection, so
+`PanelFileList` now aliases `NSTableViewFileList` (NSViewRepresentable over
+NSTableView). Only the list layer changed; `FileListView` protocol unchanged.
+This also pre-empts the 50k-row perf trigger. Drag defaults to copy (move-on-drag
+deferred). `WorkspaceModel.write` generalized to target any directory.
+
+**Lesson:** SwiftUI `Table` fought us on input across issues 03/04/06 (focus,
+tap, drag all swallow clicks). AppKit `NSTableView` is the right home for the
+file list. Prefer it for future list work.
+
 ### Gotchas (no-Xcode / SwiftPM bundle)
 - **SwiftUI needs `NSHostingController`, not the `App`/`WindowGroup` lifecycle.**
   Under a hand-wrapped `.app`, SwiftUI windows render but get NO input events.
@@ -62,7 +76,8 @@ unit-tested vs temp dirs; user-verified end to end.
 | 03 | Dual panels + focus switching | ✅ done, PR #3 |
 | 04 | Operation/undo spine + copy-to-Inactive | ✅ done, PR #5 |
 | 05 | Remaining file operations + clipboard | ✅ done, PR #6 |
-| 06–10 | DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
+| 06 | Drag & drop (+ AppKit list hatch) | ✅ done, PR #7 |
+| 07–10 | rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory

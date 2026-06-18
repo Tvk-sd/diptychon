@@ -7,6 +7,7 @@ import SwiftUI
 struct PanelView: View {
     let model: PanelModel
     let isActive: Bool
+    let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
 
     var body: some View {
         @Bindable var model = model
@@ -47,7 +48,8 @@ struct PanelView: View {
                 PanelFileList(
                     items: model.visibleItems,
                     selection: $model.selection,
-                    sortOrder: $model.sortOrder
+                    sortOrder: $model.sortOrder,
+                    onDrop: onDrop
                 )
             case .failed(let message):
                 ContentUnavailableView(

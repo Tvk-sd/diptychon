@@ -16,7 +16,8 @@ final class WorkspaceModel {
         let id = UUID()
         let kind: Kind
         let sources: [URL]
-        let destination: PanelModel
+        let destinationDirectory: URL
+        let refresh: PanelModel
         let collisionCount: Int
     }
 
@@ -44,19 +45,31 @@ final class WorkspaceModel {
 
     func perform(_ action: AppAction) {
         switch action {
-        case .copyToInactive: write(.copy, sources: activeModel.selectionURLs, to: inactiveModel)
+        case .copyToInactive: write(.copy, sources: activeModel.selectionURLs, into: inactiveModel.directory, refresh: inactiveModel)
         case .undo: coordinator.undo(onFinish: refreshBoth)
         case .redo: coordinator.redo(onFinish: refreshBoth)
         case .goUp: activeModel.navigateUp()
         case .switchPanel: active = (active == .left) ? .right : .left
         case .clipboardCopy: clipboardCopy()
-        case .paste: write(.copy, sources: clipboardURLs(), to: activeModel)
-        case .pasteMove: write(.move, sources: clipboardURLs(), to: activeModel)
+        case .paste: write(.copy, sources: clipboardURLs(), into: activeModel.directory, refresh: activeModel)
+        case .pasteMove: write(.move, sources: clipboardURLs(), into: activeModel.directory, refresh: activeModel)
         case .trash: trashSelection()
         case .duplicate: duplicateSelection()
         case .newFolder: create(.folder)
         case .newFile: create(.file)
         }
+    }
+
+    // MARK: - Drag & drop (routed through the same write Operations)
+
+    /// Handle file URLs dropped on `panel`. `targetFolder` is a folder row the
+    /// user dropped onto (drop into it); otherwise the drop targets the panel's
+    /// current directory. Defaults to copy (safe + undoable).
+    func handleDrop(_ urls: [URL], on panel: PanelModel, targetFolder: FileItem?) {
+        let destination = targetFolder?.url ?? panel.directory
+        // Ignore a no-op drop into the same directory the items already live in.
+        let sources = urls.filter { $0.deletingLastPathComponent() != destination }
+        write(.copy, sources: sources, into: destination, refresh: panel)
     }
 
     // MARK: - Clipboard (real macOS pasteboard, file URLs)
@@ -75,34 +88,38 @@ final class WorkspaceModel {
 
     // MARK: - Copy / Move (collision-checked)
 
-    /// Run a copy/move into `destination`, detecting collisions first. With no
+    /// Run a copy/move into `directory`, detecting collisions first. With no
     /// collisions it runs immediately; otherwise it pauses for the dialog.
-    private func write(_ kind: PendingWrite.Kind, sources: [URL], to destination: PanelModel) {
+    /// `refresh` is the Panel to re-list when the write finishes.
+    private func write(_ kind: PendingWrite.Kind, sources: [URL], into directory: URL, refresh: PanelModel) {
         guard !sources.isEmpty else { return }
-        let collisions = detectCollisions(sources: sources,
-                                          destinationDirectory: destination.directory)
+        let collisions = detectCollisions(sources: sources, destinationDirectory: directory)
         if collisions.isEmpty {
-            runWrite(kind, sources: sources, destination: destination, resolution: .rename)
+            runWrite(kind, sources: sources, into: directory, resolution: .rename, refresh: refresh)
         } else {
             pendingWrite = PendingWrite(kind: kind, sources: sources,
-                                        destination: destination, collisionCount: collisions.count)
+                                        destinationDirectory: directory, refresh: refresh,
+                                        collisionCount: collisions.count)
         }
     }
 
     func resolvePendingWrite(_ pending: PendingWrite, resolution: CollisionResolution) {
         runWrite(pending.kind, sources: pending.sources,
-                 destination: pending.destination, resolution: resolution)
+                 into: pending.destinationDirectory, resolution: resolution, refresh: pending.refresh)
         pendingWrite = nil
     }
 
     private func runWrite(_ kind: PendingWrite.Kind, sources: [URL],
-                          destination: PanelModel, resolution: CollisionResolution) {
+                          into directory: URL, resolution: CollisionResolution, refresh: PanelModel) {
         let op: Operation
         switch kind {
-        case .copy: op = CopyOperation(sources: sources, destinationDirectory: destination.directory, resolution: resolution)
-        case .move: op = MoveOperation(sources: sources, destinationDirectory: destination.directory, resolution: resolution)
+        case .copy: op = CopyOperation(sources: sources, destinationDirectory: directory, resolution: resolution)
+        case .move: op = MoveOperation(sources: sources, destinationDirectory: directory, resolution: resolution)
         }
-        coordinator.run(op) { [weak self] in self?.refreshBoth() }
+        coordinator.run(op) { [weak self] in
+            refresh.refresh()
+            self?.refreshBoth()
+        }
     }
 
     // MARK: - Duplicate / Trash / Create
