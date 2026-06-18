@@ -4,15 +4,15 @@ import SwiftUI
 /// protocol so the `Table`-based implementation can be swapped for an AppKit
 /// `NSTableView` later without touching the rest of the Panel.
 ///
-/// It carries exactly what the Panel needs from "the list": the rows, bindings
-/// for selection and sort order, and a callback to activate (open) a row. Any
-/// implementation — SwiftUI `Table` or `NSTableView` — can satisfy it.
+/// It carries exactly what the Panel needs: the rows, plus bindings for selection
+/// and sort order. Opening a row (double-click) is handled at the workspace level
+/// via the mouse monitor, so the list stays free of tap gestures that would
+/// otherwise swallow single-click selection.
 protocol FileListView: View {
     init(
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
-        sortOrder: Binding<[KeyPathComparator<FileItem>]>,
-        onActivate: @escaping (FileItem) -> Void
+        sortOrder: Binding<[KeyPathComparator<FileItem>]>
     )
 }
 
@@ -27,18 +27,15 @@ struct TableFileListView: FileListView {
     let items: [FileItem]
     @Binding var selection: Set<FileItem.ID>
     @Binding var sortOrder: [KeyPathComparator<FileItem>]
-    let onActivate: (FileItem) -> Void
 
     init(
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
-        sortOrder: Binding<[KeyPathComparator<FileItem>]>,
-        onActivate: @escaping (FileItem) -> Void
+        sortOrder: Binding<[KeyPathComparator<FileItem>]>
     ) {
         self.items = items
         self._selection = selection
         self._sortOrder = sortOrder
-        self.onActivate = onActivate
     }
 
     private static let sizeFormatter: ByteCountFormatter = {
@@ -65,9 +62,6 @@ struct TableFileListView: FileListView {
                     Image(systemName: item.isDirectory ? "folder" : "doc")
                         .foregroundStyle(item.isDirectory ? .blue : .secondary)
                 }
-                // Double-click a row to open it (directories navigate in).
-                .contentShape(Rectangle())
-                .onTapGesture(count: 2) { onActivate(item) }
             }
             TableColumn("Size", value: \.sizeForSort) { item in
                 // Product default: folders show no size (see PLAN.md).

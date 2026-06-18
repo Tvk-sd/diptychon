@@ -12,6 +12,28 @@ Toolchain note: the CLT must have a *matched* compiler+SDK. A mismatch (compiler
 `…1.10` vs SDK `…1.5`) broke all builds on 2026-06-17; fixed by reinstalling CLT
 (`softwareupdate -i "Command Line Tools for Xcode-16.2"`).
 
+### Issue 04 outcome (2026-06-18)
+Reversible-`Operation` spine (ADR 0004): `Operation` protocol + `CopyOperation`
+(records created URLs for revert; overwrite = not undoable), `OperationCoordinator`
+(undo/redo stacks, progress, cancel), data-driven `Keymap`. Commander gesture
+⌥⌘→/← copies Active selection into Inactive Panel; collision dialog
+(overwrite/keep-both/skip) pre-write; ⌘Z/⇧⌘Z multi-level. Keyboard owned by an
+`NSEvent` local monitor (a focused `Table` swallows arrow keys otherwise); active
+Panel set by which window-half was clicked; double-click-to-open also via the
+monitor. User-verified end to end.
+
+Bugs found + fixed this slice (good lessons):
+- **QWERTZ keyboard**: matching ⌘Z by hardware keyCode 6 = `y` on German layout.
+  Fix: match letters by character, arrows/Tab by keyCode.
+- **Single-click selection eaten** by a `.onTapGesture(count: 2)` on the Name
+  cell. Fix: no tap gesture; double-click via mouse monitor; `Table` keeps native
+  single-click select.
+- **Active-panel switching** can't derive from selection changes (re-clicking an
+  already-selected row fires nothing). Fix: `leftMouseDown` monitor sets active by
+  window half.
+- `visibleItems` recomputed every render -> cache it (recompute on filter/sort/
+  contents change only).
+
 ### Gotchas (no-Xcode / SwiftPM bundle)
 - **SwiftUI needs `NSHostingController`, not the `App`/`WindowGroup` lifecycle.**
   Under a hand-wrapped `.app`, SwiftUI windows render but get NO input events.
@@ -29,7 +51,8 @@ Toolchain note: the CLT must have a *matched* compiler+SDK. A mismatch (compiler
 | 01 | Panel lists a local folder (tracer bullet) | ✅ done, PR #1 |
 | 02 | Panel navigation, sort, hidden toggle, type-ahead | ✅ done, PR #2 |
 | 03 | Dual panels + focus switching | ✅ done, PR #3 |
-| 04–10 | commands/undo, file ops, DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
+| 04 | Operation/undo spine + copy-to-Inactive | ✅ done, PR #5 |
+| 05–10 | file ops, DnD, rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory

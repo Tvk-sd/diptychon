@@ -1,6 +1,6 @@
 # 04 — Command/undo spine + "copy to Inactive Panel" gesture
 
-Status: ready-for-agent
+Status: ready-for-human
 
 ## Parent
 
@@ -20,13 +20,17 @@ This slice is the spine: later operations (05) and batch rename (07) reuse it.
 
 ## Acceptance criteria
 
-- [ ] Every operation is modeled as a Command that knows its inverse (ADR 0004).
-- [ ] ⌥⌘→ / ⌥⌘← copies the Active Panel selection into the Inactive Panel.
-- [ ] Long copies show progress and can be cancelled.
-- [ ] Collisions are detected and resolved before writing (overwrite / rename /
+- [x] Every operation is modeled as a Command that knows its inverse (ADR 0004).
+      (`Operation` protocol — CONTEXT.md term — + `CopyOperation`.)
+- [x] ⌥⌘→ / ⌥⌘← copies the Active Panel selection into the Inactive Panel.
+- [x] Long copies show progress and can be cancelled. (Progress overlay +
+      Cancel; per-file cancellation cleans up partial copy.)
+- [x] Collisions are detected and resolved before writing (overwrite / rename /
       skip); the overwrite choice states it is not undoable.
-- [ ] ⌘Z undoes and ⇧⌘Z redoes across multiple steps.
-- [ ] Hotkeys resolve through an action→key table, not hard-coded key checks.
+- [x] ⌘Z undoes and ⇧⌘Z redoes across multiple steps.
+- [x] Hotkeys resolve through an action→key table, not hard-coded key checks.
+      (`Keymap` matched against `NSEvent`; letters by character so it works on
+      QWERTZ/non-US layouts.)
 
 ## Blocked by
 
