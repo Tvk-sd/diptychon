@@ -49,6 +49,9 @@ final class PanelModel {
     /// URLs of the currently selected rows (source set for the Commander gesture).
     var selectionURLs: [URL] { Array(selection) }
 
+    /// The currently selected rows as items, in display order.
+    var selectedItems: [FileItem] { visibleItems.filter { selection.contains($0.id) } }
+
     func load() { reload() }
 
     /// Re-list the current directory (after an external change, e.g. a file op).

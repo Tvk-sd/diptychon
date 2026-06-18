@@ -57,6 +57,22 @@ deferred). `WorkspaceModel.write` generalized to target any directory.
 tap, drag all swallow clicks). AppKit `NSTableView` is the right home for the
 file list. Prefer it for future list work.
 
+### Issue 07 outcome (2026-06-18)
+Batch rename on the Active selection, one undoable `RenameOperation` (two-phase
+temp→final so intra-batch swaps don't collide). Sheet modeled on Finder, four
+exclusive modes: Replace Text / Add Text / Name + Number / Case. Live
+before/after preview; collisions flagged red + Rename disabled. Opened with ⌘R.
+Pure `RenameRule` + collision detection unit-tested.
+
+Bug fixed: **NSTableView multi-select was wiped by two-way selection binding** —
+`updateNSView` ran on every re-render and `syncSelection` echoed a stale binding
+back onto the table, clearing in-progress ⌘/⇧-click selection. Fix: track
+`lastPublished`; only push binding→table on *external* changes (e.g. nav), never
+echo what the table just published. (General lesson for NSViewRepresentable
+two-way bindings.)
+
+Split out: inline single-file rename → issue 11 (Finder-style click/Return).
+
 ### Gotchas (no-Xcode / SwiftPM bundle)
 - **SwiftUI needs `NSHostingController`, not the `App`/`WindowGroup` lifecycle.**
   Under a hand-wrapped `.app`, SwiftUI windows render but get NO input events.
@@ -77,7 +93,9 @@ file list. Prefer it for future list work.
 | 04 | Operation/undo spine + copy-to-Inactive | ✅ done, PR #5 |
 | 05 | Remaining file operations + clipboard | ✅ done, PR #6 |
 | 06 | Drag & drop (+ AppKit list hatch) | ✅ done, PR #7 |
-| 07–10 | rename, tags, QuickLook/FSEvents, FDA onboarding | not started |
+| 07 | Batch rename | ✅ done, PR #8 |
+| 08–10 | tags, QuickLook/FSEvents, FDA onboarding | not started |
+| 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory

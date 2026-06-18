@@ -43,6 +43,14 @@ struct WorkspaceView: View {
             Text("\(pending.collisionCount) item(s) with the same name already exist. "
                  + "Overwriting destroys the originals and cannot be undone.")
         }
+        .sheet(item: $model.renaming) { request in
+            BatchRenameSheet(
+                items: request.items,
+                directory: request.directory,
+                onCommit: { newNames in model.commitRename(request, newNames: newNames) },
+                onCancel: { model.renaming = nil }
+            )
+        }
         .overlay { progressOverlay }
     }
 

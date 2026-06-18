@@ -77,6 +77,10 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         weak var table: NSTableView?
         private var displayedIDs: [FileItem.ID] = []
         private var isSyncingSelection = false
+        /// The selection we last pushed to the binding. Lets us tell a binding
+        /// change that *we* caused (echo) from one made externally (e.g. nav
+        /// clearing selection) — only the latter should override the table.
+        private var lastPublished = Set<FileItem.ID>()
 
         private static let sizeFormatter: ByteCountFormatter = {
             let f = ByteCountFormatter(); f.countStyle = .file; return f
@@ -99,6 +103,11 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         }
 
         func syncSelection(_ table: NSTableView) {
+            // Only override when the binding changed externally (not an echo of
+            // what the table just published) — otherwise we'd wipe in-progress
+            // multi-selection on every unrelated re-render.
+            guard parent.selection != lastPublished else { return }
+            lastPublished = parent.selection
             let target = IndexSet(parent.items.enumerated()
                 .filter { parent.selection.contains($0.element.id) }
                 .map(\.offset))
@@ -169,8 +178,9 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
 
         func tableViewSelectionDidChange(_ notification: Notification) {
             guard !isSyncingSelection, let table = notification.object as? NSTableView else { return }
-            let ids = table.selectedRowIndexes.compactMap { $0 < parent.items.count ? parent.items[$0].id : nil }
-            parent.selection = Set(ids)
+            let ids = Set(table.selectedRowIndexes.compactMap { $0 < parent.items.count ? parent.items[$0].id : nil })
+            lastPublished = ids
+            parent.selection = ids
         }
 
         // MARK: Sorting

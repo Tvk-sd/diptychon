@@ -102,6 +102,55 @@ final class TrashOperation: Operation {
     }
 }
 
+/// Rename a batch of files (all in one directory) in a single undoable step.
+/// Applies in two phases — every item to a unique temp name, then to its final
+/// name — so an intra-batch swap (A→B while B→C) never collides mid-flight.
+final class RenameOperation: Operation {
+    /// (from, to) pairs; `from`/`to` are full URLs in the same directory.
+    let renames: [(from: URL, to: URL)]
+
+    init(renames: [(from: URL, to: URL)]) { self.renames = renames }
+
+    var title: String {
+        renames.count == 1 ? "Rename “\(renames[0].from.lastPathComponent)”"
+                           : "Rename \(renames.count) items"
+    }
+    var isUndoable: Bool { true }
+
+    func apply(progress: @escaping (Double) -> Void) async throws {
+        let pairs = renames
+        try await Task.detached(priority: .userInitiated) {
+            try Self.run(pairs, progress: progress)
+        }.value
+    }
+
+    func revert() async throws {
+        let pairs = renames.map { (from: $0.to, to: $0.from) }
+        try await Task.detached(priority: .userInitiated) {
+            try Self.run(pairs, progress: { _ in })
+        }.value
+    }
+
+    /// Two-phase batch move: from → temp → to.
+    private static func run(_ pairs: [(from: URL, to: URL)], progress: @escaping (Double) -> Void) throws {
+        let fm = FileManager.default
+        var temps: [(temp: URL, to: URL)] = []
+        for (i, pair) in pairs.enumerated() {
+            try Task.checkCancellation()
+            let temp = pair.from.deletingLastPathComponent()
+                .appendingPathComponent(".diptychon-rename-\(UUID().uuidString)")
+            try fm.moveItem(at: pair.from, to: temp)
+            temps.append((temp: temp, to: pair.to))
+            progress(Double(i + 1) / Double(max(pairs.count, 1)) * 0.5)
+        }
+        for (i, t) in temps.enumerated() {
+            try Task.checkCancellation()
+            try fm.moveItem(at: t.temp, to: t.to)
+            progress(0.5 + Double(i + 1) / Double(max(temps.count, 1)) * 0.5)
+        }
+    }
+}
+
 /// Create a new empty folder or file in a directory, under a unique
 /// "untitled …" name. Inverse deletes what was created.
 final class CreateOperation: Operation {

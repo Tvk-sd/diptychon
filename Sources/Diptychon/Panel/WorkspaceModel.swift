@@ -21,12 +21,21 @@ final class WorkspaceModel {
         let collisionCount: Int
     }
 
+    /// An open batch-rename sheet, operating on a snapshot of the selection.
+    struct RenameRequest: Identifiable {
+        let id = UUID()
+        let items: [FileItem]
+        let directory: URL
+        let refresh: PanelModel
+    }
+
     let left: PanelModel
     let right: PanelModel
     let coordinator = OperationCoordinator()
 
     var active: Side = .left
     var pendingWrite: PendingWrite?
+    var renaming: RenameRequest?
 
     init() {
         left = PanelModel(directory: .startDirectory)
@@ -57,7 +66,29 @@ final class WorkspaceModel {
         case .duplicate: duplicateSelection()
         case .newFolder: create(.folder)
         case .newFile: create(.file)
+        case .rename: beginRename()
         }
+    }
+
+    // MARK: - Batch rename
+
+    private func beginRename() {
+        let items = activeModel.selectedItems
+        guard !items.isEmpty else { return }
+        renaming = RenameRequest(items: items, directory: activeModel.directory, refresh: activeModel)
+    }
+
+    /// Apply the sheet's computed new names as one undoable `RenameOperation`.
+    func commitRename(_ request: RenameRequest, newNames: [String]) {
+        let renames: [(from: URL, to: URL)] = zip(request.items, newNames).compactMap { item, name in
+            guard name != item.name, !name.isEmpty else { return nil } // skip unchanged
+            return (from: item.url, to: request.directory.appendingPathComponent(name))
+        }
+        renaming = nil
+        guard !renames.isEmpty else { return }
+        let op = RenameOperation(renames: renames)
+        let refresh = request.refresh
+        coordinator.run(op) { refresh.refresh() }
     }
 
     // MARK: - Drag & drop (routed through the same write Operations)
