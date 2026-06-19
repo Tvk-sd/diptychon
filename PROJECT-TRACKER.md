@@ -94,8 +94,19 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 05 | Remaining file operations + clipboard | ✅ done, PR #6 |
 | 06 | Drag & drop (+ AppKit list hatch) | ✅ done, PR #7 |
 | 07 | Batch rename | ✅ done, PR #8 |
+| — | **Xcode migration** | 🔜 next (Xcode installing; see HANDOFF.md) |
 | 08–10 | tags, QuickLook/FSEvents, FDA onboarding | not started |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
+
+## Decision (2026-06-19): migrate to Xcode before issues 08–10
+The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
+cost many manual test round-trips and forced bundle/window workarounds. Moving to
+a real Xcode project to gain: XCUITest (agent-driven UI verification),
+entitlements/signing (needed for issue 10 Full Disk Access), packaging (ADR 0001:
+Releases + Homebrew Cask), previews/debugger/Instruments. Migration is low-risk —
+code is plain Swift; the `@main App` lifecycle replaces the AppDelegate/NSWindow
+workaround, while the `NSEvent` monitor and `NSTableView` list stay. Full plan in
+HANDOFF.md “NEXT TASK”.
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory
