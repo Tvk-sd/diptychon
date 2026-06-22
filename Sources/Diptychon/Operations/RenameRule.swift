@@ -55,24 +55,55 @@ enum RenameRule: Equatable {
 
 /// Indices of entries that collide and must block the rename:
 /// (a) two outputs map to the same name, or
-/// (b) an output would clobber an existing file in `directory` that isn't itself
-///     one of the originals being renamed.
+/// (b) an output would clobber an existing file in `directory` that the batch
+///     isn't itself moving out of the way.
+///
+/// Name comparison follows the volume's case sensitivity: on a case-insensitive
+/// volume (the macOS default), `alpha.txt` and `ALPHA.txt` are the same name. So
+/// a *case-only* rename of a file (e.g. `alpha.txt` → `ALPHA.txt`) is NOT a
+/// collision — it's the file renaming itself — and two outputs differing only in
+/// case ARE a collision.
 func renameCollisionIndices(originals: [String], newNames: [String], directory: URL) -> Set<Int> {
+    renameCollisionIndices(originals: originals, newNames: newNames, directory: directory,
+                           caseInsensitive: directoryIsCaseInsensitive(directory))
+}
+
+/// Testable core: `caseInsensitive` is injected so both volume kinds can be
+/// exercised without depending on the test machine's filesystem.
+func renameCollisionIndices(originals: [String], newNames: [String], directory: URL,
+                            caseInsensitive: Bool) -> Set<Int> {
+    func norm(_ s: String) -> String { caseInsensitive ? s.lowercased() : s }
+
     var collisions = Set<Int>()
 
+    // (a) two outputs map to the same name (case-folded on case-insensitive volumes).
     var seen: [String: Int] = [:]
     for (i, name) in newNames.enumerated() {
-        if let first = seen[name] { collisions.insert(first); collisions.insert(i) }
-        else { seen[name] = i }
+        let key = norm(name)
+        if let first = seen[key] { collisions.insert(first); collisions.insert(i) }
+        else { seen[key] = i }
     }
 
-    let originalSet = Set(originals)
+    // Names this batch vacates: originals whose name actually changes. A file
+    // staying put (unchanged) still occupies its name, so it can be clobbered.
+    let vacated = Set(zip(originals, newNames).filter { $0 != $1 }.map { norm($0.0) })
+
+    // (b) output clobbers a surviving on-disk file. Skip pure case-only self
+    // renames (output normalizes to the item's own original name).
     let fm = FileManager.default
-    for (i, name) in newNames.enumerated() where name != originals[i] {
+    for (i, name) in newNames.enumerated() where norm(name) != norm(originals[i]) {
         let path = directory.appendingPathComponent(name).path
-        if fm.fileExists(atPath: path) && !originalSet.contains(name) {
+        if fm.fileExists(atPath: path) && !vacated.contains(norm(name)) {
             collisions.insert(i)
         }
     }
     return collisions
+}
+
+/// Whether `directory`'s volume treats names case-insensitively (macOS default).
+/// Defaults to case-insensitive when the trait can't be read.
+private func directoryIsCaseInsensitive(_ directory: URL) -> Bool {
+    let caseSensitive = (try? directory.resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey]))?
+        .volumeSupportsCaseSensitiveNames ?? false
+    return !caseSensitive
 }
