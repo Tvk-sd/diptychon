@@ -33,6 +33,27 @@ extension FinderTag {
         guard let data = url.extendedAttribute(named: xattrName) else { return [] }
         return FinderTagCodec.decode(data)
     }
+
+    /// Write tags to a file's xattr. Empty tags removes the attribute entirely, so
+    /// an untagged file carries no `_kMDItemUserTags` (matching Finder).
+    static func write(_ tags: [FinderTag], to url: URL) throws {
+        if tags.isEmpty {
+            try url.removeExtendedAttribute(named: xattrName)
+        } else {
+            try url.setExtendedAttribute(named: xattrName, data: FinderTagCodec.encode(tags))
+        }
+    }
+
+    /// Finder's seven standard color tags, named as Finder names them.
+    static let standard: [FinderTag] = [
+        FinderTag(name: "Red", color: .red),
+        FinderTag(name: "Orange", color: .orange),
+        FinderTag(name: "Yellow", color: .yellow),
+        FinderTag(name: "Green", color: .green),
+        FinderTag(name: "Blue", color: .blue),
+        FinderTag(name: "Purple", color: .purple),
+        FinderTag(name: "Gray", color: .gray),
+    ]
 }
 
 extension URL {
@@ -44,6 +65,22 @@ extension URL {
             var data = Data(count: length)
             let read = data.withUnsafeMutableBytes { getxattr(fsPath, name, $0.baseAddress, length, 0, 0) }
             return read >= 0 ? data : nil
+        }
+    }
+
+    /// Write (create/replace) an extended attribute.
+    func setExtendedAttribute(named name: String, data: Data) throws {
+        try withUnsafeFileSystemRepresentation { fsPath in
+            let rc = data.withUnsafeBytes { setxattr(fsPath, name, $0.baseAddress, data.count, 0, 0) }
+            if rc != 0 { throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno)) }
+        }
+    }
+
+    /// Remove an extended attribute. Absent attribute (`ENOATTR`) is a no-op.
+    func removeExtendedAttribute(named name: String) throws {
+        try withUnsafeFileSystemRepresentation { fsPath in
+            let rc = removexattr(fsPath, name, 0)
+            if rc != 0 && errno != ENOATTR { throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno)) }
         }
     }
 }

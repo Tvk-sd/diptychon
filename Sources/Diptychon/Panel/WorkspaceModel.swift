@@ -35,6 +35,8 @@ final class WorkspaceModel {
     var active: Side = .left
     var pendingWrite: PendingWrite?
     var renaming: RenameRequest?
+    /// Whether the tag picker is open for the Active Panel's selection.
+    var tagging = false
 
     init() {
         left = PanelModel(directory: .startDirectory)
@@ -66,7 +68,30 @@ final class WorkspaceModel {
         case .newFolder: create(.folder)
         case .newFile: create(.file)
         case .rename: beginRename()
+        case .showTags: beginTagging()
         }
+    }
+
+    // MARK: - Finder tags
+
+    private func beginTagging() {
+        guard !activeModel.selectedItems.isEmpty else { return }
+        tagging = true
+    }
+
+    /// Toggle a tag across the Active selection: remove it if every selected item
+    /// already has it, otherwise add it to all. One undoable `SetTagsOperation`.
+    func toggleTag(_ tag: FinderTag) {
+        let items = activeModel.selectedItems
+        guard !items.isEmpty else { return }
+        let onAll = items.allSatisfy { $0.tags.contains { $0.name == tag.name } }
+        let targets: [(url: URL, newTags: [FinderTag])] = items.map { item in
+            var tags = item.tags.filter { $0.name != tag.name } // drop existing copy first
+            if !onAll { tags.append(tag) }                       // add unless removing
+            return (item.url, tags)
+        }
+        let op = SetTagsOperation(targets: targets)
+        coordinator.run(op) { [weak self] in self?.refreshBoth() }
     }
 
     // MARK: - Batch rename

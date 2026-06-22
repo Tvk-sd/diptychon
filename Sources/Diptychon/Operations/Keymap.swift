@@ -16,6 +16,7 @@ enum AppAction {
     case newFolder       // ⇧⌘N
     case newFile         // ⌃⌘N (non-standard; macOS has no native new-file key)
     case rename          // ⌘R  — batch-rename the selection
+    case showTags        // ⌘T  — open the tag picker for the selection
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -74,6 +75,7 @@ enum Keymap {
         (KeyChord(.character("n"), command: true, shift: true), .newFolder),
         (KeyChord(.character("n"), command: true, control: true), .newFile),
         (KeyChord(.character("r"), command: true), .rename),
+        (KeyChord(.character("t"), command: true), .showTags),
     ]
 
     static func action(for event: NSEvent,

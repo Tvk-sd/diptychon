@@ -51,6 +51,9 @@ struct WorkspaceView: View {
                 onCancel: { model.renaming = nil }
             )
         }
+        .sheet(isPresented: $model.tagging) {
+            TagPickerSheet(model: model)
+        }
         .overlay { progressOverlay }
     }
 
