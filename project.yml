@@ -1,0 +1,58 @@
+name: Diptychon
+# XcodeGen spec — the source of truth for Diptychon.xcodeproj.
+# The .xcodeproj itself is gitignored; run `xcodegen generate` to (re)create it.
+
+options:
+  bundleIdPrefix: com.diptychon
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Local dev: ad-hoc sign, no team, sandbox off (ADR 0001). Signing /
+    # notarization / hardened runtime are deferred to issue 10 (distribution).
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  Diptychon:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/Diptychon
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.diptychon.app
+        PRODUCT_NAME: Diptychon
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_ENTITLEMENTS: Resources/Diptychon.entitlements
+        INFOPLIST_KEY_NSHighResolutionCapable: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
+
+  DiptychonUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - Tests/DiptychonUITests
+    dependencies:
+      - target: Diptychon
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.diptychon.uitests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  Diptychon:
+    build:
+      targets:
+        Diptychon: all
+        DiptychonUITests: [test]
+    test:
+      targets:
+        - DiptychonUITests

@@ -1,41 +1,31 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-19. Session paused to install Xcode (system update required)._
+_Updated: 2026-06-22. Xcode migration done (PR #9, awaiting merge)._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
-Commander spirit). MVP in progress — **7 of 10 issues done and merged to `main`.**
+Commander spirit). MVP in progress — **7 of 10 issues done and merged to `main`;
+Xcode migration in PR #9.**
 
-## ⏭️ NEXT TASK: migrate to Xcode (decided, not started)
-We agreed to move off the no-Xcode SwiftPM setup to a real Xcode project before
-issues 08–10. **Xcode is being installed now.** When `xcodebuild -version` works:
+## ✅ DONE: Xcode migration (PR #9 — merge bottom-up, then start issue 08)
+Migrated off the no-Xcode SwiftPM + hand-wrapped `.app` setup to a real Xcode
+project (Xcode 26.5) on branch `chore/xcode-migration`. Both
+`xcodebuild -scheme Diptychon build` and `... test` pass.
+- **XcodeGen**: `project.yml` is the source of truth; `.xcodeproj` is gitignored,
+  regenerate with `xcodegen generate` (`brew install xcodegen` one-time).
+- Bundle workarounds reverted: `App/main.swift` + AppDelegate gone → clean
+  `@main struct DiptychonApp: App`. Kept the `NSEvent` monitor + `NSTableViewFileList`.
+- `Resources/Diptychon.entitlements` (sandbox OFF, ADR 0001). Ad-hoc signing.
+- `DiptychonUITests` target + smoke test (launch, assert two panels) — green.
+- Removed `Package.swift`, `scripts/run.sh`, hand-wrapped `.app`.
 
-```
-! sudo xcode-select -s /Applications/Xcode.app
-! sudo xcodebuild -license accept
-```
+## ⏭️ NEXT TASK: merge PR #9, then issue 08 (Finder tags)
+1. Merge PR #9 into `main` (no stacked children → safe to delete branch).
+2. Start issue 08 (real Apple Finder tags, round-trip) — `.scratch/diptychon-mvp/issues/`.
+   Now write XCUITests to self-verify instead of the manual log loop.
 
-Then do this migration on a branch `chore/xcode-migration` (small, reversible PR):
-1. Generate `Diptychon.xcodeproj` wrapping the existing `Sources/Diptychon/` files
-   (no logic rewrite). Consider XcodeGen (`brew install xcodegen` + `project.yml`)
-   or `swift package generate-xcodeproj` is deprecated — prefer a hand-written
-   project or XcodeGen.
-2. **Revert the bundle workarounds**: `App/main.swift` + `App/DiptychonApp.swift`
-   (AppDelegate building an NSWindow + NSHostingController) → a clean
-   `@main struct DiptychonApp: App { WindowGroup { WorkspaceView() } }`.
-   These hacks existed ONLY because we hand-wrapped a SwiftPM binary into a
-   `.app`. **KEEP**: the `NSEvent` key/mouse monitor in WorkspaceView (legit) and
-   the `NSTableViewFileList` (ADR 0002, legit).
-3. Add entitlements + Info.plist (app sandbox OFF per ADR 0001; prepare for
-   issue 10 Full Disk Access). App category, bundle id `com.diptychon.app`.
-4. Add an **XCUITest** target + first smoke test (launch, assert two panels
-   exist). This is the payoff — it lets the agent self-verify clicks/drag/
-   selection instead of the "you test, I read logs" loop we used for 01–07.
-5. Update PROJECT-TRACKER build/run section (`xcodebuild` / open in Xcode).
-   Verify with `xcodebuild -scheme Diptychon build` before opening the PR.
-
-Why: issue 10 (FDA onboarding) wants a properly signed bundle; packaging
-(ADR 0001: Releases + Homebrew Cask) needs Xcode; and XCUITest ends the manual
-test round-trips that dominated this build.
+Why the migration mattered: issue 10 (FDA onboarding) wants a properly signed
+bundle; packaging (ADR 0001: Releases + Homebrew Cask) needs Xcode; and XCUITest
+ends the manual test round-trips that dominated issues 01–07.
 
 ## Git state
 - Branch: `main`. Clean. Issues **01–07 merged** (PRs #1,#4,#3,#5,#6,#7,#8).
@@ -59,8 +49,8 @@ test round-trips that dominated this build.
 | 11 | Inline single-file rename (split from 07) | ⬜ backlog |
 
 ## Architecture (current)
-- `App/` — `main.swift` + `DiptychonApp.swift` (AppDelegate → NSWindow +
-  NSHostingController). **To be replaced by `@main App` in the migration.**
+- `App/DiptychonApp.swift` — `@main struct DiptychonApp: App` with
+  `WindowGroup { WorkspaceView() }`. (Post-migration; AppDelegate hack removed.)
 - `Panel/WorkspaceModel.swift` — `@Observable`; owns both `PanelModel`s,
   `OperationCoordinator`, active side, clipboard, drag handling, rename. `NSEvent`
   monitor (in WorkspaceView) is the keyboard authority.
@@ -105,6 +95,7 @@ test round-trips that dominated this build.
   (it auto-closes the child — happened to #2).
 
 ## To resume
-1. Finish Xcode install → `xcodebuild -version` works.
-2. Tell the agent: **"continue from HANDOFF.md — do the Xcode migration."**
-3. After migration merges, proceed to issue 08 (Finder tags).
+1. Merge PR #9 (Xcode migration) into `main`.
+2. `xcodegen generate` (regenerate the gitignored `.xcodeproj`), then
+   `xcodebuild -scheme Diptychon -destination 'platform=macOS' build` to confirm.
+3. Start issue 08 (Finder tags) — now with XCUITests for self-verification.
