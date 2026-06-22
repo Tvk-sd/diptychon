@@ -109,7 +109,8 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 06 | Drag & drop (+ AppKit list hatch) | ✅ done, PR #7 |
 | 07 | Batch rename | ✅ done, PR #8 (+ QA fixes #10 refresh-both-panels, #11 case-only rename) |
 | — | **Xcode migration** | ✅ done 2026-06-22, PR #9 |
-| 08–10 | tags, QuickLook/FSEvents, FDA onboarding | not started (08 next) |
+| 08 | Finder tags (real Apple tags, round-trip) | 🚧 in progress — `feat/08-finder-tags`, slices 1–3 (AC1,AC2) done; 4–5 left |
+| 09–10 | QuickLook/Open-with/FSEvents, FDA onboarding | not started |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
@@ -121,6 +122,26 @@ Releases + Homebrew Cask), previews/debugger/Instruments. Migration is low-risk 
 code is plain Swift; the `@main App` lifecycle replaces the AppDelegate/NSWindow
 workaround, while the `NSEvent` monitor and `NSTableView` list stay. Full plan in
 HANDOFF.md “NEXT TASK”.
+
+### Issue 08 progress (2026-06-23) — Finder tags, slices 1–3 (branch `feat/08-finder-tags`)
+Real Apple Finder tags via the `com.apple.metadata:_kMDItemUserTags` xattr (a
+binary-plist array of `"name\nColorIndex"` strings; index 6 = Red, confirmed
+against a Finder-written sample). Built in vertical slices, TDD where pure:
+- **Slice 1** — `FinderTag` + `FinderTagCodec` (pure encode/decode), 7 unit tests.
+- **Slice 2 (AC1)** — read tags into `FileItem` (only `getxattr` when the batched
+  `tagNames` flags a file as tagged); show ≤3 color dots + “+N” in the name cell
+  (`NameCellView`/`FinderTagDotsView`), names in tooltip/accessibility.
+- **Slice 3 (AC2)** — ⌘T `TagPickerSheet` over the selection; toggling a tag is one
+  undoable `SetTagsOperation` (ADR 0004), reflected live + in Finder.
+- Remaining: **slice 4 (AC4)** filter Active Panel by tag; **slice 5 (AC3)** new
+  tag + system list — custom-color *sidebar* parity may split to a follow-up
+  (needs Finder's undocumented system tag store).
+- Tests: 18 green (15 unit + 3 UI); picker UI test asserts the file's real xattr.
+
+**Gotcha (SwiftUI + XCUITest):** a `.plain` Button's hit area for *synthetic*
+clicks is the rendered content, not the framed row; a real pointer respects
+`.contentShape`. Verified full-row clicking with a `CGEvent` injection script and
+asserted the on-disk xattr. Lesson: test UI against on-disk state, not the AX tree.
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory
