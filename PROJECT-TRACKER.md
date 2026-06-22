@@ -107,9 +107,9 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 04 | Operation/undo spine + copy-to-Inactive | ✅ done, PR #5 |
 | 05 | Remaining file operations + clipboard | ✅ done, PR #6 |
 | 06 | Drag & drop (+ AppKit list hatch) | ✅ done, PR #7 |
-| 07 | Batch rename | ✅ done, PR #8 |
-| — | **Xcode migration** | ✅ done 2026-06-22 (branch `chore/xcode-migration`) |
-| 08–10 | tags, QuickLook/FSEvents, FDA onboarding | not started |
+| 07 | Batch rename | ✅ done, PR #8 (+ QA fixes #10 refresh-both-panels, #11 case-only rename) |
+| — | **Xcode migration** | ✅ done 2026-06-22, PR #9 |
+| 08–10 | tags, QuickLook/FSEvents, FDA onboarding | not started (08 next) |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
