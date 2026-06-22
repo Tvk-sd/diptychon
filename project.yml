@@ -35,6 +35,18 @@ targets:
         INFOPLIST_KEY_NSHighResolutionCapable: YES
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
 
+  DiptychonTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/DiptychonTests
+    dependencies:
+      - target: Diptychon
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.diptychon.tests
+        GENERATE_INFOPLIST_FILE: YES
+
   DiptychonUITests:
     type: bundle.ui-testing
     platform: macOS
@@ -52,7 +64,9 @@ schemes:
     build:
       targets:
         Diptychon: all
+        DiptychonTests: [test]
         DiptychonUITests: [test]
     test:
       targets:
+        - DiptychonTests
         - DiptychonUITests
