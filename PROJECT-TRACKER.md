@@ -3,14 +3,28 @@
 Dual-panel macOS file manager. MVP PRD: `.scratch/diptychon-mvp/PRD.md`.
 
 ## Build & run
-No Xcode installed — built with Command Line Tools via SwiftPM.
+Real Xcode project (Xcode 26.5). The `.xcodeproj` is generated from `project.yml`
+by [XcodeGen](https://github.com/yonaskolb/XcodeGen) and is **gitignored** —
+regenerate it after pulling or editing `project.yml`.
 ```
-./scripts/run.sh          # swift build → wrap minimal .app → launch
-DIPTYCHON_DIR=/path open --env DIPTYCHON_DIR=/path Diptychon.app   # open a specific folder
+brew install xcodegen          # one-time
+xcodegen generate              # (re)create Diptychon.xcodeproj from project.yml
+open Diptychon.xcodeproj       # or build/test from the CLI:
+xcodebuild -scheme Diptychon -destination 'platform=macOS' build
+xcodebuild -scheme Diptychon -destination 'platform=macOS' test    # runs XCUITests
+DIPTYCHON_DIR=/path            # env override for the initial folder (read by WorkspaceView)
 ```
-Toolchain note: the CLT must have a *matched* compiler+SDK. A mismatch (compiler
-`…1.10` vs SDK `…1.5`) broke all builds on 2026-06-17; fixed by reinstalling CLT
-(`softwareupdate -i "Command Line Tools for Xcode-16.2"`).
+Signing: ad-hoc / "Sign to Run Locally" (no Apple Developer team needed); app
+sandbox OFF via `Resources/Diptychon.entitlements` (ADR 0001). Notarization /
+hardened runtime deferred to issue 10.
+
+XCUITest target `DiptychonUITests` lets the agent self-verify the UI (launch +
+assert state) instead of the manual "you click, I read logs" loop used for 01–07.
+
+_History: 01–07 were built with Command Line Tools + SwiftPM and a hand-wrapped
+`.app` (no Xcode). Migrated to Xcode on 2026-06-22 (branch `chore/xcode-migration`).
+The CLT compiler/SDK-mismatch hazard from that era is gone — Xcode bundles a
+matched toolchain._
 
 ### Issue 04 outcome (2026-06-18)
 Reversible-`Operation` spine (ADR 0004): `Operation` protocol + `CopyOperation`
@@ -73,14 +87,14 @@ two-way bindings.)
 
 Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 
-### Gotchas (no-Xcode / SwiftPM bundle)
-- **SwiftUI needs `NSHostingController`, not the `App`/`WindowGroup` lifecycle.**
-  Under a hand-wrapped `.app`, SwiftUI windows render but get NO input events.
-  Fix: explicit AppKit entry (`main.swift` + `AppDelegate`) building an `NSWindow`
-  with `window.contentViewController = NSHostingController(rootView:)`. Reverts to
-  plain SwiftUI `App` once on real Xcode. See `App/DiptychonApp.swift`.
-- Window may open on an external display / wrong Space -> force onto primary
-  (`NSScreen` origin `.zero`) + `makeKeyAndOrderFront` + `NSApp.activate`.
+### Gotchas (no-Xcode / SwiftPM bundle) — RESOLVED by Xcode migration (2026-06-22)
+- ~~**SwiftUI needs `NSHostingController`, not the `App`/`WindowGroup` lifecycle.**
+  Under a hand-wrapped `.app`, SwiftUI windows render but get NO input events.~~
+  Gone on real Xcode: `App/DiptychonApp.swift` is now a plain `@main struct ... : App`
+  with `WindowGroup { WorkspaceView() }`; input routes correctly. (`main.swift` +
+  `AppDelegate` deleted.)
+- ~~Window may open on an external display / wrong Space~~ — the manual primary-screen
+  placement hack is gone with the hand-wrapped bundle; `WindowGroup` + `.defaultSize`.
 - Localized folder names (`Musik` vs `Music`) only show once app is localized;
   `localizedNameKey` falls back to raw on-disk name otherwise.
 
@@ -94,7 +108,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 05 | Remaining file operations + clipboard | ✅ done, PR #6 |
 | 06 | Drag & drop (+ AppKit list hatch) | ✅ done, PR #7 |
 | 07 | Batch rename | ✅ done, PR #8 |
-| — | **Xcode migration** | 🔜 next (Xcode installing; see HANDOFF.md) |
+| — | **Xcode migration** | ✅ done 2026-06-22 (branch `chore/xcode-migration`) |
 | 08–10 | tags, QuickLook/FSEvents, FDA onboarding | not started |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 
