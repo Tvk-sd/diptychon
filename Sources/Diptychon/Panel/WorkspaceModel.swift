@@ -26,7 +26,6 @@ final class WorkspaceModel {
         let id = UUID()
         let items: [FileItem]
         let directory: URL
-        let refresh: PanelModel
     }
 
     let left: PanelModel
@@ -75,7 +74,7 @@ final class WorkspaceModel {
     private func beginRename() {
         let items = activeModel.selectedItems
         guard !items.isEmpty else { return }
-        renaming = RenameRequest(items: items, directory: activeModel.directory, refresh: activeModel)
+        renaming = RenameRequest(items: items, directory: activeModel.directory)
     }
 
     /// Apply the sheet's computed new names as one undoable `RenameOperation`.
@@ -87,8 +86,9 @@ final class WorkspaceModel {
         renaming = nil
         guard !renames.isEmpty else { return }
         let op = RenameOperation(renames: renames)
-        let refresh = request.refresh
-        coordinator.run(op) { refresh.refresh() }
+        // Refresh BOTH panels: when they show the same directory, the inactive
+        // one would otherwise keep a stale listing until the next ⌘Z/redo.
+        coordinator.run(op) { [weak self] in self?.refreshBoth() }
     }
 
     // MARK: - Drag & drop (routed through the same write Operations)
@@ -160,8 +160,7 @@ final class WorkspaceModel {
         let sources = activeModel.selectionURLs
         guard !sources.isEmpty else { return }
         let op = CopyOperation(sources: sources, destinationDirectory: activeModel.directory, resolution: .rename)
-        let model = activeModel
-        coordinator.run(op) { model.refresh() }
+        coordinator.run(op) { [weak self] in self?.refreshBoth() }
     }
 
     private func trashSelection() {
@@ -173,8 +172,7 @@ final class WorkspaceModel {
 
     private func create(_ kind: CreateOperation.Kind) {
         let op = CreateOperation(directory: activeModel.directory, kind: kind)
-        let model = activeModel
-        coordinator.run(op) { model.refresh() }
+        coordinator.run(op) { [weak self] in self?.refreshBoth() }
     }
 
     private func refreshBoth() {
