@@ -17,6 +17,7 @@ struct LocalDirectorySource: PanelSource {
         .fileSizeKey,
         .contentModificationDateKey,
         .isDirectoryKey,
+        .tagNamesKey, // cheap, batched; signals which files need the xattr color read.
     ]
 
     func load() async throws -> [FileItem] {
@@ -35,12 +36,16 @@ struct LocalDirectorySource: PanelSource {
             return urls.map { url in
                 let values = try? url.resourceValues(forKeys: Set(Self.resourceKeys))
                 let isDir = values?.isDirectory ?? false
+                // Only pay the per-file xattr read (for colors) when the batched
+                // tagNames says this file is actually tagged.
+                let tags = (values?.tagNames?.isEmpty == false) ? FinderTag.read(from: url) : []
                 return FileItem(
                     url: url,
                     name: values?.localizedName ?? values?.name ?? url.lastPathComponent,
                     size: isDir ? nil : values?.fileSize.map(Int64.init),
                     modificationDate: values?.contentModificationDate,
-                    isDirectory: isDir
+                    isDirectory: isDir,
+                    tags: tags
                 )
             }
         }.value

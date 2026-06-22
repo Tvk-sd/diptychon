@@ -23,6 +23,31 @@ enum FinderTagColor: Int, CaseIterable {
     case orange = 7
 }
 
+extension FinderTag {
+    /// The extended-attribute name Finder uses for user tags.
+    static let xattrName = "com.apple.metadata:_kMDItemUserTags"
+
+    /// A file's Finder tags (with colors), read straight from its xattr. `[]` if
+    /// the file has no tags or the attribute can't be read.
+    static func read(from url: URL) -> [FinderTag] {
+        guard let data = url.extendedAttribute(named: xattrName) else { return [] }
+        return FinderTagCodec.decode(data)
+    }
+}
+
+extension URL {
+    /// Raw bytes of an extended attribute, or `nil` if it isn't set.
+    func extendedAttribute(named name: String) -> Data? {
+        withUnsafeFileSystemRepresentation { fsPath -> Data? in
+            let length = getxattr(fsPath, name, nil, 0, 0, 0)
+            guard length >= 0 else { return nil }
+            var data = Data(count: length)
+            let read = data.withUnsafeMutableBytes { getxattr(fsPath, name, $0.baseAddress, length, 0, 0) }
+            return read >= 0 ? data : nil
+        }
+    }
+}
+
 /// Encodes/decodes the `_kMDItemUserTags` payload: a binary-plist array of
 /// `"name"` or `"name\n<colorIndex>"` strings. Pure (operates on `Data`) so it is
 /// unit-testable without touching the filesystem.
