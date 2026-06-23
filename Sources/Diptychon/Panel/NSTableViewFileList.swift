@@ -28,7 +28,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let table = NSTableView()
+        let table = FileTableView()
         table.style = .inset
         table.usesAlternatingRowBackgroundColors = true
         table.allowsMultipleSelection = true
@@ -36,6 +36,10 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         table.delegate = context.coordinator
         table.target = context.coordinator
         table.rowHeight = 24
+        // Right-click "Open / Open With…" menu, built for the clicked row.
+        table.menuProvider = { [weak coordinator = context.coordinator] row in
+            coordinator?.contextMenu(forRow: row)
+        }
 
         addColumn(table, id: Column.name, title: "Name", width: 280, sortKey: "name")
         addColumn(table, id: Column.size, title: "Size", width: 90, sortKey: "size")
@@ -243,6 +247,93 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             parent.onDrop(urls, targetFolder)
             return true
         }
+
+        // MARK: Context menu (Open / Open With)
+
+        /// A request to open files with a specific app (`app == nil` → "Other…").
+        private struct OpenWithRequest { let urls: [URL]; let app: URL? }
+
+        /// Build the right-click menu for the clicked row. Targets the selection if
+        /// the clicked row is part of it, else just the clicked row (Finder behavior).
+        func contextMenu(forRow row: Int) -> NSMenu? {
+            let urls = targetURLs(forClickedRow: row)
+            guard !urls.isEmpty, let first = urls.first else { return nil }
+
+            let menu = NSMenu()
+            let open = NSMenuItem(title: "Open", action: #selector(openClicked(_:)), keyEquivalent: "")
+            open.target = self
+            open.representedObject = urls
+            menu.addItem(open)
+
+            let openWith = NSMenuItem(title: "Open With", action: nil, keyEquivalent: "")
+            let sub = NSMenu()
+            for app in NSWorkspace.shared.urlsForApplications(toOpen: first) {
+                let mi = NSMenuItem(title: FileManager.default.displayName(atPath: app.path),
+                                    action: #selector(openWithApp(_:)), keyEquivalent: "")
+                mi.target = self
+                let icon = NSWorkspace.shared.icon(forFile: app.path)
+                icon.size = NSSize(width: 16, height: 16)
+                mi.image = icon
+                mi.representedObject = OpenWithRequest(urls: urls, app: app)
+                sub.addItem(mi)
+            }
+            if !sub.items.isEmpty { sub.addItem(.separator()) }
+            let other = NSMenuItem(title: "Other…", action: #selector(openWithOther(_:)), keyEquivalent: "")
+            other.target = self
+            other.representedObject = urls
+            sub.addItem(other)
+            openWith.submenu = sub
+            menu.addItem(openWith)
+            return menu
+        }
+
+        /// URLs the menu acts on: the selection if the clicked row is in it,
+        /// otherwise the clicked row alone (which we also select, like Finder).
+        private func targetURLs(forClickedRow row: Int) -> [URL] {
+            guard row >= 0, row < parent.items.count else { return [] }
+            let clickedID = parent.items[row].id
+            let selectedIDs = Set(table?.selectedRowIndexes
+                .compactMap { $0 < parent.items.count ? parent.items[$0].id : nil } ?? [])
+            let ids: Set<FileItem.ID>
+            if selectedIDs.contains(clickedID) {
+                ids = selectedIDs
+            } else {
+                ids = [clickedID]
+                table?.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+            }
+            return parent.items.filter { ids.contains($0.id) }.map(\.url)
+        }
+
+        @objc private func openClicked(_ sender: NSMenuItem) {
+            guard let urls = sender.representedObject as? [URL] else { return }
+            urls.forEach { NSWorkspace.shared.open($0) }
+        }
+
+        @objc private func openWithApp(_ sender: NSMenuItem) {
+            guard let req = sender.representedObject as? OpenWithRequest, let app = req.app else { return }
+            NSWorkspace.shared.open(req.urls, withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
+        }
+
+        @objc private func openWithOther(_ sender: NSMenuItem) {
+            guard let urls = sender.representedObject as? [URL] else { return }
+            let panel = NSOpenPanel()
+            panel.directoryURL = URL(fileURLWithPath: "/Applications")
+            panel.allowedContentTypes = [.application]
+            panel.allowsMultipleSelection = false
+            guard panel.runModal() == .OK, let app = panel.url else { return }
+            NSWorkspace.shared.open(urls, withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
+        }
+    }
+}
+
+/// `NSTableView` that serves a right-click menu built for the row under the
+/// cursor (so "Open With" can target the clicked file even if unselected).
+final class FileTableView: NSTableView {
+    var menuProvider: ((Int) -> NSMenu?)?
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let point = convert(event.locationInWindow, from: nil)
+        return menuProvider?(row(at: point))
     }
 }
 

@@ -1,8 +1,8 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-23. Issue 08 (Finder tags) merged to `main` (PR #12, all 4 ACs,
-user-verified). One scoped follow-up: custom-color Finder sidebar registration.
-Next: issue 09 (QuickLook / Open-with / FSEvents)._
+_Updated: 2026-06-23. Issue 08 merged (PR #12). Issue 09 (QuickLook / Open-with /
+FSEvents) done + user-verified on `feat/09-quicklook-openwith-fsevents` — opening
+PR next. Backlog grew: issues 11–14 (14 = inline preview pane, raised in 09)._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit). MVP in progress — **7 of 10 issues merged; Xcode migration +
@@ -89,11 +89,12 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 06 | Drag & drop (+ AppKit NSTableView list) | ✅ merged |
 | 07 | Batch rename | ✅ merged (+ QA fixes #10, #11) |
 | 08 | Finder tags (real Apple tags, round-trip) | ✅ done on branch — all 4 ACs; pending UX check + PR |
-| 09 | QuickLook / Open-with / FSEvents | ⬜ |
+| 09 | QuickLook / Open-with / FSEvents | ✅ done on branch — all 3 ACs, user-verified; PR pending |
 | 10 | Full Disk Access onboarding | ⬜ (wants signed bundle → do after Xcode) |
 | 11 | Inline single-file rename (split from 07) | ⬜ backlog |
 | 12 | Custom tag color registration / Finder sidebar (split from 08) | ⬜ backlog |
 | 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
+| 14 | Inline preview / inspector pane (raised during 09) | ⬜ backlog |
 
 ## Architecture (current)
 - `App/DiptychonApp.swift` — `@main struct DiptychonApp: App` with

@@ -1,6 +1,6 @@
 # 09 — QuickLook, Open with, FSEvents live update
 
-Status: ready-for-agent
+Status: in-review (feat/09-quicklook-openwith-fsevents)
 
 ## Parent
 
@@ -14,11 +14,14 @@ Panel reflects external changes to its directory without a manual refresh.
 
 ## Acceptance criteria
 
-- [ ] Spacebar previews the selected file via QuickLook.
-- [ ] A file can be opened with its default app, and an explicit "Open with"
+- [x] Spacebar previews the selected file via QuickLook.
+- [x] A file can be opened with its default app, and an explicit "Open with"
       choice works.
-- [ ] When a Panel's directory changes on disk (created/deleted/renamed by
+- [x] When a Panel's directory changes on disk (created/deleted/renamed by
       another app), the Panel updates automatically via FSEvents.
+
+_Note: an **inline** preview pane (vs. the floating QuickLook panel) was raised
+during review and split to issue 14._
 
 ## Blocked by
 

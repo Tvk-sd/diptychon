@@ -77,7 +77,10 @@ struct WorkspaceView: View {
     private func installMonitors() {
         if keyMonitor == nil {
             keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                model.handleKeyDown(event) ? nil : event
+                // Don't steal keys while editing a text field (Filter, rename, new
+                // tag): plain keys like ␣/↩/⇥ must reach the field editor.
+                if event.window?.firstResponder is NSText { return event }
+                return model.handleKeyDown(event) ? nil : event
             }
         }
         if mouseMonitor == nil {
@@ -92,7 +95,7 @@ struct WorkspaceView: View {
                 // Double-click opens the selected row (first click already selected
                 // it). Handled here so the Table keeps native single-click select.
                 if event.clickCount == 2 {
-                    DispatchQueue.main.async { model.activeModel.openSelection() }
+                    DispatchQueue.main.async { model.openSelection() }
                 }
                 return event
             }

@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Quartz
 import Observation
 
 /// Owns both Panels, the active side, and the `OperationCoordinator`. Lives as a
@@ -31,6 +32,7 @@ final class WorkspaceModel {
     let left: PanelModel
     let right: PanelModel
     let coordinator = OperationCoordinator()
+    private let quickLook = QuickLookController()
 
     var active: Side = .left
     var pendingWrite: PendingWrite?
@@ -69,6 +71,44 @@ final class WorkspaceModel {
         case .newFile: create(.file)
         case .rename: beginRename()
         case .showTags: beginTagging()
+        case .openSelection: openSelection()
+        case .preview: togglePreview()
+        }
+    }
+
+    // MARK: - QuickLook
+
+    /// Spacebar: toggle the shared QuickLook panel for the Active selection. Open
+    /// → close; closed with a non-empty selection → open. Driven directly (no
+    /// responder-chain plumbing).
+    private func togglePreview() {
+        let panel = QLPreviewPanel.shared()!
+        if QLPreviewPanel.sharedPreviewPanelExists() && panel.isVisible {
+            panel.orderOut(nil)
+            return
+        }
+        let urls = activeModel.selectedItems.map(\.url)
+        guard !urls.isEmpty else { return }
+        quickLook.urls = urls
+        panel.dataSource = quickLook
+        panel.makeKeyAndOrderFront(nil)
+        panel.reloadData()
+    }
+
+    // MARK: - Open (default app / navigate)
+
+    /// Activate the Active Panel's selection (Return / double-click): a single
+    /// folder navigates into it; files open in their default app (Finder
+    /// behavior). A mixed selection opens the files and ignores folders.
+    func openSelection() {
+        let items = activeModel.selectedItems
+        guard !items.isEmpty else { return }
+        if items.count == 1, let only = items.first, only.isDirectory {
+            activeModel.navigate(into: only)
+            return
+        }
+        for item in items where !item.isDirectory {
+            NSWorkspace.shared.open(item.url)
         }
     }
 
