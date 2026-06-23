@@ -16,17 +16,24 @@ struct WorkspaceView: View {
 
     var body: some View {
         @Bindable var model = model
-        HStack(spacing: 0) {
-            PanelView(model: model.left, isActive: model.active == .left) { urls, folder in
-                model.handleDrop(urls, on: model.left, targetFolder: folder)
-            }
-            Divider()
-            PanelView(model: model.right, isActive: model.active == .right) { urls, folder in
-                model.handleDrop(urls, on: model.right, targetFolder: folder)
+        VStack(spacing: 0) {
+            if model.showFDABanner { fdaBanner }
+            HStack(spacing: 0) {
+                PanelView(model: model.left, isActive: model.active == .left) { urls, folder in
+                    model.handleDrop(urls, on: model.left, targetFolder: folder)
+                }
+                Divider()
+                PanelView(model: model.right, isActive: model.active == .right) { urls, folder in
+                    model.handleDrop(urls, on: model.right, targetFolder: folder)
+                }
             }
         }
         .onAppear(perform: installMonitors)
         .onDisappear(perform: removeMonitors)
+        // User likely just returned from System Settings → re-probe FDA (AC3).
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            model.recheckFullDiskAccess()
+        }
         .confirmationDialog(
             "Items already exist in the destination",
             isPresented: Binding(get: { model.pendingWrite != nil },
@@ -55,6 +62,24 @@ struct WorkspaceView: View {
             TagPickerSheet(model: model)
         }
         .overlay { progressOverlay }
+    }
+
+    /// Non-blocking onboarding banner shown when Full Disk Access is missing.
+    /// The app stays fully usable; this just guides the user to grant it (AC1/AC2).
+    private var fdaBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text("Some folders need Full Disk Access.")
+                .font(.callout)
+            Spacer()
+            Button("Open Settings") { FullDiskAccess.openSettings() }
+            Button("Dismiss") { model.fdaBannerDismissed = true }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.regularMaterial)
+        .overlay(alignment: .bottom) { Divider() }
     }
 
     @ViewBuilder

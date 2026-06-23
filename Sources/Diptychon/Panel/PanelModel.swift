@@ -19,6 +19,9 @@ final class PanelModel {
     }
 
     private(set) var state: LoadState = .loading
+    /// True when the last load failed specifically on a permission error — drives
+    /// the inline "Open Full Disk Access Settings" guidance (issue 10).
+    private(set) var accessDenied = false
     private(set) var directory: URL
 
     /// Loaded rows after filter + sort. **Cached** — recomputed only when the
@@ -110,9 +113,11 @@ final class PanelModel {
                 if Task.isCancelled { return }
                 loadedItems = items
                 recomputeVisible()
+                accessDenied = false
                 state = .loaded
             } catch {
                 if Task.isCancelled { return }
+                accessDenied = (error as NSError).code == NSFileReadNoPermissionError
                 state = .failed(error.localizedDescription)
             }
         }

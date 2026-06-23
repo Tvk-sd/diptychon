@@ -54,11 +54,21 @@ struct PanelView: View {
                     onDrop: onDrop
                 )
             case .failed(let message):
-                ContentUnavailableView(
-                    "Couldn't read folder",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text(message)
-                )
+                if model.accessDenied {
+                    ContentUnavailableView {
+                        Label("Couldn't read this folder", systemImage: "lock")
+                    } description: {
+                        Text("Full Disk Access may be required to read it.")
+                    } actions: {
+                        Button("Open Full Disk Access Settings") { FullDiskAccess.openSettings() }
+                    }
+                } else {
+                    ContentUnavailableView(
+                        "Couldn't read folder",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text(message)
+                    )
+                }
             }
         }
         .task { model.load() }
