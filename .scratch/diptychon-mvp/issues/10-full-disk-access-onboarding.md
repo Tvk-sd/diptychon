@@ -1,6 +1,6 @@
 # 10 — First-run Full Disk Access onboarding
 
-Status: ready-for-human
+Status: in-review (feat/10-full-disk-access; grant round-trip + UX confirmed by user)
 
 ## Parent
 
@@ -19,12 +19,17 @@ UX needs human design review and on-device verification.
 
 ## Acceptance criteria
 
-- [ ] On launch without Full Disk Access, the app detects it and shows clear
-      guidance instead of silently failing to read directories.
-- [ ] The flow links/points the user to the correct System Settings pane.
-- [ ] After the user grants access, the app recovers and lists directories
-      normally (no forced restart, or a clearly communicated one).
-- [ ] UX reviewed by a human and verified on a real device.
+- [x] On launch without Full Disk Access, the app detects it and shows clear
+      guidance instead of silently failing to read directories. _(Inline guidance
+      when a protected folder is opened — `accessDenied`; plus a Diptychon ▸ Full
+      Disk Access… menu item. The global banner was dropped in UX review.)_
+- [x] The flow links/points the user to the correct System Settings pane.
+      _(Confirmed by user: lands on Privacy & Security → Full Disk Access.)_
+- [x] After the user grants access, the app recovers and lists directories
+      normally (no forced restart). _(Re-probe on app reactivation re-lists a
+      previously-blocked panel.)_
+- [x] UX reviewed by a human and verified on a real device. _(User review:
+      removed banner, added menu item, repositioned inline notice.)_
 
 ## Blocked by
 

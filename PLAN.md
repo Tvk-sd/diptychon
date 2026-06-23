@@ -1,9 +1,68 @@
-# PLAN
+# PLAN — Issue 10: Full Disk Access onboarding
 
-_No active task. Issue 09 (QuickLook / Open-with / FSEvents) merged (PR #13) —
-outcomes in PROJECT-TRACKER.md._
+Spec: `.scratch/diptychon-mvp/issues/10-full-disk-access-onboarding.md`.
+Branch: `feat/10-full-disk-access`. **HITL** — the real grant + UX sign-off happen
+on-device (can't be tested headless).
 
-Next candidate: **issue 10 — Full Disk Access onboarding** (last MVP issue).
+## What I understood
+FDA can't be requested programmatically (ADR 0001). The app must **detect** when
+it's missing, **guide** the user to System Settings → Privacy & Security → Full
+Disk Access, and **recover** (re-list directories) once granted — no forced restart.
+Since the app is non-sandboxed, it already reads home + most folders without FDA;
+FDA only unlocks protected areas (Mail, Safari, other apps' data, some system dirs).
 
-Backlog written up: issues 11 (inline rename), 12 (custom tag sidebar color),
-13 (panel resize + collapse right panel), 14 (inline preview / inspector pane).
+## Decision (confirmed with user)
+**Non-blocking banner + inline.** A dismissible top-of-window banner when access is
+missing ("Some folders need Full Disk Access — Open Settings / Dismiss"); the app
+stays fully usable. PLUS inline "Open Settings" guidance when a *specific*
+protected folder fails to load on a permission error. Auto-recover on return from
+Settings.
+
+## Approach — slices
+1. **Detection + Settings deep-link.** `FullDiskAccess` helper:
+   `static var isGranted: Bool` (probe an FDA-gated path — list `~/Library/Safari`,
+   fall back to the user `com.apple.TCC/TCC.db` readability) and
+   `static func openSettings()` → `x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles`.
+2. **Global banner (non-blocking).** `WorkspaceModel`: `fdaMissing` +
+   `fdaBannerDismissed` → `showFDABanner`. `WorkspaceView` renders the banner above
+   the panels with Open Settings / Dismiss.
+3. **Recovery.** Observe `NSApplication.didBecomeActiveNotification` (user returns
+   from Settings) → re-probe; if now granted, hide the banner and `refreshBoth()`.
+   No restart.
+4. **Inline per-folder guidance.** Map a permission failure in `PanelModel.reload`
+   (NSFileReadNoPermissionError) to `accessDenied`; `PanelView`'s `.failed` view
+   shows an "Open Full Disk Access Settings" button in that case.
+
+## "Done" = checkable (HITL)
+- With FDA off, launch shows the banner; the app still lists accessible folders.
+- Navigating into a protected folder shows inline "Open Settings" rather than a
+  bare error.
+- "Open Settings" lands on the correct Privacy → Full Disk Access pane.
+- After granting + returning to the app, the banner disappears and panels list
+  normally with no restart.
+- **Human UX review + on-device grant test** (the HITL bar) — handed to user.
+
+## Risks / notes
+- The FDA probe is heuristic (no public "amIGrantedFDA" API). `~/Library/Safari`
+  is the conventional gate; verify on-device it flips correctly before/after grant.
+- Build-verifiable only up to the UI; the grant flow itself needs the user.
+
+## Progress
+- [x] Slice 1 — detection + openSettings (`FullDiskAccess` helper).
+- [x] Slice 2 — ~~non-blocking banner~~ → **dropped per UX review** (felt like an
+      ecommerce banner). Replaced by an app-menu item: **Diptychon ▸ Full Disk
+      Access…** (⌘, Preferences slot, `CommandGroup(.appSettings)`).
+- [x] Slice 3 — recovery on app-active: `recheckFullDiskAccess` re-lists a panel
+      that was permission-blocked once access is granted (no restart).
+- [x] Slice 4 — inline per-folder guidance (`PanelModel.accessDenied`): clean,
+      centered lock + message + "Open Full Disk Access Settings" in the folder's
+      failed state. **Verified on-screen** (pointed at ~/Library/Safari).
+
+## UX revisions (from user review)
+- Removed the global banner; guidance is **inline only** (on entering a protected
+  folder) + the app-menu item.
+- Repositioned/right-sized the inline notice (was the oversized default
+  `ContentUnavailableView`; now a centered, headline-weight custom view).
+- Grant round-trip confirmed by user (Open Settings → correct pane; works).
+- Surfaced gap: **no path bar / go-to-folder** to reach arbitrary folders (e.g.
+  ~/Library). Candidate backlog issue 15.

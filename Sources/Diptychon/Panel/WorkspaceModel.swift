@@ -45,6 +45,16 @@ final class WorkspaceModel {
         right = PanelModel(directory: .startDirectory)
     }
 
+    /// Full Disk Access onboarding (issue 10): called when the app reactivates
+    /// (the user may have just granted access in System Settings). If a panel was
+    /// blocked by a permission error and access is now available, re-list it so
+    /// the folder fills in — no restart (AC3). No global banner: guidance is
+    /// shown inline only when a protected folder is actually opened.
+    func recheckFullDiskAccess() {
+        guard left.accessDenied || right.accessDenied, FullDiskAccess.isGranted else { return }
+        refreshBoth()
+    }
+
     var activeModel: PanelModel { active == .left ? left : right }
     var inactiveModel: PanelModel { active == .left ? right : left }
 

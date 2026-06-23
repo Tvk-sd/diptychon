@@ -27,6 +27,11 @@ struct WorkspaceView: View {
         }
         .onAppear(perform: installMonitors)
         .onDisappear(perform: removeMonitors)
+        // User may have just granted access in System Settings → if a panel was
+        // blocked and access is now there, re-list it (no restart, AC3).
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            model.recheckFullDiskAccess()
+        }
         .confirmationDialog(
             "Items already exist in the destination",
             isPresented: Binding(get: { model.pendingWrite != nil },
