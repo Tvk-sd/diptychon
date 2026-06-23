@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Quartz
 import Observation
 
 /// Owns both Panels, the active side, and the `OperationCoordinator`. Lives as a
@@ -31,6 +32,7 @@ final class WorkspaceModel {
     let left: PanelModel
     let right: PanelModel
     let coordinator = OperationCoordinator()
+    private let quickLook = QuickLookController()
 
     var active: Side = .left
     var pendingWrite: PendingWrite?
@@ -70,7 +72,27 @@ final class WorkspaceModel {
         case .rename: beginRename()
         case .showTags: beginTagging()
         case .openSelection: openSelection()
+        case .preview: togglePreview()
         }
+    }
+
+    // MARK: - QuickLook
+
+    /// Spacebar: toggle the shared QuickLook panel for the Active selection. Open
+    /// → close; closed with a non-empty selection → open. Driven directly (no
+    /// responder-chain plumbing).
+    private func togglePreview() {
+        let panel = QLPreviewPanel.shared()!
+        if QLPreviewPanel.sharedPreviewPanelExists() && panel.isVisible {
+            panel.orderOut(nil)
+            return
+        }
+        let urls = activeModel.selectedItems.map(\.url)
+        guard !urls.isEmpty else { return }
+        quickLook.urls = urls
+        panel.dataSource = quickLook
+        panel.makeKeyAndOrderFront(nil)
+        panel.reloadData()
     }
 
     // MARK: - Open (default app / navigate)

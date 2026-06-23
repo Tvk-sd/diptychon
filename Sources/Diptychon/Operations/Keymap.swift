@@ -18,6 +18,7 @@ enum AppAction {
     case rename          // ⌘R  — batch-rename the selection
     case showTags        // ⌘T  — open the tag picker for the selection
     case openSelection   // ↩   — open folders (navigate) / files (default app)
+    case preview         // ␣   — QuickLook the selection
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -50,6 +51,7 @@ struct KeyChord {
 private enum Key {
     static let tab: UInt16 = 48
     static let `return`: UInt16 = 36
+    static let space: UInt16 = 49
     static let delete: UInt16 = 51 // ⌫ (Backspace)
     static let leftArrow: UInt16 = 123
     static let rightArrow: UInt16 = 124
@@ -79,6 +81,7 @@ enum Keymap {
         (KeyChord(.character("r"), command: true), .rename),
         (KeyChord(.character("t"), command: true), .showTags),
         (KeyChord(.code(Key.return)), .openSelection),          // ↩ open folder/file
+        (KeyChord(.code(Key.space)), .preview),                 // ␣ QuickLook
     ]
 
     static func action(for event: NSEvent,
