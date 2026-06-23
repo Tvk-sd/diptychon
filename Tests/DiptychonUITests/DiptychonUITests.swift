@@ -82,4 +82,64 @@ final class DiptychonUITests: XCTestCase {
             "Inactive panel on the same directory must refresh after rename"
         )
     }
+
+    /// Issue 08 AC2: set a tag on the selection via the picker (⌘T), and undo it.
+    /// Asserts against the file's actual `_kMDItemUserTags` xattr — which is both
+    /// robust (no accessibility-tree guessing) and proof of the Finder round-trip.
+    func testSetAndUndoTagViaPicker() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-uitag-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let fileURL = dir.appendingPathComponent("doc.txt")
+        fm.createFile(atPath: fileURL.path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts["doc.txt"].waitForExistence(timeout: 10))
+
+        // Select the file, open the tag picker (⌘T), toggle Red on, close.
+        leftTable.staticTexts["doc.txt"].click()
+        app.typeKey("t", modifierFlags: .command)
+        let redToggle = app.buttons["tag-Red"]
+        XCTAssertTrue(redToggle.waitForExistence(timeout: 5), "Tag picker should open on ⌘T")
+        // Click the rendered content (the color dot at the row's left), which is the
+        // reliable hit point for XCUITest's synthetic click inside a SwiftUI sheet.
+        redToggle.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.5)).click()
+        app.buttons["Done"].click()
+
+        XCTAssertTrue(waitForTagNames(of: fileURL.path, toEqual: ["Red"]),
+                      "Setting Red should write it to the file's tag xattr (Finder round-trip)")
+
+        // Undo restores the untagged state.
+        app.typeKey("z", modifierFlags: .command)
+        XCTAssertTrue(waitForTagNames(of: fileURL.path, toEqual: []),
+                      "Undo should remove the tag")
+    }
+
+    /// Poll the file's tag xattr (the op is async) until it matches, or time out.
+    private func waitForTagNames(of path: String, toEqual expected: [String], timeout: TimeInterval = 5) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if tagNames(of: path) == expected { return true }
+            usleep(100_000)
+        } while Date() < deadline
+        return tagNames(of: path) == expected
+    }
+
+    /// Tag names parsed straight from the `_kMDItemUserTags` xattr (no app module).
+    private func tagNames(of path: String) -> [String] {
+        let name = "com.apple.metadata:_kMDItemUserTags"
+        let len = getxattr(path, name, nil, 0, 0, 0)
+        guard len > 0 else { return [] }
+        var data = Data(count: len)
+        let read = data.withUnsafeMutableBytes { getxattr(path, name, $0.baseAddress, len, 0, 0) }
+        guard read > 0,
+              let arr = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String]
+        else { return [] }
+        return arr.map { String($0.split(separator: "\n").first ?? "") }
+    }
 }

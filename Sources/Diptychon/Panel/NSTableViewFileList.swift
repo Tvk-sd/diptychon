@@ -133,6 +133,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
                 cell.textField?.stringValue = item.name
                 cell.imageView?.image = NSImage(systemSymbolName: item.isDirectory ? "folder" : "doc",
                                                 accessibilityDescription: nil)
+                (cell as? NameCellView)?.tagDots.setTags(item.tags)
             case Column.size:
                 cell.textField?.stringValue = item.size.map { Self.sizeFormatter.string(fromByteCount: $0) } ?? "—"
             case Column.date:
@@ -143,27 +144,35 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         }
 
         private func makeCell(id: NSUserInterfaceItemIdentifier, withIcon: Bool) -> NSTableCellView {
-            let cell = NSTableCellView()
+            let cell = withIcon ? NameCellView() : NSTableCellView()
             cell.identifier = id
             let text = NSTextField(labelWithString: "")
             text.translatesAutoresizingMaskIntoConstraints = false
             text.lineBreakMode = .byTruncatingTail
             cell.addSubview(text)
             cell.textField = text
-            if withIcon {
+            if withIcon, let cell = cell as? NameCellView {
                 let image = NSImageView()
                 image.translatesAutoresizingMaskIntoConstraints = false
                 cell.addSubview(image)
                 cell.imageView = image
+                let dots = cell.tagDots
+                dots.translatesAutoresizingMaskIntoConstraints = false
+                cell.addSubview(dots)
                 NSLayoutConstraint.activate([
                     image.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 2),
                     image.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
                     image.widthAnchor.constraint(equalToConstant: 16),
                     image.heightAnchor.constraint(equalToConstant: 16),
                     text.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 6),
-                    text.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -2),
                     text.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
+                    // Tag dots sit at the trailing edge; the name truncates before them.
+                    dots.leadingAnchor.constraint(equalTo: text.trailingAnchor, constant: 6),
+                    dots.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -4),
+                    dots.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
                 ])
+                dots.setContentHuggingPriority(.required, for: .horizontal)
+                dots.setContentCompressionResistancePriority(.required, for: .horizontal)
             } else {
                 NSLayoutConstraint.activate([
                     text.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 2),
@@ -233,6 +242,77 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
                 ? parent.items[row] : nil
             parent.onDrop(urls, targetFolder)
             return true
+        }
+    }
+}
+
+/// Name-column cell that also carries a trailing tag-dots view.
+final class NameCellView: NSTableCellView {
+    let tagDots = FinderTagDotsView()
+}
+
+/// A trailing row of up to 3 tag color dots, then "+N" if there are more. The
+/// tooltip + accessibility label carry the tag names, so the row shows both color
+/// and name (AC1) without crowding the filename.
+final class FinderTagDotsView: NSStackView {
+    private static let maxDots = 3
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        orientation = .horizontal
+        spacing = 3
+        alignment = .centerY
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func setTags(_ tags: [FinderTag]) {
+        arrangedSubviews.forEach { $0.removeFromSuperview() } // cells are reused.
+        let names = tags.map(\.name).joined(separator: ", ")
+        toolTip = tags.isEmpty ? nil : names
+        setAccessibilityLabel(tags.isEmpty ? nil : "Tags: \(names)")
+
+        guard !tags.isEmpty else { return }
+        for tag in tags.prefix(Self.maxDots) { addArrangedSubview(Self.makeDot(for: tag.color)) }
+        if tags.count > Self.maxDots {
+            let label = NSTextField(labelWithString: "+\(tags.count - Self.maxDots)")
+            label.font = .systemFont(ofSize: 10)
+            label.textColor = .secondaryLabelColor
+            addArrangedSubview(label)
+        }
+    }
+
+    private static func makeDot(for color: FinderTagColor) -> NSView {
+        let size: CGFloat = 9
+        let dot = NSView()
+        dot.translatesAutoresizingMaskIntoConstraints = false
+        dot.wantsLayer = true
+        dot.layer?.cornerRadius = size / 2
+        if let fill = color.nsColor {
+            dot.layer?.backgroundColor = fill.cgColor
+        } else { // no-color tag: hollow gray ring so it still reads as "tagged".
+            dot.layer?.borderWidth = 1
+            dot.layer?.borderColor = NSColor.tertiaryLabelColor.cgColor
+        }
+        NSLayoutConstraint.activate([
+            dot.widthAnchor.constraint(equalToConstant: size),
+            dot.heightAnchor.constraint(equalToConstant: size),
+        ])
+        return dot
+    }
+}
+
+extension FinderTagColor {
+    /// On-screen color for a tag dot, or `nil` for a no-color tag.
+    var nsColor: NSColor? {
+        switch self {
+        case .none: return nil
+        case .gray: return .systemGray
+        case .green: return .systemGreen
+        case .purple: return .systemPurple
+        case .blue: return .systemBlue
+        case .yellow: return .systemYellow
+        case .red: return .systemRed
+        case .orange: return .systemOrange
         }
     }
 }

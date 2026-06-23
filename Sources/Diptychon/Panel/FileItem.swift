@@ -13,6 +13,9 @@ struct FileItem: Identifiable, Hashable {
     let size: Int64?
     let modificationDate: Date?
     let isDirectory: Bool
+    /// Apple Finder tags read from the file's xattr (issue 08). Part of equality
+    /// so a tag change marks the row as changed on reload.
+    var tags: [FinderTag] = []
 
     var id: URL { url }
 

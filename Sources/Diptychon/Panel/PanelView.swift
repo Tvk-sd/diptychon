@@ -30,6 +30,8 @@ struct PanelView: View {
                 Toggle("Hidden", isOn: $model.showHidden)
                     .toggleStyle(.checkbox)
 
+                tagFilterMenu
+
                 TextField("Filter", text: $model.filter)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 160)
@@ -65,5 +67,40 @@ struct PanelView: View {
             RoundedRectangle(cornerRadius: 6)
                 .strokeBorder(Color.accentColor, lineWidth: isActive ? 2 : 0)
         }
+    }
+
+    /// Header control to filter the Panel to a single tag (AC4). Lists the tags
+    /// actually present in the folder; selecting one again clears the filter.
+    @ViewBuilder
+    private var tagFilterMenu: some View {
+        @Bindable var model = model
+        Menu {
+            Button {
+                model.tagFilter = nil
+            } label: {
+                Label("All Tags", systemImage: model.tagFilter == nil ? "checkmark" : "tag")
+            }
+            if !model.availableTags.isEmpty {
+                Divider()
+                ForEach(model.availableTags, id: \.name) { tag in
+                    Button {
+                        model.tagFilter = (model.tagFilter == tag.name) ? nil : tag.name
+                    } label: {
+                        Label {
+                            Text(tag.name)
+                        } icon: {
+                            Image(systemName: model.tagFilter == tag.name ? "checkmark.circle.fill" : "circle.fill")
+                                .foregroundStyle(Color(nsColor: tag.color.nsColor ?? .secondaryLabelColor))
+                        }
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: model.tagFilter == nil ? "tag" : "tag.fill")
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .help("Filter by tag")
+        .disabled(model.availableTags.isEmpty && model.tagFilter == nil)
     }
 }
