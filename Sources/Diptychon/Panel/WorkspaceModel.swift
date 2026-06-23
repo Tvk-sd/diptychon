@@ -79,6 +79,21 @@ final class WorkspaceModel {
         tagging = true
     }
 
+    /// Custom (non-built-in) tags already in use across either panel, so the
+    /// picker can offer them for re-applying ("pick from the list"). Full
+    /// integration with Finder's undocumented system tag store is a follow-up;
+    /// this surfaces tags actually present on disk, which is robust.
+    var customTagsInUse: [FinderTag] {
+        let standardNames = Set(FinderTag.standard.map(\.name))
+        var seen = Set<String>()
+        var result: [FinderTag] = []
+        for tag in left.availableTags + right.availableTags
+        where !standardNames.contains(tag.name) && seen.insert(tag.name).inserted {
+            result.append(tag)
+        }
+        return result
+    }
+
     /// Toggle a tag across the Active selection: remove it if every selected item
     /// already has it, otherwise add it to all. One undoable `SetTagsOperation`.
     func toggleTag(_ tag: FinderTag) {

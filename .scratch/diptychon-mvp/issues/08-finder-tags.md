@@ -1,6 +1,6 @@
 # 08 — Finder tags
 
-Status: ready-for-agent
+Status: in-review (feat/08-finder-tags; custom-color sidebar registration split to follow-up)
 
 ## Parent
 
@@ -21,11 +21,14 @@ with Finder as the bar.
 
 ## Acceptance criteria
 
-- [ ] Existing Finder tags display on files (color + name).
-- [ ] Setting/removing a tag on the selection is reflected in Finder, and tags
+- [x] Existing Finder tags display on files (color + name).
+- [x] Setting/removing a tag on the selection is reflected in Finder, and tags
       set in Finder appear here.
-- [ ] User can create a new tag and pick from the system tag list.
-- [ ] The Active Panel can be filtered to show only files with a chosen tag.
+- [x] User can create a new tag and pick from the system tag list. _(Create + pick
+      from tags in use done; custom-color Finder **sidebar** registration —
+      undocumented system tag store — split to a follow-up. Tag + color are
+      written correctly to the file xattr.)_
+- [x] The Active Panel can be filtered to show only files with a chosen tag.
 
 ## Blocked by
 

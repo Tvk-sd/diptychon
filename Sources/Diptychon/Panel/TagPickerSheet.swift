@@ -7,8 +7,13 @@ import SwiftUI
 struct TagPickerSheet: View {
     @Bindable var model: WorkspaceModel
 
+    /// New-tag composer state (slice 5 / AC3).
+    @State private var newName = ""
+    @State private var newColor: FinderTagColor = .none
+
     var body: some View {
         let items = model.activeModel.selectedItems
+        let custom = model.customTagsInUse
         VStack(alignment: .leading, spacing: 12) {
             Text("Tags — \(items.count) item\(items.count == 1 ? "" : "s")")
                 .font(.headline)
@@ -18,8 +23,18 @@ struct TagPickerSheet: View {
                     tagRow(tag, items: items)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                if !custom.isEmpty {
+                    Divider().padding(.vertical, 4)
+                    ForEach(custom, id: \.name) { tag in
+                        tagRow(tag, items: items)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
             }
             .frame(maxWidth: .infinity)
+
+            Divider()
+            newTagComposer
 
             HStack {
                 Spacer()
@@ -28,7 +43,52 @@ struct TagPickerSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 280)
+        .frame(width: 300)
+    }
+
+    /// Create a brand-new tag (name + optional built-in color) and apply it to the
+    /// selection. Routes through `toggleTag`, so it's one undoable op like any
+    /// other tag change. Custom-color *sidebar* registration in Finder is a
+    /// follow-up; the tag + color are written correctly to the file xattr.
+    private var newTagComposer: some View {
+        HStack(spacing: 8) {
+            Menu {
+                Button { newColor = .none } label: { Label("No Color", systemImage: "circle") }
+                ForEach(FinderTag.standard, id: \.name) { tag in
+                    Button { newColor = tag.color } label: {
+                        Label {
+                            Text(tag.name)
+                        } icon: {
+                            Image(systemName: "circle.fill")
+                                .foregroundStyle(Color(nsColor: tag.color.nsColor ?? .secondaryLabelColor))
+                        }
+                    }
+                }
+            } label: {
+                Image(systemName: "circle.fill")
+                    .foregroundStyle(Color(nsColor: newColor.nsColor ?? .secondaryLabelColor))
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("New tag color")
+
+            TextField("New tag", text: $newName)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit(addNewTag)
+                .accessibilityIdentifier("new-tag-name")
+
+            Button("Add", action: addNewTag)
+                .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
+                .accessibilityIdentifier("new-tag-add")
+        }
+    }
+
+    private func addNewTag() {
+        let name = newName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+        model.toggleTag(FinderTag(name: name, color: newColor))
+        newName = ""
+        newColor = .none
     }
 
     private func tagRow(_ tag: FinderTag, items: [FileItem]) -> some View {

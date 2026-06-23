@@ -62,4 +62,9 @@ Finder is the bar — the app keeps NO parallel tag store (CONTEXT.md → Tag).
 - [x] Slice 2 — read + display dots (AC1) — verified by screenshot + I/O unit tests
 - [x] Slice 3 — set/remove undoable (AC2) — ⌘T picker, SetTagsOperation; unit + UI tests; whole row clickable (verified real mouse)
 - [x] Slice 4 — filter by tag (AC4) — `PanelModel.tagFilter` + pure `applyFilters`; header tag menu (lists tags present, toggles/clears); 5 unit tests green
-- [ ] Slice 5 — new tag + system list (AC3, risk)
+- [x] Slice 5 — new tag + pick-from-list (AC3) — picker now has a new-tag composer
+      (name + built-in color, routed through `toggleTag` = one undoable op) and a
+      "custom tags in use" section (`WorkspaceModel.customTagsInUse`) to re-apply
+      existing tags. **Scope call honored:** Finder's undocumented system tag store
+      (custom-color *sidebar* registration) is split to a follow-up; tag + color
+      are written correctly to the file xattr. Build + all tests green.
