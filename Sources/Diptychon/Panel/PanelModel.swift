@@ -39,6 +39,9 @@ final class PanelModel {
 
     private var loadedItems: [FileItem] = []
     private var loadTask: Task<Void, Never>?
+    /// Live watch on `directory`; refreshes the Panel on external changes (AC3).
+    private var watcher: DirectoryWatcher?
+    private var watchedDirectory: URL?
 
     init(directory: URL) {
         self.directory = directory
@@ -69,8 +72,9 @@ final class PanelModel {
 
     func load() { reload() }
 
-    /// Re-list the current directory (after an external change, e.g. a file op).
-    func refresh() { reload() }
+    /// Re-list the current directory (after a file op or an external change).
+    /// No loading flash — the rows are already on screen.
+    func refresh() { reload(showLoading: false) }
 
     /// Enter `item` if it's a directory (files are not activatable yet).
     func navigate(into item: FileItem) {
@@ -93,11 +97,13 @@ final class PanelModel {
     }
 
     /// Re-list the current directory off the main thread. Cancels any in-flight
-    /// load so rapid navigation doesn't race.
-    private func reload() {
+    /// load so rapid navigation doesn't race. `showLoading` is false for refreshes
+    /// (file ops / live watch) so the on-screen rows don't flash to a spinner.
+    private func reload(showLoading: Bool = true) {
         loadTask?.cancel()
+        startWatching()
         let source = LocalDirectorySource(directory: directory, includeHidden: showHidden)
-        state = .loading
+        if showLoading { state = .loading }
         loadTask = Task {
             do {
                 let items = try await source.load()
@@ -110,6 +116,14 @@ final class PanelModel {
                 state = .failed(error.localizedDescription)
             }
         }
+    }
+
+    /// (Re)watch the current directory for external changes. Recreated only when
+    /// the directory changes; the callback refreshes the listing in place (AC3).
+    private func startWatching() {
+        guard watchedDirectory != directory else { return }
+        watchedDirectory = directory
+        watcher = DirectoryWatcher(url: directory) { [weak self] in self?.refresh() }
     }
 
     /// Apply the current filter + sort to the loaded rows, into the cache.
