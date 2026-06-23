@@ -1,8 +1,8 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-23. Issue 08 (Finder tags) implementation complete on
-`feat/08-finder-tags` — all 4 ACs done (slices 1–5). Awaiting UX check, then
-push + PR. One scoped follow-up: custom-color Finder sidebar registration._
+_Updated: 2026-06-23. Issue 08 (Finder tags) done + user-verified — PR #12 open
+(`feat/08-finder-tags`, all 4 ACs). One scoped follow-up: custom-color Finder
+sidebar registration. Next: merge #12, then issue 09._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit). MVP in progress — **7 of 10 issues merged; Xcode migration +

@@ -109,7 +109,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 06 | Drag & drop (+ AppKit list hatch) | ✅ done, PR #7 |
 | 07 | Batch rename | ✅ done, PR #8 (+ QA fixes #10 refresh-both-panels, #11 case-only rename) |
 | — | **Xcode migration** | ✅ done 2026-06-22, PR #9 |
-| 08 | Finder tags (real Apple tags, round-trip) | ✅ done on `feat/08-finder-tags` — all 4 ACs; pending UX check + PR |
+| 08 | Finder tags (real Apple tags, round-trip) | ✅ done — PR #12 open (all 4 ACs, user-verified); sidebar-color follow-up split |
 | 09–10 | QuickLook/Open-with/FSEvents, FDA onboarding | not started |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 
