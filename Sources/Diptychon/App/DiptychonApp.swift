@@ -16,5 +16,13 @@ struct DiptychonApp: App {
                 .frame(minWidth: 720, minHeight: 360)
         }
         .defaultSize(width: 1100, height: 620)
+        .commands {
+            // App menu → standard Preferences slot (⌘,). FDA can't be requested
+            // in code (ADR 0001); this just deep-links to the right Settings pane.
+            CommandGroup(replacing: .appSettings) {
+                Button("Full Disk Access…") { FullDiskAccess.openSettings() }
+                    .keyboardShortcut(",", modifiers: .command)
+            }
+        }
     }
 }

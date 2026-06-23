@@ -55,13 +55,21 @@ struct PanelView: View {
                 )
             case .failed(let message):
                 if model.accessDenied {
-                    ContentUnavailableView {
-                        Label("Couldn't read this folder", systemImage: "lock")
-                    } description: {
+                    VStack(spacing: 10) {
+                        Image(systemName: "lock")
+                            .font(.system(size: 30))
+                            .foregroundStyle(.secondary)
+                        Text("Couldn't read this folder")
+                            .font(.headline)
                         Text("Full Disk Access may be required to read it.")
-                    } actions: {
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
                         Button("Open Full Disk Access Settings") { FullDiskAccess.openSettings() }
+                            .padding(.top, 2)
                     }
+                    .padding(24)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ContentUnavailableView(
                         "Couldn't read folder",

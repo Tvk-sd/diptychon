@@ -48,7 +48,21 @@ Settings.
 - Build-verifiable only up to the UI; the grant flow itself needs the user.
 
 ## Progress
-- [ ] Slice 1 — detection + openSettings
-- [ ] Slice 2 — non-blocking banner
-- [ ] Slice 3 — recovery on app-active
-- [ ] Slice 4 — inline per-folder permission guidance
+- [x] Slice 1 — detection + openSettings (`FullDiskAccess` helper).
+- [x] Slice 2 — ~~non-blocking banner~~ → **dropped per UX review** (felt like an
+      ecommerce banner). Replaced by an app-menu item: **Diptychon ▸ Full Disk
+      Access…** (⌘, Preferences slot, `CommandGroup(.appSettings)`).
+- [x] Slice 3 — recovery on app-active: `recheckFullDiskAccess` re-lists a panel
+      that was permission-blocked once access is granted (no restart).
+- [x] Slice 4 — inline per-folder guidance (`PanelModel.accessDenied`): clean,
+      centered lock + message + "Open Full Disk Access Settings" in the folder's
+      failed state. **Verified on-screen** (pointed at ~/Library/Safari).
+
+## UX revisions (from user review)
+- Removed the global banner; guidance is **inline only** (on entering a protected
+  folder) + the app-menu item.
+- Repositioned/right-sized the inline notice (was the oversized default
+  `ContentUnavailableView`; now a centered, headline-weight custom view).
+- Grant round-trip confirmed by user (Open Settings → correct pane; works).
+- Surfaced gap: **no path bar / go-to-folder** to reach arbitrary folders (e.g.
+  ~/Library). Candidate backlog issue 15.

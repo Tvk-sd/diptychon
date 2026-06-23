@@ -40,29 +40,19 @@ final class WorkspaceModel {
     /// Whether the tag picker is open for the Active Panel's selection.
     var tagging = false
 
-    /// Full Disk Access onboarding (issue 10): `fdaMissing` is re-probed on launch
-    /// and whenever the app reactivates (e.g. after the user visits Settings).
-    var fdaMissing = false
-    var fdaBannerDismissed = false
-    /// Non-blocking banner shows only while access is missing and not dismissed.
-    var showFDABanner: Bool { fdaMissing && !fdaBannerDismissed }
-
     init() {
         left = PanelModel(directory: .startDirectory)
         right = PanelModel(directory: .startDirectory)
-        recheckFullDiskAccess()
     }
 
-    /// Re-probe Full Disk Access. Called on launch and on app reactivation; when
-    /// access has just been granted, drop the banner and re-list both panels so
-    /// previously-denied folders fill in — no restart (AC3).
+    /// Full Disk Access onboarding (issue 10): called when the app reactivates
+    /// (the user may have just granted access in System Settings). If a panel was
+    /// blocked by a permission error and access is now available, re-list it so
+    /// the folder fills in — no restart (AC3). No global banner: guidance is
+    /// shown inline only when a protected folder is actually opened.
     func recheckFullDiskAccess() {
-        let granted = FullDiskAccess.isGranted
-        fdaMissing = !granted
-        if granted {
-            fdaBannerDismissed = false // reset for any future revocation
-            refreshBoth()
-        }
+        guard left.accessDenied || right.accessDenied, FullDiskAccess.isGranted else { return }
+        refreshBoth()
     }
 
     var activeModel: PanelModel { active == .left ? left : right }
