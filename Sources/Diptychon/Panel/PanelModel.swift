@@ -30,6 +30,8 @@ final class PanelModel {
     var showHidden = false { didSet { reload() } }
     /// Type-ahead filter text; narrows the visible entries.
     var filter = "" { didSet { recomputeVisible() } }
+    /// Optional tag filter (by name): when set, show only files carrying it.
+    var tagFilter: String? = nil { didSet { recomputeVisible() } }
     /// Column sort order, driven by the `Table` header.
     var sortOrder = [KeyPathComparator(\FileItem.name)] { didSet { recomputeVisible() } }
     /// Current row selection (lifted here so the Commander gesture can act on it).
@@ -51,6 +53,19 @@ final class PanelModel {
 
     /// The currently selected rows as items, in display order.
     var selectedItems: [FileItem] { visibleItems.filter { selection.contains($0.id) } }
+
+    /// Distinct tags present across the loaded rows (for the header's filter menu),
+    /// first-seen order. Includes custom tags, not just the built-in colors.
+    var availableTags: [FinderTag] {
+        var seen = Set<String>()
+        var result: [FinderTag] = []
+        for item in loadedItems {
+            for tag in item.tags where seen.insert(tag.name).inserted {
+                result.append(tag)
+            }
+        }
+        return result
+    }
 
     func load() { reload() }
 
@@ -80,6 +95,7 @@ final class PanelModel {
 
     private func afterNavigation() {
         filter = ""
+        tagFilter = nil
         selection = []
         reload()
     }
@@ -106,10 +122,21 @@ final class PanelModel {
 
     /// Apply the current filter + sort to the loaded rows, into the cache.
     private func recomputeVisible() {
-        let trimmed = filter.trimmingCharacters(in: .whitespaces)
-        let filtered = trimmed.isEmpty
-            ? loadedItems
-            : loadedItems.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
-        visibleItems = filtered.sorted(using: sortOrder)
+        visibleItems = Self.applyFilters(loadedItems, text: filter, tagName: tagFilter)
+            .sorted(using: sortOrder)
+    }
+
+    /// Pure filter step (type-ahead text + optional tag), factored out so it's
+    /// unit-testable without spinning up an async directory load.
+    static func applyFilters(_ items: [FileItem], text: String, tagName: String?) -> [FileItem] {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        var result = items
+        if !trimmed.isEmpty {
+            result = result.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
+        }
+        if let tagName {
+            result = result.filter { $0.tags.contains { $0.name == tagName } }
+        }
+        return result
     }
 }

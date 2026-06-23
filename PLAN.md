@@ -61,5 +61,5 @@ Finder is the bar — the app keeps NO parallel tag store (CONTEXT.md → Tag).
 - [x] Slice 1 — FinderTag model + xattr codec + unit tests (7 tests green)
 - [x] Slice 2 — read + display dots (AC1) — verified by screenshot + I/O unit tests
 - [x] Slice 3 — set/remove undoable (AC2) — ⌘T picker, SetTagsOperation; unit + UI tests; whole row clickable (verified real mouse)
-- [ ] Slice 4 — filter by tag (AC4)
+- [x] Slice 4 — filter by tag (AC4) — `PanelModel.tagFilter` + pure `applyFilters`; header tag menu (lists tags present, toggles/clears); 5 unit tests green
 - [ ] Slice 5 — new tag + system list (AC3, risk)
