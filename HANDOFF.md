@@ -1,8 +1,8 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-23. Issues 08 (PR #12) + 09 (PR #13) merged to `main`. Only
-issue 10 (Full Disk Access onboarding) remains for the MVP. Backlog: issues 11–14
-(14 = inline preview pane, raised in 09). Next: issue 10._
+_Updated: 2026-06-23. Issues 08 (PR #12) + 09 (PR #13) merged. Issue 10 (Full Disk
+Access onboarding) done + user-verified on `feat/10-full-disk-access` — opening PR
+next; that completes the 10-issue MVP. Backlog: issues 11–15._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit). MVP in progress — **7 of 10 issues merged; Xcode migration +
@@ -90,11 +90,12 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 07 | Batch rename | ✅ merged (+ QA fixes #10, #11) |
 | 08 | Finder tags (real Apple tags, round-trip) | ✅ done on branch — all 4 ACs; pending UX check + PR |
 | 09 | QuickLook / Open-with / FSEvents | ✅ merged (PR #13) |
-| 10 | Full Disk Access onboarding | ⬜ (wants signed bundle → do after Xcode) |
+| 10 | Full Disk Access onboarding | ✅ done on branch — all ACs, user-verified; PR pending |
 | 11 | Inline single-file rename (split from 07) | ⬜ backlog |
 | 12 | Custom tag color registration / Finder sidebar (split from 08) | ⬜ backlog |
 | 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
 | 14 | Inline preview / inspector pane (raised during 09) | ⬜ backlog |
+| 15 | Path bar / Go to Folder (raised during 10) | ⬜ backlog |
 
 ## Architecture (current)
 - `App/DiptychonApp.swift` — `@main struct DiptychonApp: App` with

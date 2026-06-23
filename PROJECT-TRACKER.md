@@ -111,11 +111,12 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | — | **Xcode migration** | ✅ done 2026-06-22, PR #9 |
 | 08 | Finder tags (real Apple tags, round-trip) | ✅ done, PR #12 (all 4 ACs, user-verified); sidebar-color follow-up split |
 | 09 | QuickLook / Open-with / FSEvents | ✅ done, PR #13 (all 3 ACs, user-verified) |
-| 10 | Full Disk Access onboarding | not started |
+| 10 | Full Disk Access onboarding | ✅ done on `feat/10-…` — all ACs, user-verified; PR pending |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
 | 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
 | 14 | Inline preview / inspector pane | ⬜ backlog (raised in 09) |
+| 15 | Path bar / Go to Folder | ⬜ backlog (raised in 10) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -164,6 +165,25 @@ Three macOS integrations, built in 4 slices, user-verified end to end:
   Return/Tab were hijacked mid-type).
 - Tests: 28 green (25 unit + 3 UI), incl. 2 temp-dir `DirectoryWatcher` tests.
 - Split out: **issue 14** (inline preview pane, distinct from floating QuickLook).
+
+### Issue 10 outcome (2026-06-23) — Full Disk Access onboarding (branch `feat/10-…`)
+FDA can't be requested in code (ADR 0001), so the app detects its absence and
+guides the user. **Non-blocking, inline-first** (a global banner was prototyped
+then dropped in UX review — felt like an ecommerce banner):
+- `FullDiskAccess` helper — `isGranted` probe (lists `~/Library/Safari`, falls
+  back to user `com.apple.TCC/TCC.db`) + `openSettings()` deep-link to the
+  Privacy → Full Disk Access pane (confirmed correct on-device).
+- **App menu** — Diptychon ▸ **Full Disk Access…** (⌘, Preferences slot,
+  `CommandGroup(.appSettings)`).
+- **Inline guidance** — `PanelModel.accessDenied` (NSFileReadNoPermissionError)
+  shows a centered lock + message + "Open Full Disk Access Settings" in the
+  folder's failed state.
+- **Recovery** — `recheckFullDiskAccess` on app reactivation re-lists a panel
+  that was permission-blocked once access is granted (no restart).
+- HITL bar met: grant round-trip + UX reviewed by the user on a real device.
+- Surfaced gap → **issue 15** (path bar / Go to Folder): no way to reach
+  arbitrary folders like `~/Library`.
+- 28 tests green (no new unit tests — the grant flow is OS-gated / HITL).
 
 **Gotcha (SwiftUI + XCUITest):** a `.plain` Button's hit area for *synthetic*
 clicks is the rendered content, not the framed row; a real pointer respects
