@@ -60,7 +60,19 @@ Three macOS integrations on the existing dual-panel app:
   it flickers.
 
 ## Progress
-- [ ] Slice 1 — open in default app (AC2a)
-- [ ] Slice 2 — open with chooser (AC2b)
-- [ ] Slice 3 — QuickLook spacebar (AC1)
-- [ ] Slice 4 — FSEvents live update (AC3)
+- [x] Slice 1 — open in default app (AC2a): Return/double-click → folder navigates,
+      file opens via NSWorkspace; dead PanelModel.openSelection removed.
+- [x] Slice 2 — open with chooser (AC2b): FileTableView right-click menu
+      (Open / Open With ▸ apps + Other…). Build-verified; left for interactive check.
+- [x] Slice 3 — QuickLook spacebar (AC1): QuickLookController + togglePreview;
+      key monitor ignores keys while a text field edits. **Verified** (preview panel).
+- [x] Slice 4 — FSEvents live update (AC3): DirectoryWatcher (DispatchSource),
+      refresh without loading flash; 2 temp-dir tests. **Verified** (live in both panels).
+
+## Notes / decisions while building
+- Key monitor now bails when the first responder is an `NSText` (field editor), so
+  plain ␣/↩/⇥ reach the Filter/rename/new-tag fields. This also fixed the latent
+  "Return/Tab hijacked while typing in Filter" issue.
+- `refresh()` no longer flips to the loading spinner → no flash on file ops or
+  live updates.
+- 28 tests green (25 unit + 3 UI).
