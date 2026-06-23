@@ -1,7 +1,8 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-23. Issue 08 (Finder tags) in progress on `feat/08-finder-tags`
-— slices 1–3 done (AC1, AC2); slices 4–5 remain._
+_Updated: 2026-06-23. Issue 08 (Finder tags) implementation complete on
+`feat/08-finder-tags` — all 4 ACs done (slices 1–5). Awaiting UX check, then
+push + PR. One scoped follow-up: custom-color Finder sidebar registration._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit). MVP in progress — **7 of 10 issues merged; Xcode migration +
@@ -27,10 +28,10 @@ Found by manually testing batch rename with both panels on the same folder:
   wrongly flagged as a collision. `renameCollisionIndices` is now volume-aware.
   Guarded by `DiptychonTests/RenameCollisionTests` (5 unit tests).
 
-## 🚧 IN PROGRESS: issue 08 (Finder tags) — `feat/08-finder-tags`
+## ✅ DONE (pending PR): issue 08 (Finder tags) — `feat/08-finder-tags`
 Real Apple Finder tags via the `_kMDItemUserTags` xattr, round-trip with Finder.
 Spec: `.scratch/diptychon-mvp/issues/08-finder-tags.md`. Built in vertical slices,
-TDD where pure. **Done so far (committed locally, not pushed):**
+TDD where pure. **All 5 slices committed locally, not pushed:**
 - **Slice 1** — `FinderTag` model + `FinderTagCodec` (xattr binary-plist
   `"name\nColorIndex"` ↔ tags). `Operations/FinderTag.swift`. 7 unit tests
   (incl. a real Finder-written sample as fixture).
@@ -43,16 +44,25 @@ TDD where pure. **Done so far (committed locally, not pushed):**
   `SetTagsOperation` (`Operations/TagOperations.swift`), reflected live + in
   Finder. Whole row is the hit target (verified with a real mouse click).
 
-**Remaining:**
-- **Slice 4 (AC4)** — filter the Active Panel to a chosen tag (extend
-  `PanelModel.recomputeVisible`, which already does filter+sort).
-- **Slice 5 (AC3)** — create a new tag + pick from the system tag list. **Risk:**
-  custom-tag color *sidebar* registration needs Finder's separate, undocumented
-  system tag store. Decision (PLAN.md): ship built-in 7 colors solidly + new tags
-  (xattr-correct); split custom-color sidebar parity to a follow-up if fragile.
+- **Slice 4 (AC4)** — filter the Active Panel to a chosen tag. `PanelModel.tagFilter`
+  applied via a pure, unit-tested `PanelModel.applyFilters` (text + tag); header
+  tag menu lists the tags present in the folder (toggle to set, "All Tags" to
+  clear), cleared on navigation. `PanelView.tagFilterMenu`.
+- **Slice 5 (AC3)** — create a new tag + pick from tags in use. `TagPickerSheet`
+  gained a new-tag composer (name + built-in color, applied via `toggleTag` = one
+  undoable op) and a "custom tags in use" section (`WorkspaceModel.customTagsInUse`)
+  to re-apply existing tags.
 
-Tests: 18 green (15 unit + 3 UI). The picker UI test asserts the file's real tag
-xattr, proving the Finder round-trip (not just in-app state).
+**Scoped follow-up (not a blocker):** Finder's *sidebar* only colors a brand-new
+custom-named tag once it's registered in Finder's separate, undocumented system
+tag store. We write the tag **name + color correctly to the file xattr** (so the
+file's dot is right and it round-trips), but a never-before-seen custom tag may not
+appear in Finder's sidebar until Finder itself sees it. Split per the PLAN scope
+call — open a follow-up issue if full sidebar parity is wanted.
+
+Tests: **26 green** (23 unit + 3 UI). The picker UI test asserts the file's real
+tag xattr, proving the Finder round-trip (not just in-app state). New this round:
+5 `PanelFilterTests` for the tag/text filter.
 
 ## Gotcha learned this session (issue 08)
 SwiftUI under XCUITest: a `.plain` Button's hit area for *synthetic* clicks is the
@@ -61,7 +71,7 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 (the xattr) rather than the accessibility tree for robust, meaningful UI tests.
 
 ## Git state
-- Branch: **`feat/08-finder-tags`** (off `main`). Slices 1–3 committed locally,
+- Branch: **`feat/08-finder-tags`** (off `main`). All 5 slices committed locally,
   **not yet pushed**; no PR open. `main` has issues 01–07 + PRs #9/#10/#11.
 - Repo: https://github.com/Tvk-sd/diptychon
 - Build/run: `xcodegen generate` then `open Diptychon.xcodeproj`, or
@@ -78,7 +88,7 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 05 | Remaining file ops + clipboard | ✅ merged |
 | 06 | Drag & drop (+ AppKit NSTableView list) | ✅ merged |
 | 07 | Batch rename | ✅ merged (+ QA fixes #10, #11) |
-| 08 | Finder tags (real Apple tags, round-trip) | 🚧 in progress — slices 1–3 (AC1,AC2) done; 4–5 left |
+| 08 | Finder tags (real Apple tags, round-trip) | ✅ done on branch — all 4 ACs; pending UX check + PR |
 | 09 | QuickLook / Open-with / FSEvents | ⬜ |
 | 10 | Full Disk Access onboarding | ⬜ (wants signed bundle → do after Xcode) |
 | 11 | Inline single-file rename (split from 07) | ⬜ backlog |
@@ -141,13 +151,12 @@ Preferred order, cheapest first:
 
 ## To resume (issue 08)
 1. `git checkout feat/08-finder-tags`; `xcodegen generate`;
-   `xcodebuild -scheme Diptychon -destination 'platform=macOS' test` → 18 green.
-2. **Slice 4 (AC4):** filter the Active Panel by a chosen tag — extend
-   `PanelModel.recomputeVisible` (filter+sort cache) and surface a tag chooser
-   (e.g. in the panel header or reuse the ⌘T picker). Unit-test the filter.
-3. **Slice 5 (AC3):** create a new tag + system tag list — scope per the risk note
-   above; split custom-color sidebar parity to a follow-up if needed.
-4. Push branch + open PR when the remaining slices land (or a draft PR sooner).
+   `xcodebuild -scheme Diptychon -destination 'platform=macOS' test` → 26 green.
+2. **UX check** the running build (all 4 ACs): per-panel header tag menu filters;
+   ⌘T picker toggles built-in colors, creates new tags, re-applies custom tags.
+3. **Push branch + open PR.** Then close PLAN.md into PROJECT-TRACKER.
+4. **Follow-up issue (optional):** custom-color Finder *sidebar* registration via
+   Finder's undocumented system tag store (the only deferred piece of AC3).
 
 ## Dev-loop gotcha (post-migration)
 The app keeps a fixed bundle id, so launching never starts a second copy — macOS
