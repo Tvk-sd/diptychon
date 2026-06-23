@@ -111,7 +111,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | — | **Xcode migration** | ✅ done 2026-06-22, PR #9 |
 | 08 | Finder tags (real Apple tags, round-trip) | ✅ done, PR #12 (all 4 ACs, user-verified); sidebar-color follow-up split |
 | 09 | QuickLook / Open-with / FSEvents | ✅ done, PR #13 (all 3 ACs, user-verified) |
-| 10 | Full Disk Access onboarding | ✅ done on `feat/10-…` — all ACs, user-verified; PR pending |
+| 10 | Full Disk Access onboarding | ✅ done, PR #14 (all ACs, user-verified) — **MVP complete** |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
 | 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
