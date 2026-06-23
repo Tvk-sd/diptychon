@@ -92,6 +92,8 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 09 | QuickLook / Open-with / FSEvents | ⬜ |
 | 10 | Full Disk Access onboarding | ⬜ (wants signed bundle → do after Xcode) |
 | 11 | Inline single-file rename (split from 07) | ⬜ backlog |
+| 12 | Custom tag color registration / Finder sidebar (split from 08) | ⬜ backlog |
+| 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
 
 ## Architecture (current)
 - `App/DiptychonApp.swift` — `@main struct DiptychonApp: App` with

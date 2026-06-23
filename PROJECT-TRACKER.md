@@ -112,6 +112,8 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 08 | Finder tags (real Apple tags, round-trip) | ✅ done, PR #12 (all 4 ACs, user-verified); sidebar-color follow-up split |
 | 09–10 | QuickLook/Open-with/FSEvents, FDA onboarding | not started |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
+| 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
+| 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
