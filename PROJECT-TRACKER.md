@@ -110,10 +110,12 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 07 | Batch rename | ✅ done, PR #8 (+ QA fixes #10 refresh-both-panels, #11 case-only rename) |
 | — | **Xcode migration** | ✅ done 2026-06-22, PR #9 |
 | 08 | Finder tags (real Apple tags, round-trip) | ✅ done, PR #12 (all 4 ACs, user-verified); sidebar-color follow-up split |
-| 09–10 | QuickLook/Open-with/FSEvents, FDA onboarding | not started |
+| 09 | QuickLook / Open-with / FSEvents | ✅ done on `feat/09-…` — all 3 ACs, user-verified; PR pending |
+| 10 | Full Disk Access onboarding | not started |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
 | 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
+| 14 | Inline preview / inspector pane | ⬜ backlog (raised in 09) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -145,6 +147,23 @@ against a Finder-written sample). Built in vertical slices, TDD where pure:
   undocumented system tag store; deferred. We write tag name + color correctly to
   the xattr, so the file's dot is right and it round-trips.
 - Tests: 26 green (23 unit + 3 UI); picker UI test asserts the file's real xattr.
+
+### Issue 09 outcome (2026-06-23) — QuickLook / Open-with / FSEvents (branch `feat/09-…`)
+Three macOS integrations, built in 4 slices, user-verified end to end:
+- **AC2a open** — Return / double-click: a single folder navigates, file(s) open via
+  `NSWorkspace` (`WorkspaceModel.openSelection`). New `↩` keymap entry.
+- **AC2b open with** — `FileTableView` right-click menu (Open / Open With ▸ candidate
+  apps via `NSWorkspace.urlsForApplications` + Other… via `NSOpenPanel`), targeting
+  the clicked row or the selection.
+- **AC1 QuickLook** — `QuickLookController` (`QLPreviewPanelDataSource`) +
+  `togglePreview` drive the shared `QLPreviewPanel` on space (keyCode 49).
+- **AC3 FSEvents** — `DirectoryWatcher` (`DispatchSource` vnode, debounced) → live
+  refresh; `refresh()` no longer flips to the loading spinner (no flash).
+- **Bonus fix:** the key monitor now ignores hotkeys while a text field is first
+  responder, so plain ␣/↩/⇥ reach the Filter/rename/new-tag editors (latent bug:
+  Return/Tab were hijacked mid-type).
+- Tests: 28 green (25 unit + 3 UI), incl. 2 temp-dir `DirectoryWatcher` tests.
+- Split out: **issue 14** (inline preview pane, distinct from floating QuickLook).
 
 **Gotcha (SwiftUI + XCUITest):** a `.plain` Button's hit area for *synthetic*
 clicks is the rendered content, not the framed row; a real pointer respects
