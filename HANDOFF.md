@@ -1,8 +1,8 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-23. Issue 08 (Finder tags) done + user-verified — PR #12 open
-(`feat/08-finder-tags`, all 4 ACs). One scoped follow-up: custom-color Finder
-sidebar registration. Next: merge #12, then issue 09._
+_Updated: 2026-06-23. Issue 08 (Finder tags) merged to `main` (PR #12, all 4 ACs,
+user-verified). One scoped follow-up: custom-color Finder sidebar registration.
+Next: issue 09 (QuickLook / Open-with / FSEvents)._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit). MVP in progress — **7 of 10 issues merged; Xcode migration +
@@ -28,7 +28,7 @@ Found by manually testing batch rename with both panels on the same folder:
   wrongly flagged as a collision. `renameCollisionIndices` is now volume-aware.
   Guarded by `DiptychonTests/RenameCollisionTests` (5 unit tests).
 
-## ✅ DONE (pending PR): issue 08 (Finder tags) — `feat/08-finder-tags`
+## ✅ DONE: issue 08 (Finder tags) — merged (PR #12)
 Real Apple Finder tags via the `_kMDItemUserTags` xattr, round-trip with Finder.
 Spec: `.scratch/diptychon-mvp/issues/08-finder-tags.md`. Built in vertical slices,
 TDD where pure. **All 5 slices committed locally, not pushed:**
