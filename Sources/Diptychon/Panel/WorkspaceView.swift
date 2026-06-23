@@ -92,7 +92,7 @@ struct WorkspaceView: View {
                 // Double-click opens the selected row (first click already selected
                 // it). Handled here so the Table keeps native single-click select.
                 if event.clickCount == 2 {
-                    DispatchQueue.main.async { model.activeModel.openSelection() }
+                    DispatchQueue.main.async { model.openSelection() }
                 }
                 return event
             }

@@ -69,6 +69,24 @@ final class WorkspaceModel {
         case .newFile: create(.file)
         case .rename: beginRename()
         case .showTags: beginTagging()
+        case .openSelection: openSelection()
+        }
+    }
+
+    // MARK: - Open (default app / navigate)
+
+    /// Activate the Active Panel's selection (Return / double-click): a single
+    /// folder navigates into it; files open in their default app (Finder
+    /// behavior). A mixed selection opens the files and ignores folders.
+    func openSelection() {
+        let items = activeModel.selectedItems
+        guard !items.isEmpty else { return }
+        if items.count == 1, let only = items.first, only.isDirectory {
+            activeModel.navigate(into: only)
+            return
+        }
+        for item in items where !item.isDirectory {
+            NSWorkspace.shared.open(item.url)
         }
     }
 

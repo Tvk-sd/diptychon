@@ -79,14 +79,6 @@ final class PanelModel {
         afterNavigation()
     }
 
-    /// Open the single selected row if it's a directory (double-click / Return).
-    func openSelection() {
-        guard selection.count == 1, let id = selection.first,
-              let item = visibleItems.first(where: { $0.id == id })
-        else { return }
-        navigate(into: item)
-    }
-
     func navigateUp() {
         guard canGoUp else { return }
         directory = directory.deletingLastPathComponent()

@@ -17,6 +17,7 @@ enum AppAction {
     case newFile         // ⌃⌘N (non-standard; macOS has no native new-file key)
     case rename          // ⌘R  — batch-rename the selection
     case showTags        // ⌘T  — open the tag picker for the selection
+    case openSelection   // ↩   — open folders (navigate) / files (default app)
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -48,6 +49,7 @@ struct KeyChord {
 /// macOS hardware key codes (layout-independent keys only).
 private enum Key {
     static let tab: UInt16 = 48
+    static let `return`: UInt16 = 36
     static let delete: UInt16 = 51 // ⌫ (Backspace)
     static let leftArrow: UInt16 = 123
     static let rightArrow: UInt16 = 124
@@ -76,6 +78,7 @@ enum Keymap {
         (KeyChord(.character("n"), command: true, control: true), .newFile),
         (KeyChord(.character("r"), command: true), .rename),
         (KeyChord(.character("t"), command: true), .showTags),
+        (KeyChord(.code(Key.return)), .openSelection),          // ↩ open folder/file
     ]
 
     static func action(for event: NSEvent,
