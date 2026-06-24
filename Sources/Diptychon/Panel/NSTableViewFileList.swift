@@ -45,7 +45,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         }
 
         addColumn(table, id: Column.name, title: "Name", width: 280, sortKey: "name")
-        addColumn(table, id: Column.size, title: "Size", width: 90, sortKey: "size")
+        addColumn(table, id: Column.size, title: "Size", width: 90, sortKey: "size", alignment: .right)
         addColumn(table, id: Column.date, title: "Date Modified", width: 160, sortKey: "date")
 
         // Drag out (to Finder / other Panel) + accept drops (from Finder / Panels).
@@ -67,10 +67,12 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         context.coordinator.syncSelection(table)
     }
 
-    private func addColumn(_ table: NSTableView, id: String, title: String, width: CGFloat, sortKey: String) {
+    private func addColumn(_ table: NSTableView, id: String, title: String, width: CGFloat,
+                           sortKey: String, alignment: NSTextAlignment = .left) {
         let col = NSTableColumn(identifier: .init(id))
         col.title = title
         col.width = width
+        col.headerCell.alignment = alignment   // header matches the cell alignment
         col.sortDescriptorPrototype = NSSortDescriptor(key: sortKey, ascending: true)
         table.addTableColumn(col)
     }
@@ -91,9 +93,6 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
 
         private static let sizeFormatter: ByteCountFormatter = {
             let f = ByteCountFormatter(); f.countStyle = .file; return f
-        }()
-        private static let dateFormatter: DateFormatter = {
-            let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .short; return f
         }()
 
         init(_ parent: NSTableViewFileList) { self.parent = parent }
@@ -144,7 +143,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             case Column.size:
                 cell.textField?.stringValue = item.size.map { Self.sizeFormatter.string(fromByteCount: $0) } ?? "—"
             case Column.date:
-                cell.textField?.stringValue = item.modificationDate.map(Self.dateFormatter.string(from:)) ?? "—"
+                cell.textField?.stringValue = item.modificationDate.map { FileDateFormatter.string(for: $0) } ?? "—"
             default: break
             }
             return cell
@@ -156,6 +155,12 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             let text = NSTextField(labelWithString: "")
             text.translatesAutoresizingMaskIntoConstraints = false
             text.lineBreakMode = .byTruncatingTail
+            // Numeric Size column → right-aligned + monospaced digits so values
+            // line up by place value for at-a-glance comparison (issue 17).
+            if id.rawValue == Column.size {
+                text.alignment = .right
+                text.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+            }
             cell.addSubview(text)
             cell.textField = text
             if withIcon, let cell = cell as? NameCellView {

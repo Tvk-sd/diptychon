@@ -1,6 +1,6 @@
 # 17 — File-list polish (data-driven display)
 
-Status: ready-for-agent
+Status: done — branch `feat/17-file-list-polish`; see PROJECT-TRACKER issue 17 outcome
 
 ## Parent
 
@@ -29,11 +29,11 @@ once higher-value features have landed.
 
 ## Acceptance criteria
 
-- [ ] The Size column is right-aligned and visually comparable down the column.
-- [ ] Dates are presented in a scan-friendly way (relative and/or grouped), not a
+- [x] The Size column is right-aligned and visually comparable down the column.
+- [x] Dates are presented in a scan-friendly way (relative and/or grouped), not a
       single dense timestamp string.
-- [ ] Column alignment/padding is consistent (text left, numeric right).
-- [ ] No regression to sorting, selection, or the existing tag dots.
+- [x] Column alignment/padding is consistent (text left, numeric right).
+- [x] No regression to sorting, selection, or the existing tag dots.
 
 ## Notes
 
