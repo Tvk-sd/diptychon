@@ -115,7 +115,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
 | 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
-| 14 | Inline preview / inspector pane | ⬜ backlog (raised in 09) |
+| 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
 | 15 | Path bar / Go to Folder | ⬜ backlog (raised in 10) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
@@ -184,6 +184,22 @@ then dropped in UX review — felt like an ecommerce banner):
 - Surfaced gap → **issue 15** (path bar / Go to Folder): no way to reach
   arbitrary folders like `~/Library`.
 - 28 tests green (no new unit tests — the grant flow is OS-gated / HITL).
+
+### Issue 14 outcome (2026-06-24) — Inline preview / inspector pane (PR #15)
+First post-MVP feature. A toggleable right-side pane (off by default, ~300px)
+previewing the Active Panel's selection — distinct from the floating spacebar
+QuickLook (09).
+- `WorkspaceModel.previewVisible` (UserDefaults-persisted); toolbar button
+  (`sidebar.right`) + ⇧⌘P toggle.
+- `PreviewPane`: single selection → live `QLPreviewView` + metadata (name, kind,
+  size, created/modified); none/multiple → placeholder. Follows `activeModel`.
+- Header tightened so it never wraps when the pane narrows the panels: the
+  "Hidden" checkbox became a compact eye/eye.slash icon; path yields width first;
+  Filter field flexes (70–160).
+- 26 tests (22 unit + 4 UI), incl. `testPreviewPaneShowsSelectedFile`.
+- **Test hardening:** `testLaunchesWithTwoPanels` repointed from the user's HOME
+  (which can stall on a TCC prompt under XCUITest → panels stuck "Loading…") to a
+  temp dir. Lesson: UI tests must control their directory, never rely on HOME.
 
 **Gotcha (SwiftUI + XCUITest):** a `.plain` Button's hit area for *synthetic*
 clicks is the rendered content, not the framed row; a real pointer respects

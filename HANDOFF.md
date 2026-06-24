@@ -1,8 +1,8 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-23. Issues 08 (PR #12) + 09 (PR #13) merged. Issue 10 (Full Disk
-Access onboarding) done + user-verified on `feat/10-full-disk-access` — opening PR
-next; that completes the 10-issue MVP. Backlog: issues 11–15._
+_Updated: 2026-06-24. 10-issue MVP complete (08–10 merged: PRs #12/#13/#14).
+Post-MVP: issue 14 inline preview pane merged (PR #15). Backlog: 11 (inline
+rename), 12 (tag sidebar color), 13 (panel resize/collapse), 15 (path bar)._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit). MVP in progress — **7 of 10 issues merged; Xcode migration +
@@ -94,7 +94,7 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 11 | Inline single-file rename (split from 07) | ⬜ backlog |
 | 12 | Custom tag color registration / Finder sidebar (split from 08) | ⬜ backlog |
 | 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
-| 14 | Inline preview / inspector pane (raised during 09) | ⬜ backlog |
+| 14 | Inline preview / inspector pane (raised during 09) | ✅ merged (PR #15) |
 | 15 | Path bar / Go to Folder (raised during 10) | ⬜ backlog |
 
 ## Architecture (current)
