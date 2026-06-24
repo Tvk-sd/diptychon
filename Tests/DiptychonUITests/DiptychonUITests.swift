@@ -12,7 +12,18 @@ final class DiptychonUITests: XCTestCase {
     /// exists and it contains exactly two file lists (the left + right Panels,
     /// each an NSTableView → XCUIElement `table`).
     func testLaunchesWithTwoPanels() throws {
+        // Point both panels at a controlled temp dir rather than the user's home:
+        // home can contain TCC-protected folders (Desktop/Documents/…) whose load
+        // may block on a permission prompt under XCUITest, leaving panels stuck
+        // "Loading…". A temp dir keeps this smoke test deterministic.
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-launch-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        fm.createFile(atPath: dir.appendingPathComponent("file.txt").path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
         let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
         app.launch()
 
         XCTAssertTrue(

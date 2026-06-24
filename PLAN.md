@@ -1,68 +1,50 @@
-# PLAN — Issue 10: Full Disk Access onboarding
+# PLAN — Issue 14: Inline preview / inspector pane
 
-Spec: `.scratch/diptychon-mvp/issues/10-full-disk-access-onboarding.md`.
-Branch: `feat/10-full-disk-access`. **HITL** — the real grant + UX sign-off happen
-on-device (can't be tested headless).
+Spec: `.scratch/diptychon-mvp/issues/14-inline-preview-pane.md`.
+Branch: `feat/14-inline-preview`.
 
 ## What I understood
-FDA can't be requested programmatically (ADR 0001). The app must **detect** when
-it's missing, **guide** the user to System Settings → Privacy & Security → Full
-Disk Access, and **recover** (re-list directories) once granted — no forced restart.
-Since the app is non-sandboxed, it already reads home + most folders without FDA;
-FDA only unlocks protected areas (Mail, Safari, other apps' data, some system dirs).
+A toggleable **right-side preview pane** that shows a live preview of the Active
+Panel's current selection (a `QLPreviewView`, inline — not the floating spacebar
+QuickLook), plus basic metadata (name, kind, size, created/modified). Follows the
+active panel; off by default; visibility persists.
 
-## Decision (confirmed with user)
-**Non-blocking banner + inline.** A dismissible top-of-window banner when access is
-missing ("Some folders need Full Disk Access — Open Settings / Dismiss"); the app
-stays fully usable. PLUS inline "Open Settings" guidance when a *specific*
-protected folder fails to load on a permission error. Auto-recover on return from
-Settings.
+## Assumptions (challenge these)
+- **Right-side pane, ~300px, toggleable, off by default.** At ~1100px the dual
+  panels + a narrow preview fit; default-off means no disruption for people who
+  don't want it. (Issue 13 will later let the right *file* panel collapse to free
+  more room; this works standalone before that.)
+- **Toggle = a window toolbar button** (Finder-style `sidebar.right` icon) + a
+  keyboard shortcut (⇧⌘P). Adds a native titlebar toolbar — also the future home
+  for issue 13's collapse button.
+- Preview follows `model.activeModel` selection; switching panels updates it.
+- Single selection → preview + metadata; none → placeholder; multiple → a short
+  "N items selected" summary (QLPreviewView previews one item).
+- Persist visibility across launches via `UserDefaults` (cheap) — satisfies the
+  "persists per session (ideally across launches)" AC.
+- Verified by build + screenshot (OS-rendered preview; little pure logic to unit-test).
 
 ## Approach — slices
-1. **Detection + Settings deep-link.** `FullDiskAccess` helper:
-   `static var isGranted: Bool` (probe an FDA-gated path — list `~/Library/Safari`,
-   fall back to the user `com.apple.TCC/TCC.db` readability) and
-   `static func openSettings()` → `x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles`.
-2. **Global banner (non-blocking).** `WorkspaceModel`: `fdaMissing` +
-   `fdaBannerDismissed` → `showFDABanner`. `WorkspaceView` renders the banner above
-   the panels with Open Settings / Dismiss.
-3. **Recovery.** Observe `NSApplication.didBecomeActiveNotification` (user returns
-   from Settings) → re-probe; if now granted, hide the banner and `refreshBoth()`.
-   No restart.
-4. **Inline per-folder guidance.** Map a permission failure in `PanelModel.reload`
-   (NSFileReadNoPermissionError) to `accessDenied`; `PanelView`'s `.failed` view
-   shows an "Open Full Disk Access Settings" button in that case.
+1. **Pane scaffold + toggle.** `WorkspaceModel.previewVisible` (UserDefaults-backed);
+   toolbar toggle button + ⇧⌘P; add a right pane (Divider + fixed-width container)
+   to `WorkspaceView` shown when visible, with a placeholder body.
+2. **Preview + metadata.** `QuickLookPreview` (`NSViewRepresentable` over
+   `QLPreviewView`) + a metadata section (name, kind, size, created/modified),
+   driven by the active selection; placeholder for none/multiple.
 
-## "Done" = checkable (HITL)
-- With FDA off, launch shows the banner; the app still lists accessible folders.
-- Navigating into a protected folder shows inline "Open Settings" rather than a
-  bare error.
-- "Open Settings" lands on the correct Privacy → Full Disk Access pane.
-- After granting + returning to the app, the banner disappears and panels list
-  normally with no restart.
-- **Human UX review + on-device grant test** (the HITL bar) — handed to user.
+## "Done" = checkable
+- A toolbar button / ⇧⌘P shows & hides the right preview pane; state survives relaunch.
+- With a file selected in the active panel, the pane shows its QuickLook preview +
+  metadata; selecting another file (or switching panels) updates it live.
+- No selection → tidy placeholder; multiple → "N items selected".
+- Dual-panel layout stays coherent (pane is additive on the right).
+- Build green; verified on-screen.
 
-## Risks / notes
-- The FDA probe is heuristic (no public "amIGrantedFDA" API). `~/Library/Safari`
-  is the conventional gate; verify on-device it flips correctly before/after grant.
-- Build-verifiable only up to the UI; the grant flow itself needs the user.
+## Risks
+- `QLPreviewView` inside SwiftUI: ensure it updates its `previewItem` on selection
+  change (the `updateNSView` path). Minor.
+- Toolbar adds titlebar chrome — first toolbar in the app; confirm it looks native.
 
 ## Progress
-- [x] Slice 1 — detection + openSettings (`FullDiskAccess` helper).
-- [x] Slice 2 — ~~non-blocking banner~~ → **dropped per UX review** (felt like an
-      ecommerce banner). Replaced by an app-menu item: **Diptychon ▸ Full Disk
-      Access…** (⌘, Preferences slot, `CommandGroup(.appSettings)`).
-- [x] Slice 3 — recovery on app-active: `recheckFullDiskAccess` re-lists a panel
-      that was permission-blocked once access is granted (no restart).
-- [x] Slice 4 — inline per-folder guidance (`PanelModel.accessDenied`): clean,
-      centered lock + message + "Open Full Disk Access Settings" in the folder's
-      failed state. **Verified on-screen** (pointed at ~/Library/Safari).
-
-## UX revisions (from user review)
-- Removed the global banner; guidance is **inline only** (on entering a protected
-  folder) + the app-menu item.
-- Repositioned/right-sized the inline notice (was the oversized default
-  `ContentUnavailableView`; now a centered, headline-weight custom view).
-- Grant round-trip confirmed by user (Open Settings → correct pane; works).
-- Surfaced gap: **no path bar / go-to-folder** to reach arbitrary folders (e.g.
-  ~/Library). Candidate backlog issue 15.
+- [ ] Slice 1 — pane scaffold + toolbar/shortcut toggle (persisted)
+- [ ] Slice 2 — QLPreviewView + metadata, live on active selection

@@ -40,6 +40,12 @@ final class WorkspaceModel {
     /// Whether the tag picker is open for the Active Panel's selection.
     var tagging = false
 
+    /// Whether the inline preview pane is shown (issue 14). Persisted across
+    /// launches so it stays where the user left it.
+    var previewVisible = UserDefaults.standard.bool(forKey: "previewVisible") {
+        didSet { UserDefaults.standard.set(previewVisible, forKey: "previewVisible") }
+    }
+
     init() {
         left = PanelModel(directory: .startDirectory)
         right = PanelModel(directory: .startDirectory)
