@@ -280,6 +280,14 @@ Presentation pass applying "data drives the form" (`context/dashboard-research.m
   or the issue-08 tag dots.
 - Tests: 4 new `FileDateFormatterTests` (fixed `now` + UTC calendar, no clock/TZ
   flakiness); all unit tests green; UI tests green in isolation. Verified on screen.
+- **Narrow-panel handling (surfaced in review):** with sidebar + two panels (+
+  preview), panels got too narrow and Size/Date were pushed off-screen. Fixed:
+  the **Name column flexes** (`.firstColumnOnlyAutoresizingStyle`, truncates with
+  full name in tooltip) so the fixed Size/Date stay put; plus **deterministic
+  responsive hiding** in `FileTableView` (hide Date < 380px, Size < 250px of
+  visible width, driven off `layout()` + the clip view's frame-change
+  notification). Default window widened to 1280×720. Degrades cleanly:
+  Name·Size·Date → Name·Size → Name.
 - Out of scope (per spec): charts/timelines/date-section grouping — no summary
   surface in a file manager.
 

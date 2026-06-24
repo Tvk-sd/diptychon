@@ -48,6 +48,15 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         addColumn(table, id: Column.size, title: "Size", width: 90, sortKey: "size", alignment: .right)
         addColumn(table, id: Column.date, title: "Date Modified", width: 160, sortKey: "date")
 
+        // Narrow-panel fix (issue 17): only the Name column flexes — it absorbs/
+        // yields width so the fixed Size & Date columns stay visible instead of
+        // being pushed off-screen. Name truncates with “…” (full name in tooltip).
+        table.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
+        if let nameCol = table.tableColumn(withIdentifier: .init(Column.name)) {
+            nameCol.minWidth = 120
+            nameCol.maxWidth = .greatestFiniteMagnitude
+        }
+
         // Drag out (to Finder / other Panel) + accept drops (from Finder / Panels).
         table.setDraggingSourceOperationMask(.copy, forLocal: true)
         table.setDraggingSourceOperationMask(.copy, forLocal: false)
@@ -137,6 +146,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             switch columnID {
             case Column.name:
                 cell.textField?.stringValue = item.name
+                cell.toolTip = item.name   // full name on hover, since it can truncate now
                 cell.imageView?.image = NSImage(systemSymbolName: item.isDirectory ? "folder" : "doc",
                                                 accessibilityDescription: nil)
                 (cell as? NameCellView)?.tagDots.setTags(item.tags)
@@ -358,6 +368,40 @@ final class FileTableView: NSTableView {
         let point = convert(event.locationInWindow, from: nil)
         return menuProvider?(row(at: point))
     }
+
+    // Responsive columns (issue 17): when the panel is too narrow to show Date (or
+    // Size) next to the flexible Name column, hide them — deterministically, by the
+    // visible width — instead of relying on AppKit's borderline autoresize. Name
+    // then flexes to fill via `.firstColumnOnlyAutoresizingStyle`. Driven off both
+    // `layout()` and the clip view's frame changes so it stays in sync on resize.
+    private enum Width { static let showDate: CGFloat = 380, showSize: CGFloat = 250 }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard let clip = enclosingScrollView?.contentView else { return }
+        clip.postsFrameChangedNotifications = true
+        NotificationCenter.default.addObserver(self, selector: #selector(updateResponsiveColumns),
+                                               name: NSView.frameDidChangeNotification, object: clip)
+        updateResponsiveColumns()
+    }
+
+    override func layout() {
+        super.layout()
+        updateResponsiveColumns()
+    }
+
+    @objc private func updateResponsiveColumns() {
+        let visible = enclosingScrollView?.contentView.bounds.width ?? bounds.width
+        setColumn(NSTableViewFileList.Column.date, hidden: visible < Width.showDate)
+        setColumn(NSTableViewFileList.Column.size, hidden: visible < Width.showSize)
+    }
+
+    private func setColumn(_ id: String, hidden: Bool) {
+        guard let col = tableColumn(withIdentifier: .init(id)), col.isHidden != hidden else { return }
+        col.isHidden = hidden   // guarded so we never re-enter layout when unchanged
+    }
+
+    deinit { NotificationCenter.default.removeObserver(self) }
 }
 
 /// Name-column cell that also carries a trailing tag-dots view.
