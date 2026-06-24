@@ -66,21 +66,14 @@ final class DiptychonUITests: XCTestCase {
         XCTAssertTrue(leftTable.staticTexts["alpha.txt"].waitForExistence(timeout: 5))
         XCTAssertTrue(rightTable.staticTexts["alpha.txt"].waitForExistence(timeout: 5))
 
-        // Select alpha.txt in the active (left) panel, open batch rename (⌘R).
+        // Select alpha.txt and rename it inline: ⌘R on a single selection opens the
+        // in-place editor (issue 11). Replace the whole name with gamma.txt.
         leftTable.staticTexts["alpha.txt"].click()
         app.typeKey("r", modifierFlags: .command)
-
-        // Replace "alpha" -> "gamma" and commit. (A genuinely new name — a
-        // case-only change would trip the collision guard on case-insensitive
-        // APFS, which is a separate concern from the refresh behavior tested here.)
-        let find = app.textFields["Find"]
-        XCTAssertTrue(find.waitForExistence(timeout: 5), "Rename sheet should open on ⌘R")
-        find.click()
-        find.typeText("alpha")
-        let replaceWith = app.textFields["Replace with"]
-        replaceWith.click()
-        replaceWith.typeText("gamma")
-        app.buttons["Rename"].click()
+        let editor = leftTable.textFields["alpha.txt"]   // editing → field reports as a text field
+        XCTAssertTrue(editor.waitForExistence(timeout: 5), "Inline rename editor should open on ⌘R")
+        app.typeKey("a", modifierFlags: .command)        // select all
+        app.typeText("gamma.txt\n")                      // replace + commit (Return)
 
         // Active panel updates...
         XCTAssertTrue(

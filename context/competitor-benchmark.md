@@ -101,11 +101,53 @@ defended by saying no:
 
 ---
 
-## 4. How to use this doc
+## 4. Footprint & performance
+
+### Footprint — a first-class differentiator
+The release `.app` is **~1.5 MB** (arm64; the bundle is essentially one binary —
+no embedded frameworks, no asset catalog), ~365 KB zipped. A **universal** build
+(Apple Silicon + Intel) roughly doubles the binary to **~3 MB**; signing/
+notarization adds almost nothing. So the honest headline is **"~3 MB universal."**
+
+Why it's this small: pure Swift / SwiftUI / AppKit linking the system frameworks —
+no bundled runtime, no Chromium. This is the most *visceral* proof of the
+"lightweight" thesis — it makes the positioning tangible instead of a slogan.
+
+| App | Approx. download size | Stack |
+|---|---|---|
+| **Diptychon** | **~1.5 MB (arm64) / ~3 MB universal** | native Swift/SwiftUI/AppKit |
+| Marta | ~10–15 MB ❔ | native |
+| Nimble Commander | ~20 MB+ ❔ | native |
+| ForkLift | ~30–40 MB ❔ | native |
+| Path Finder | ~30–60 MB ❔ | native |
+| (any Electron file manager) | 100–200 MB+ | bundled Chromium |
+
+> ❔ Competitor sizes are from memory — **verify before publishing**. The
+> Diptychon figure is measured (Release build, 2026-06-24).
+
+**What size proves:** native + lightweight. **What it does *not* prove:** runtime
+speed — don't let the two blur.
+
+### Performance — architected for, not yet benchmarked
+Evidence we have (from issue outcomes), honestly labelled as *design + spot-check*,
+not measured numbers:
+- Directory loads run **off-main** (`Task.detached`, prefetched resource keys) —
+  the UI never blocks (issue 01).
+- **Virtualized `NSTableView`** render; a **50k-file folder verified** to load
+  without blocking or crashing (issues 01/06).
+- `visibleItems` cached (issue 04); FSEvents refresh debounced (issue 09).
+
+**Gap:** no measured cold-launch time or large-folder time-to-interactive. Until
+those exist (issue 22), claim *"instant on huge folders — 50k verified"* and stop
+short of hard speed numbers.
+
+---
+
+## 5. How to use this doc
 - **Positioning checks:** when tempted to add a feature, find its row. If it's a ➖,
   the bar to flip it is "does this break *lightweight*?"
 - **Pairs with:** `sidebar-research.md` (the "less than Finder" sidebar),
-  `dashboard-research.md` (data-driven display), and the forthcoming
-  `transferable-learnings.md` (what generalizes beyond Diptychon).
+  `dashboard-research.md` (data-driven display), and `transferable-learnings.md`
+  (what generalizes beyond Diptychon — §3 here is its restraint case study).
 - **Maintenance:** spot-check competitor columns before any external use; refresh
   the Diptychon column as backlog items (11, 16, 17) ship.

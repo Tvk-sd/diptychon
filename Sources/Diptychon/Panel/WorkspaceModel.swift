@@ -120,7 +120,14 @@ final class WorkspaceModel {
         case .duplicate: duplicateSelection()
         case .newFolder: create(.folder)
         case .newFile: create(.file)
-        case .rename: beginRename()
+        case .rename:
+            // ⌘R: a single selection renames inline (issue 11); 2+ opens the batch
+            // sheet (issue 07).
+            if activeModel.selectedItems.count == 1 {
+                activeModel.requestInlineRename()
+            } else {
+                beginRename()
+            }
         case .showTags: beginTagging()
         case .openSelection: openSelection()
         case .preview: togglePreview()
@@ -222,6 +229,28 @@ final class WorkspaceModel {
         }
         let op = SetTagsOperation(targets: targets)
         coordinator.run(op) { [weak self] in self?.refreshBoth() }
+    }
+
+    // MARK: - Inline rename (issue 11)
+
+    /// Commit an in-place rename of a single item to `newName`. Returns false (so
+    /// the list reverts the cell) on an empty/unchanged name or a collision; true
+    /// when a (one-step, undoable) `RenameOperation` was started.
+    @discardableResult
+    func renameInline(_ item: FileItem, to newName: String) -> Bool {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != item.name else { return false }
+        let dest = item.url.deletingLastPathComponent().appendingPathComponent(trimmed)
+        // Reject a collision (no overwrite). A case-only rename of the same file on
+        // a case-insensitive volume is allowed (mirrors issue 07's fix).
+        let caseOnlySelfRename = trimmed.lowercased() == item.name.lowercased()
+        if FileManager.default.fileExists(atPath: dest.path), !caseOnlySelfRename {
+            NSSound.beep()
+            return false
+        }
+        let op = RenameOperation(renames: [(from: item.url, to: dest)])
+        coordinator.run(op) { [weak self] in self?.refreshBoth() }
+        return true
     }
 
     // MARK: - Batch rename

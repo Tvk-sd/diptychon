@@ -91,7 +91,7 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 08 | Finder tags (real Apple tags, round-trip) | ✅ done on branch — all 4 ACs; pending UX check + PR |
 | 09 | QuickLook / Open-with / FSEvents | ✅ merged (PR #13) |
 | 10 | Full Disk Access onboarding | ✅ merged (PR #14) — **MVP complete** |
-| 11 | Inline single-file rename (split from 07) | ⬜ backlog |
+| 11 | Inline single-file rename (split from 07) | ✅ done on branch `feat/11-inline-rename` — ⌘R / slow-click, user-verified; PR pending |
 | 12 | Custom tag color registration / Finder sidebar (split from 08) | ⬜ backlog |
 | 13 | Panel resize + collapse/expand right panel | ✅ merged (PR #16) |
 | 14 | Inline preview / inspector pane (raised during 09) | ✅ merged (PR #15) |

@@ -1,6 +1,6 @@
 # 11 — Inline single-file rename
 
-Status: ready-for-agent
+Status: done — branch `feat/11-inline-rename` (user-verified); see PROJECT-TRACKER issue 11 outcome
 
 ## Parent
 
@@ -19,12 +19,15 @@ like in Finder").
 
 ## Acceptance criteria
 
-- [ ] Pressing Return on a single selected row makes its name editable in place.
-- [ ] Slow-click (click an already-selected row's name) also begins editing.
-- [ ] Commit on Return writes via a `RenameOperation` (undoable with ⌘Z);
-      Escape cancels with no change.
-- [ ] A name collision is rejected (no overwrite) with clear feedback.
-- [ ] Editing the name leaves the extension intact by default.
+- [x] ~~Return~~ **⌘R** on a single selected row makes its name editable in place.
+      (Return stays "open" per the user's call; ⌘R with 2+ rows still opens the
+      batch sheet.)
+- [x] Slow-click (click an already-selected row's name) also begins editing.
+- [x] Commit on Return / click-away writes via a `RenameOperation` (undoable with
+      ⌘Z); Escape cancels with no change.
+- [x] A name collision is rejected (no overwrite) — beep + revert (case-only
+      self-rename allowed).
+- [x] Editing the name leaves the extension intact by default (base name selected).
 
 ## Notes
 
