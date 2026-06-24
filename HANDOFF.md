@@ -93,7 +93,7 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 10 | Full Disk Access onboarding | ✅ merged (PR #14) — **MVP complete** |
 | 11 | Inline single-file rename (split from 07) | ⬜ backlog |
 | 12 | Custom tag color registration / Finder sidebar (split from 08) | ⬜ backlog |
-| 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
+| 13 | Panel resize + collapse/expand right panel | ✅ done on branch — all ACs; PR pending |
 | 14 | Inline preview / inspector pane (raised during 09) | ✅ merged (PR #15) |
 | 15 | Path bar / Go to Folder (raised during 10) | ⬜ backlog |
 

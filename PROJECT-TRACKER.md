@@ -114,7 +114,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 10 | Full Disk Access onboarding | ✅ done, PR #14 (all ACs, user-verified) — **MVP complete** |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
-| 13 | Panel resize + collapse/expand right panel | ⬜ backlog |
+| 13 | Panel resize + collapse/expand right panel | ✅ done on `feat/13-…` — all ACs; PR pending |
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
 | 15 | Path bar / Go to Folder | ⬜ backlog (raised in 10) |
 
@@ -200,6 +200,19 @@ QuickLook (09).
 - **Test hardening:** `testLaunchesWithTwoPanels` repointed from the user's HOME
   (which can stall on a TCC prompt under XCUITest → panels stuck "Loading…") to a
   temp dir. Lesson: UI tests must control their directory, never rely on HOME.
+
+### Issue 13 outcome (2026-06-24) — Panel resize + collapse right panel (PR pending)
+- **Resize:** `HSplitView` draggable divider between the two file panels (min 240
+  each); ratio holds for the session.
+- **Collapse:** toolbar `rectangle.split.2x1` + ⌥⌘S toggle `rightPanelVisible`
+  (registered default true, UserDefaults-persisted). Left fills when hidden.
+- **Coherence:** hiding forces active=left; mouse half-detection forces left;
+  ⌥⌘→ no-ops; Tab re-opens + focuses the right panel; restore keeps the right
+  `PanelModel` (dir + selection).
+- 27 tests (22 unit + 5 UI), incl. `testToggleRightPanel`.
+- **Two gotchas (see PLAN/commit):** HSplitView can't drop a conditional child
+  (swap the whole container); launch-arg/default-true needs `register` +
+  `bool(forKey:)`, not `object as? Bool`.
 
 **Gotcha (SwiftUI + XCUITest):** a `.plain` Button's hit area for *synthetic*
 clicks is the rendered content, not the framed row; a real pointer respects
