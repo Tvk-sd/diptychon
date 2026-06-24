@@ -60,7 +60,7 @@ struct WorkspaceView: View {
                 } label: {
                     Image(systemName: "sidebar.leading")
                 }
-                .help("Show/Hide Sidebar (⌃⌘S)")
+                .help("Show/Hide Sidebar")
                 .accessibilityIdentifier("toggle-sidebar")
             }
             ToolbarItem(placement: .primaryAction) {

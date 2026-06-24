@@ -20,7 +20,6 @@ enum AppAction {
     case openSelection   // ↩   — open folders (navigate) / files (default app)
     case preview         // ␣   — QuickLook the selection
     case goToFolder      // ⇧⌘G — jump the Active Panel to a typed path
-    case toggleSidebar   // ⌃⌘S — show/hide the left sidebar (issue 16)
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -85,7 +84,6 @@ enum Keymap {
         (KeyChord(.code(Key.return)), .openSelection),          // ↩ open folder/file
         (KeyChord(.code(Key.space)), .preview),                 // ␣ QuickLook
         (KeyChord(.character("g"), command: true, shift: true), .goToFolder),
-        (KeyChord(.character("s"), command: true, control: true), .toggleSidebar),
     ]
 
     static func action(for event: NSEvent,
