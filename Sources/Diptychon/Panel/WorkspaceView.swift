@@ -17,12 +17,25 @@ struct WorkspaceView: View {
     var body: some View {
         @Bindable var model = model
         HStack(spacing: 0) {
-            PanelView(model: model.left, isActive: model.active == .left) { urls, folder in
-                model.handleDrop(urls, on: model.left, targetFolder: folder)
-            }
-            Divider()
-            PanelView(model: model.right, isActive: model.active == .right) { urls, folder in
-                model.handleDrop(urls, on: model.right, targetFolder: folder)
+            // Issue 13: when both panels show, an HSplitView gives a draggable
+            // divider. When the right panel is hidden the container is swapped for
+            // the left panel alone — HSplitView can't drop a conditional child, so
+            // we toggle the whole container instead.
+            if model.rightPanelVisible {
+                HSplitView {
+                    PanelView(model: model.left, isActive: model.active == .left) { urls, folder in
+                        model.handleDrop(urls, on: model.left, targetFolder: folder)
+                    }
+                    .frame(minWidth: 240)
+                    PanelView(model: model.right, isActive: model.active == .right) { urls, folder in
+                        model.handleDrop(urls, on: model.right, targetFolder: folder)
+                    }
+                    .frame(minWidth: 240)
+                }
+            } else {
+                PanelView(model: model.left, isActive: true) { urls, folder in
+                    model.handleDrop(urls, on: model.left, targetFolder: folder)
+                }
             }
             if model.previewVisible {
                 Divider()
@@ -31,6 +44,16 @@ struct WorkspaceView: View {
             }
         }
         .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    model.rightPanelVisible.toggle()
+                } label: {
+                    Image(systemName: "rectangle.split.2x1")
+                }
+                .help("Show/Hide Right Panel (⌥⌘S)")
+                .keyboardShortcut("s", modifiers: [.command, .option])
+                .accessibilityIdentifier("toggle-right-panel")
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     model.previewVisible.toggle()
@@ -112,7 +135,8 @@ struct WorkspaceView: View {
             mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
                 if let contentView = event.window?.contentView {
                     let x = event.locationInWindow.x
-                    model.active = x < contentView.bounds.midX ? .left : .right
+                    // When the right panel is hidden the left spans the window.
+                    model.active = (model.rightPanelVisible && x >= contentView.bounds.midX) ? .right : .left
                 }
                 // Double-click opens the selected row (first click already selected
                 // it). Handled here so the Table keeps native single-click select.

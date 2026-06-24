@@ -1,6 +1,6 @@
 # 13 — Panel resize + collapse/expand the right panel
 
-Status: ready-for-agent
+Status: in-review (feat/13-panel-resize-toggle)
 
 ## Parent
 
@@ -36,14 +36,15 @@ Two pieces of panel-layout chrome:
 
 ## Acceptance criteria
 
-- [ ] A draggable divider resizes the two panels; the chosen split is retained
-      (at least for the session).
-- [ ] A toolbar/header button (split-view toggle icon) hides and restores the
+- [x] A draggable divider resizes the two panels; the chosen split is retained
+      (at least for the session). _(HSplitView; session-scoped ratio.)_
+- [x] A toolbar/header button (split-view toggle icon) hides and restores the
       right panel; left panel fills the window when the right is hidden.
-- [ ] A keyboard shortcut also toggles the right panel.
-- [ ] With the right panel hidden, active-panel + keyboard ops stay coherent
-      (active forced left; copy-to-inactive / Tab degrade gracefully).
-- [ ] Restoring the right panel preserves its directory + selection.
+- [x] A keyboard shortcut also toggles the right panel. _(⌥⌘S.)_
+- [x] With the right panel hidden, active-panel + keyboard ops stay coherent
+      (active forced left; ⌥⌘→ no-op; Tab re-opens + focuses the right panel).
+- [x] Restoring the right panel preserves its directory + selection. _(PanelModel
+      kept alive; only the view is swapped.)_
 
 ## Blocked by
 

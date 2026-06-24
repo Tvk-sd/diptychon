@@ -46,6 +46,16 @@ final class WorkspaceModel {
         didSet { UserDefaults.standard.set(previewVisible, forKey: "previewVisible") }
     }
 
+    /// Whether the right file panel is shown (issue 13). Defaults to true (a
+    /// registered default in `DiptychonApp`). Hiding it forces the Active Panel to
+    /// the left so keyboard/clicks stay coherent.
+    var rightPanelVisible = UserDefaults.standard.bool(forKey: "rightPanelVisible") {
+        didSet {
+            UserDefaults.standard.set(rightPanelVisible, forKey: "rightPanelVisible")
+            if !rightPanelVisible { active = .left }
+        }
+    }
+
     init() {
         left = PanelModel(directory: .startDirectory)
         right = PanelModel(directory: .startDirectory)
@@ -73,11 +83,20 @@ final class WorkspaceModel {
 
     func perform(_ action: AppAction) {
         switch action {
-        case .copyToInactive: write(.copy, sources: activeModel.selectionURLs, into: inactiveModel.directory, refresh: inactiveModel)
+        case .copyToInactive:
+            // No visible inactive target when the right panel is hidden.
+            guard rightPanelVisible else { return }
+            write(.copy, sources: activeModel.selectionURLs, into: inactiveModel.directory, refresh: inactiveModel)
         case .undo: coordinator.undo(onFinish: refreshBoth)
         case .redo: coordinator.redo(onFinish: refreshBoth)
         case .goUp: activeModel.navigateUp()
-        case .switchPanel: active = (active == .left) ? .right : .left
+        case .switchPanel:
+            if !rightPanelVisible {
+                rightPanelVisible = true   // Tab brings the right panel back…
+                active = .right            // …and moves focus to it.
+            } else {
+                active = (active == .left) ? .right : .left
+            }
         case .clipboardCopy: clipboardCopy()
         case .paste: write(.copy, sources: clipboardURLs(), into: activeModel.directory, refresh: activeModel)
         case .pasteMove: write(.move, sources: clipboardURLs(), into: activeModel.directory, refresh: activeModel)
