@@ -116,7 +116,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
 | 13 | Panel resize + collapse/expand right panel | ✅ done, PR #16 |
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
-| 15 | Path bar / Go to Folder | ✅ done on `feat/15-…` — all ACs; PR pending |
+| 15 | Path bar / Go to Folder | ✅ done, PR #17 |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
