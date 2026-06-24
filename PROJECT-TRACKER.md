@@ -117,7 +117,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 13 | Panel resize + collapse/expand right panel | ✅ done, PR #16 |
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
 | 15 | Path bar / Go to Folder | ✅ done, PR #17 |
-| 16 | Left sidebar (places + pinned folders) | ⬜ backlog — research in `context/`, spec written |
+| 16 | Left sidebar (places + pinned folders) | ✅ done, PR pending — all 3 slices, user-verified |
 | 17 | File-list polish (data-driven display) | ⬜ backlog — from `context/dashboard-research.md` |
 | 18 | Operation history / time-travel undo | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 19 | Command palette (⌘K) | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
@@ -236,6 +236,34 @@ QuickLook (09).
 clicks is the rendered content, not the framed row; a real pointer respects
 `.contentShape`. Verified full-row clicking with a `CGEvent` injection script and
 asserted the on-disk xattr. Lesson: test UI against on-disk state, not the AX tree.
+
+### Issue 16 outcome (2026-06-24) — Left sidebar (places + pinned folders) (PR pending)
+A calm, Notion-style left sidebar (lighter than Finder), built in 3 slices,
+user-verified end to end. Research: `context/sidebar-research.md`.
+- **Slice 1 — scaffold + toggle + navigate.** `WorkspaceModel.sidebarVisible`
+  (registered default true, UserDefaults-persisted) + `navigateActive(to:)`.
+  `SidebarView`/`SidebarPlace`: **Places** (Home, Desktop, Documents, Downloads,
+  Applications via `FileManager.url(for:in:)`, SF icons) + **Pinned** section.
+  Clicking a row navigates the Active Panel; the active dir's row highlights.
+  Layout `Sidebar | HSplitView(panels) | PreviewPane`; toolbar `sidebar.leading`
+  toggle. Mouse active-panel boundary now accounts for sidebar + preview widths.
+- **Slice 2 — pinning via context menu.** `PinnedFolders` pure helper
+  (add/remove/dedup by standardized path, path↔URL encode/decode; 6 unit tests).
+  `WorkspaceModel.pinnedFolders` ([URL] backed by [String] in UserDefaults) +
+  `pin`/`unpin`. "Add to Sidebar" on a single-folder right-click menu (new `onPin`
+  closure threaded NSTableViewFileList → PanelView → WorkspaceView, added to the
+  `FileListView` protocol). Pinned rows navigate; "Remove from Sidebar" unpins.
+- **Slice 3 — drag-to-pin + resilience.** Drop a folder anywhere on the sidebar to
+  pin (`.dropDestination(for: URL)`, folders-only, accent-border highlight).
+  Missing pinned folders render greyed + non-navigable (`folder.badge.questionmark`,
+  click re-checks existence → no-op) but stay listed so they're removable.
+- **UX calls:** **folders-only** (sidebar is a navigation surface — files aren't
+  pinnable; a file-bookmarks feature would be separate). Sidebar toggle is
+  **toolbar-button only** — ⌃⌘S was dropped (awkward claw; ⌥⌘S already went to the
+  right panel in issue 13, so the Apple convention was already broken).
+- Tests: 36 green (34 unit + UI: `testSidebarToggleAndNavigate`,
+  `testPinFolderAppearsNavigatesAndRemoves`, `testMissingPinnedFolderDegradesGracefully`).
+  Drag-to-pin verified by dogfooding (XCUITest drag is unreliable — ADR 0002 context).
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory

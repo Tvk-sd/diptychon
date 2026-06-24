@@ -1,6 +1,6 @@
 # 16 — Left sidebar (places + pinned folders)
 
-Status: ready-for-agent
+Status: done — branch `feat/16-left-sidebar` (3 slices, user-verified); see PROJECT-TRACKER issue 16 outcome
 
 ## Parent
 
