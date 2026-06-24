@@ -22,7 +22,10 @@ struct DiptychonApp: App {
             WorkspaceView()
                 .frame(minWidth: 720, minHeight: 360)
         }
-        .defaultSize(width: 1100, height: 620)
+        // Wide enough that sidebar + both panels + preview can each still show the
+        // Name/Size/Date columns (issue 17 narrow-panel work). Narrower windows
+        // degrade gracefully: the Name column flexes and Size/Date drop off last.
+        .defaultSize(width: 1280, height: 720)
         .commands {
             // App menu → standard Preferences slot (⌘,). FDA can't be requested
             // in code (ADR 0001); this just deep-links to the right Settings pane.

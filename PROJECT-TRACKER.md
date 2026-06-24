@@ -118,7 +118,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
 | 15 | Path bar / Go to Folder | ✅ done, PR #17 |
 | 16 | Left sidebar (places + pinned folders) | ✅ done, PR pending — all 3 slices, user-verified |
-| 17 | File-list polish (data-driven display) | ⬜ backlog — from `context/dashboard-research.md` |
+| 17 | File-list polish (data-driven display) | ✅ done, PR pending — Size right-aligned + scan-friendly dates |
 | 18 | Operation history / time-travel undo | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 19 | Command palette (⌘K) | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
@@ -264,6 +264,43 @@ user-verified end to end. Research: `context/sidebar-research.md`.
 - Tests: 36 green (34 unit + UI: `testSidebarToggleAndNavigate`,
   `testPinFolderAppearsNavigatesAndRemoves`, `testMissingPinnedFolderDegradesGracefully`).
   Drag-to-pin verified by dogfooding (XCUITest drag is unreliable — ADR 0002 context).
+
+### Issue 17 outcome (2026-06-24) — File-list polish (data-driven display) (PR pending)
+Presentation pass applying "data drives the form" (`context/dashboard-research.md`
+§1) to the AppKit file list — no new data, just treatment matched to each column.
+- **Size → right-aligned + monospaced digits** (cell *and* column header) so values
+  line up by place value for at-a-glance comparison.
+- **Dates → scan-friendly tiers** via a pure, unit-tested `FileDateFormatter`:
+  today/yesterday keep the time ("Today 13:20"), same-year files drop year + time
+  ("15 May"), older files show the year without time ("15 Nov 2024"). Cuts the
+  dense `MMM d, yyyy at h:mm` timestamp down to what's worth scanning.
+- Name stays left; Date stays left (it's text); only the numeric Size flips right —
+  consistent text-left / numeric-right alignment.
+- No regression to sorting (still keyed on `sizeForSort`/`dateForSort`), selection,
+  or the issue-08 tag dots.
+- Tests: 4 new `FileDateFormatterTests` (fixed `now` + UTC calendar, no clock/TZ
+  flakiness); all unit tests green; UI tests green in isolation. Verified on screen.
+- **Narrow-panel handling (iterated in review with the user):** with sidebar +
+  two panels (+ preview), panels got too narrow and Size/Date were pushed
+  off-screen. Final design (after trying responsive column-hiding, which the user
+  rejected — he wanted nothing hidden):
+  - **Name column** starts compact (210px, ~25% smaller) and the user's
+    drag-resize sticks; `.lastColumnOnlyAutoresizingStyle` so only Date takes up
+    slack (no trailing gap), Name is left alone. Name truncates with the full name
+    in a tooltip.
+  - **Horizontal scroll** (`hasHorizontalScroller`) so narrow panels scroll to
+    reach Size/Date rather than hiding them; columns stay user-resizable/reorderable.
+    A folder load resets the scroll to the left (Name-first) via `syncContents`.
+  - **Window layout:** a real `NSWindow.contentMinSize` that tracks the open
+    regions (`WindowMinWidth` accessor) — the window can't shrink below what fits
+    (sidebar always visible, nothing clipped), and **opening the preview compresses
+    the panels** within the current window (panel min 180) rather than growing it;
+    it only grows when panels would otherwise fall below 180. Default 1280×720.
+  - **Toolbar background made visible** (`.toolbarBackground(.visible,
+    for: .windowToolbar)`) so the panel divider no longer bleeds up through the
+    title-bar area.
+- Out of scope (per spec): charts/timelines/date-section grouping — no summary
+  surface in a file manager.
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory

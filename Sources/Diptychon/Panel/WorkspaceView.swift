@@ -14,6 +14,15 @@ struct WorkspaceView: View {
     @State private var keyMonitor: Any?
     @State private var mouseMonitor: Any?
 
+    /// Smallest width that fits the currently-open regions, so the window grows to
+    /// accommodate the preview / second panel instead of clipping the sidebar.
+    private var minContentWidth: CGFloat {
+        let sidebar: CGFloat = model.sidebarVisible ? 201 : 0          // 200 + divider
+        let panels: CGFloat = model.rightPanelVisible ? 180 + 180 + 1 : 320
+        let preview: CGFloat = model.previewVisible ? 301 : 0          // 300 + divider
+        return sidebar + panels + preview
+    }
+
     var body: some View {
         @Bindable var model = model
         HStack(spacing: 0) {
@@ -34,18 +43,19 @@ struct WorkspaceView: View {
                               onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
                               onGoToFolder: { model.active = .left; model.goingToFolder = true },
                               onPin: { model.pin($0) })
-                    .frame(minWidth: 240)
+                    .frame(minWidth: 180)
                     PanelView(model: model.right, isActive: model.active == .right,
                               onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
                               onGoToFolder: { model.active = .right; model.goingToFolder = true },
                               onPin: { model.pin($0) })
-                    .frame(minWidth: 240)
+                    .frame(minWidth: 180)
                 }
             } else {
                 PanelView(model: model.left, isActive: true,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
                           onGoToFolder: { model.active = .left; model.goingToFolder = true },
                           onPin: { model.pin($0) })
+                    .frame(minWidth: 320)
             }
             if model.previewVisible {
                 Divider()
@@ -53,6 +63,12 @@ struct WorkspaceView: View {
                     .frame(width: 300)
             }
         }
+        // Enforce a real window minimum (NSWindow.contentMinSize) that tracks the
+        // open regions, and grow the window when a pane opens — so the preview /
+        // second panel never overflows and clips the sidebar off the left edge
+        // (issue 16/14 layout fix). A plain `.frame(minWidth:)` only makes the
+        // content claim the width; it doesn't push the window wider.
+        .background(WindowMinWidth(minWidth: minContentWidth))
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 Button {
@@ -84,6 +100,10 @@ struct WorkspaceView: View {
                 .accessibilityIdentifier("toggle-preview")
             }
         }
+        // Solid toolbar background so the vertical panel/section dividers don't
+        // show through the title-bar area — the divider should separate the panels
+        // only, not run up through the toolbar.
+        .toolbarBackground(.visible, for: .windowToolbar)
         .onAppear(perform: installMonitors)
         .onDisappear(perform: removeMonitors)
         // User may have just granted access in System Settings → if a panel was
@@ -182,6 +202,42 @@ struct WorkspaceView: View {
         if let m = mouseMonitor { NSEvent.removeMonitor(m) }
         keyMonitor = nil
         mouseMonitor = nil
+    }
+}
+
+/// Sets the host `NSWindow.contentMinSize.width` to `minWidth` and, if the window
+/// is currently narrower (a pane just opened, or a restored frame was too small),
+/// grows it — clamped on-screen — so the content never overflows and clips the
+/// sidebar. SwiftUI's `.frame(minWidth:)` alone can't push the window wider.
+private struct WindowMinWidth: NSViewRepresentable {
+    let minWidth: CGFloat
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async { apply(to: view) }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async { apply(to: nsView) }
+    }
+
+    private func apply(to view: NSView) {
+        guard let window = view.window else {
+            // Not attached to a window yet (early launch) — retry shortly.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { apply(to: view) }
+            return
+        }
+        window.contentMinSize.width = minWidth
+        let current = window.contentLayoutRect.width
+        guard current < minWidth else { return }
+        var frame = window.frame
+        frame.size.width += (minWidth - current)
+        if let visible = window.screen?.visibleFrame {
+            if frame.maxX > visible.maxX { frame.origin.x = max(visible.minX, visible.maxX - frame.size.width) }
+            if frame.minX < visible.minX { frame.origin.x = visible.minX }
+        }
+        window.setFrame(frame, display: true, animate: false)
     }
 }
 

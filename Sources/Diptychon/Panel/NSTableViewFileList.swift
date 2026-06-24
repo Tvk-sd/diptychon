@@ -44,9 +44,19 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             coordinator?.contextMenu(forRow: row)
         }
 
-        addColumn(table, id: Column.name, title: "Name", width: 280, sortKey: "name")
-        addColumn(table, id: Column.size, title: "Size", width: 90, sortKey: "size")
+        addColumn(table, id: Column.name, title: "Name", width: 210, sortKey: "name")
+        addColumn(table, id: Column.size, title: "Size", width: 90, sortKey: "size", alignment: .right)
         addColumn(table, id: Column.date, title: "Date Modified", width: 160, sortKey: "date")
+
+        // Issue 17: Name starts at a compact width and the user's drag-resize sticks
+        // (only the last column auto-resizes on window changes, so Name is left
+        // alone). Date takes up any slack on wide windows → no trailing gap; narrow
+        // panels scroll to reach Size/Date. Name truncates with “…” (name in tooltip).
+        table.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
+        if let nameCol = table.tableColumn(withIdentifier: .init(Column.name)) {
+            nameCol.minWidth = 120
+            nameCol.maxWidth = .greatestFiniteMagnitude
+        }
 
         // Drag out (to Finder / other Panel) + accept drops (from Finder / Panels).
         table.setDraggingSourceOperationMask(.copy, forLocal: true)
@@ -56,6 +66,9 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         let scroll = NSScrollView()
         scroll.documentView = table
         scroll.hasVerticalScroller = true
+        // Narrow panels scroll to reach Size/Date rather than hiding them; columns
+        // also stay user-resizable/reorderable (issue 17).
+        scroll.hasHorizontalScroller = true
         context.coordinator.table = table
         return scroll
     }
@@ -67,10 +80,12 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         context.coordinator.syncSelection(table)
     }
 
-    private func addColumn(_ table: NSTableView, id: String, title: String, width: CGFloat, sortKey: String) {
+    private func addColumn(_ table: NSTableView, id: String, title: String, width: CGFloat,
+                           sortKey: String, alignment: NSTextAlignment = .left) {
         let col = NSTableColumn(identifier: .init(id))
         col.title = title
         col.width = width
+        col.headerCell.alignment = alignment   // header matches the cell alignment
         col.sortDescriptorPrototype = NSSortDescriptor(key: sortKey, ascending: true)
         table.addTableColumn(col)
     }
@@ -92,9 +107,6 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         private static let sizeFormatter: ByteCountFormatter = {
             let f = ByteCountFormatter(); f.countStyle = .file; return f
         }()
-        private static let dateFormatter: DateFormatter = {
-            let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .short; return f
-        }()
 
         init(_ parent: NSTableViewFileList) { self.parent = parent }
 
@@ -102,8 +114,16 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         func syncContents(_ table: NSTableView) {
             let ids = parent.items.map(\.id)
             if ids != displayedIDs {
+                let isNavigation = !displayedIDs.isEmpty   // not the very first fill
                 displayedIDs = ids
                 table.reloadData()
+                // Start scrolled to the left so Name is visible first when a folder
+                // loads (issue 17). The user can still scroll right to Size/Date;
+                // navigating to another folder returns to Name-first.
+                if isNavigation, let clip = table.enclosingScrollView?.contentView {
+                    clip.scroll(to: NSPoint(x: 0, y: clip.bounds.origin.y))
+                    table.enclosingScrollView?.reflectScrolledClipView(clip)
+                }
             }
             // Reflect the current sort order in the header indicator.
             table.sortDescriptors = parent.sortOrder.first.map { descriptorFor($0) }.map { [$0] } ?? []
@@ -138,13 +158,14 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             switch columnID {
             case Column.name:
                 cell.textField?.stringValue = item.name
+                cell.toolTip = item.name   // full name on hover, since it can truncate now
                 cell.imageView?.image = NSImage(systemSymbolName: item.isDirectory ? "folder" : "doc",
                                                 accessibilityDescription: nil)
                 (cell as? NameCellView)?.tagDots.setTags(item.tags)
             case Column.size:
                 cell.textField?.stringValue = item.size.map { Self.sizeFormatter.string(fromByteCount: $0) } ?? "—"
             case Column.date:
-                cell.textField?.stringValue = item.modificationDate.map(Self.dateFormatter.string(from:)) ?? "—"
+                cell.textField?.stringValue = item.modificationDate.map { FileDateFormatter.string(for: $0) } ?? "—"
             default: break
             }
             return cell
@@ -156,6 +177,12 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             let text = NSTextField(labelWithString: "")
             text.translatesAutoresizingMaskIntoConstraints = false
             text.lineBreakMode = .byTruncatingTail
+            // Numeric Size column → right-aligned + monospaced digits so values
+            // line up by place value for at-a-glance comparison (issue 17).
+            if id.rawValue == Column.size {
+                text.alignment = .right
+                text.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+            }
             cell.addSubview(text)
             cell.textField = text
             if withIcon, let cell = cell as? NameCellView {
