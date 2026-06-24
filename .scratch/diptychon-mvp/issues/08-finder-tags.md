@@ -1,6 +1,6 @@
 # 08 — Finder tags
 
-Status: in-review (feat/08-finder-tags; custom-color sidebar registration split to follow-up)
+Status: done — merged (PR #12); custom-color sidebar registration split to issue 12
 
 ## Parent
 

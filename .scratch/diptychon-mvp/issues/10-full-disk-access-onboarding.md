@@ -1,6 +1,6 @@
 # 10 — First-run Full Disk Access onboarding
 
-Status: in-review (feat/10-full-disk-access; grant round-trip + UX confirmed by user)
+Status: done — merged (PR #14) — completed the 10-issue MVP
 
 ## Parent
 

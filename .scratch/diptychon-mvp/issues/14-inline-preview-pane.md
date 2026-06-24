@@ -1,6 +1,6 @@
 # 14 — Inline preview / inspector pane
 
-Status: ready-for-agent
+Status: done — merged (PR #15)
 
 ## Parent
 

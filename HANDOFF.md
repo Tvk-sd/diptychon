@@ -96,8 +96,12 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 13 | Panel resize + collapse/expand right panel | ✅ merged (PR #16) |
 | 14 | Inline preview / inspector pane (raised during 09) | ✅ merged (PR #15) |
 | 15 | Path bar / Go to Folder (raised during 10) | ✅ merged (PR #17) |
-| 16 | Left sidebar (places + pinned folders) | ✅ done on branch `feat/16-left-sidebar` — 3 slices, user-verified; PR pending |
-| 17 | File-list polish (data-driven display) | ✅ done on branch `feat/17-file-list-polish` — PR pending |
+| 16 | Left sidebar (places + pinned folders) | ✅ merged (PR #18) |
+| 17 | File-list polish (data-driven display) | ✅ merged (PR #19) |
+| 18 | Operation history / time-travel undo | ⬜ needs-triage (differentiation bet) |
+| 19 | Command palette (⌘K) | ⬜ needs-triage (differentiation bet) |
+| 20 | Virtual staging panel | ⬜ needs-triage (differentiation bet) |
+| 21 | Unified top bar (breadcrumb, back/forward, search) | ⬜ ready-for-agent — foundational chrome for 18+ |
 
 ## Architecture (current)
 - `App/DiptychonApp.swift` — `@main struct DiptychonApp: App` with

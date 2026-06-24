@@ -1,6 +1,6 @@
 # 09 — QuickLook, Open with, FSEvents live update
 
-Status: in-review (feat/09-quicklook-openwith-fsevents)
+Status: done — merged (PR #13)
 
 ## Parent
 

@@ -1,6 +1,6 @@
 # 15 — Path bar / Go to Folder
 
-Status: in-review (feat/15-path-bar)
+Status: done — merged (PR #17)
 
 ## Parent
 

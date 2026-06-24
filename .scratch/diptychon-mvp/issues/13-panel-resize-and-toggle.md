@@ -1,6 +1,6 @@
 # 13 — Panel resize + collapse/expand the right panel
 
-Status: in-review (feat/13-panel-resize-toggle)
+Status: done — merged (PR #16)
 
 ## Parent
 
