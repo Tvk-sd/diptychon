@@ -19,6 +19,7 @@ enum AppAction {
     case showTags        // ⌘T  — open the tag picker for the selection
     case openSelection   // ↩   — open folders (navigate) / files (default app)
     case preview         // ␣   — QuickLook the selection
+    case goToFolder      // ⇧⌘G — jump the Active Panel to a typed path
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -82,6 +83,7 @@ enum Keymap {
         (KeyChord(.character("t"), command: true), .showTags),
         (KeyChord(.code(Key.return)), .openSelection),          // ↩ open folder/file
         (KeyChord(.code(Key.space)), .preview),                 // ␣ QuickLook
+        (KeyChord(.character("g"), command: true, shift: true), .goToFolder),
     ]
 
     static func action(for event: NSEvent,

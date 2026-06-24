@@ -86,6 +86,13 @@ final class PanelModel {
         afterNavigation()
     }
 
+    /// Jump directly to a directory (path bar / Go to Folder / breadcrumb).
+    func go(to url: URL) {
+        guard url != directory else { return }
+        directory = url
+        afterNavigation()
+    }
+
     func navigateUp() {
         guard canGoUp else { return }
         directory = directory.deletingLastPathComponent()

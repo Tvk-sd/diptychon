@@ -1,6 +1,6 @@
 # 15 — Path bar / Go to Folder
 
-Status: ready-for-agent
+Status: in-review (feat/15-path-bar)
 
 ## Parent
 
@@ -33,13 +33,15 @@ Surfaced during issue 10: there was no way to reach folders like `~/Library`
 
 ## Acceptance criteria
 
-- [ ] The user can jump the Active Panel to an arbitrary directory by typing /
-      pasting a path (with `~` expansion).
-- [ ] Invalid or non-directory paths are rejected with clear feedback (no crash,
-      no broken state).
-- [ ] A breadcrumb or editable path control reflects the current directory and
-      supports clicking/editing to navigate.
-- [ ] A keyboard shortcut (⇧⌘G) opens the Go to Folder entry.
+- [x] The user can jump the Active Panel to an arbitrary directory by typing /
+      pasting a path (with `~` expansion). _(Go to Folder sheet → `PathInput.resolve`.)_
+- [x] Invalid or non-directory paths are rejected with clear feedback (no crash,
+      no broken state). _(Inline "No folder at that path."; panel unchanged.)_
+- [x] A breadcrumb or editable path control reflects the current directory and
+      supports clicking/editing to navigate. _(Header path = a menu of ancestor
+      folders + "Go to Folder…".)_
+- [x] A keyboard shortcut (⇧⌘G) opens the Go to Folder entry. _(Via Keymap; note:
+      like other ⌘-shortcuts it's inactive while the Filter field is focused.)_
 
 ## Blocked by
 

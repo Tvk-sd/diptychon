@@ -131,6 +131,35 @@ final class DiptychonUITests: XCTestCase {
                       "Undo should remove the tag")
     }
 
+    /// Issue 15: ⇧⌘G opens Go to Folder; typing a path navigates the Active Panel.
+    func testGoToFolderNavigates() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-goto-\(UUID().uuidString)")
+        let sub = dir.appendingPathComponent("sub")
+        try fm.createDirectory(at: sub, withIntermediateDirectories: true)
+        fm.createFile(atPath: sub.appendingPathComponent("inside.txt").path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts["sub"].waitForExistence(timeout: 10))
+
+        // Focus the table (not the Filter field) so the ⇧⌘G shortcut is handled.
+        leftTable.staticTexts["sub"].click()
+        app.typeKey("g", modifierFlags: [.command, .shift])
+        let field = app.textFields["goto-path"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5), "Go to Folder opens on ⇧⌘G")
+        field.click()
+        field.typeKey("a", modifierFlags: .command)      // select the pre-filled path
+        field.typeText(sub.path + "\n")                  // replace + submit
+
+        XCTAssertTrue(leftTable.staticTexts["inside.txt"].waitForExistence(timeout: 5),
+                      "Panel should navigate to the typed folder")
+    }
+
     /// Issue 13: the toolbar button hides and restores the right file panel
     /// (two tables ↔ one), and the restored panel keeps its directory.
     func testToggleRightPanel() throws {

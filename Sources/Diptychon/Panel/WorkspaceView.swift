@@ -23,19 +23,19 @@ struct WorkspaceView: View {
             // we toggle the whole container instead.
             if model.rightPanelVisible {
                 HSplitView {
-                    PanelView(model: model.left, isActive: model.active == .left) { urls, folder in
-                        model.handleDrop(urls, on: model.left, targetFolder: folder)
-                    }
+                    PanelView(model: model.left, isActive: model.active == .left,
+                              onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
+                              onGoToFolder: { model.active = .left; model.goingToFolder = true })
                     .frame(minWidth: 240)
-                    PanelView(model: model.right, isActive: model.active == .right) { urls, folder in
-                        model.handleDrop(urls, on: model.right, targetFolder: folder)
-                    }
+                    PanelView(model: model.right, isActive: model.active == .right,
+                              onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
+                              onGoToFolder: { model.active = .right; model.goingToFolder = true })
                     .frame(minWidth: 240)
                 }
             } else {
-                PanelView(model: model.left, isActive: true) { urls, folder in
-                    model.handleDrop(urls, on: model.left, targetFolder: folder)
-                }
+                PanelView(model: model.left, isActive: true,
+                          onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
+                          onGoToFolder: { model.active = .left; model.goingToFolder = true })
             }
             if model.previewVisible {
                 Divider()
@@ -98,6 +98,9 @@ struct WorkspaceView: View {
         }
         .sheet(isPresented: $model.tagging) {
             TagPickerSheet(model: model)
+        }
+        .sheet(isPresented: $model.goingToFolder) {
+            GoToFolderSheet(model: model)
         }
         .overlay { progressOverlay }
     }
