@@ -112,7 +112,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 08 | Finder tags (real Apple tags, round-trip) | ✅ done, PR #12 (all 4 ACs, user-verified); sidebar-color follow-up split |
 | 09 | QuickLook / Open-with / FSEvents | ✅ done, PR #13 (all 3 ACs, user-verified) |
 | 10 | Full Disk Access onboarding | ✅ done, PR #14 (all ACs, user-verified) — **MVP complete** |
-| 11 | Inline single-file rename | ⬜ backlog (split from 07) |
+| 11 | Inline single-file rename | ✅ done, PR pending — user-verified (⌘R / slow-click) |
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
 | 13 | Panel resize + collapse/expand right panel | ✅ done, PR #16 |
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
@@ -123,6 +123,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 19 | Command palette (⌘K) | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ⬜ ready-for-agent — foundational chrome for 18+; supersedes 15's path dropdown |
+| 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -302,6 +303,32 @@ Presentation pass applying "data drives the form" (`context/dashboard-research.m
     title-bar area.
 - Out of scope (per spec): charts/timelines/date-section grouping — no summary
   surface in a file manager.
+
+### Issue 11 outcome (2026-06-24) — Inline single-file rename (PR pending)
+Finder-style in-place rename, reusing the issue-04/07 `RenameOperation` (one
+undoable step). Decisions made with the user:
+- **Triggers:** **⌘R** on a single selection (2+ still opens the batch sheet) **and
+  slow-click** (click an already-selected row's name). **Return stays "open"** — the
+  user kept the issue-09 behaviour rather than Finder's Return=rename.
+- Commit on Return / click-away; **Escape** cancels; base name pre-selected so the
+  extension is preserved; **collision → beep + revert** (case-only self-rename
+  allowed, mirroring issue 07's volume-aware guard).
+- `PanelModel.inlineRenameRequest` token + `WorkspaceModel.renameInline(_:to:)`;
+  new `onRename`/`renameRequest` threaded through `FileListView`.
+
+**Hard-won AppKit lesson (don't rediscover):** making the name cell's `NSTextField`
+editable wrecked the table's normal behaviour — clicks stole focus (keyboard
+shortcuts passed through), right-clicks hit the field instead of the row menu, and
+every file name flipped from `AXStaticText` to `AXTextField` (broke all 9 UI tests'
+`staticTexts[name]` lookups + VoiceOver). Fix that keeps the cell behaving like a
+plain label: `EditableNameTextField` that (a) overrides `accessibilityRole()` →
+`.staticText` unless actively editing, and (b) overrides `hitTest` → `nil` unless
+editing, so it's transparent to the mouse. Editing is driven **programmatically**
+via `editColumn` (⌘R) or a custom slow-click in `FileTableView.mouseDown` (guards
+double-click=open and drag). The field is flipped editable only for the duration of
+the edit. Result: selection, right-click menus, AX, and all tests behave as before.
+- Tests: 47 green (38 unit + 9 UI). `testRenameRefreshesBothPanelsOnSameDir`
+  rewritten to drive the inline editor (and still proves both panels refresh).
 
 ### Issue 01 outcome (2026-06-17)
 Tracer bullet works: app launches to one Panel listing a real directory

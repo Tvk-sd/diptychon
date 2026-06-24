@@ -14,7 +14,9 @@ protocol FileListView: View {
         selection: Binding<Set<FileItem.ID>>,
         sortOrder: Binding<[KeyPathComparator<FileItem>]>,
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
-        onPin: @escaping (_ folder: URL) -> Void
+        onPin: @escaping (_ folder: URL) -> Void,
+        renameRequest: UUID?,
+        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool
     )
 }
 
@@ -33,19 +35,25 @@ struct TableFileListView: FileListView {
     @Binding var sortOrder: [KeyPathComparator<FileItem>]
     let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
     let onPin: (_ folder: URL) -> Void
+    let renameRequest: UUID?
+    let onRename: (_ item: FileItem, _ newName: String) -> Bool
 
     init(
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
         sortOrder: Binding<[KeyPathComparator<FileItem>]>,
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
-        onPin: @escaping (_ folder: URL) -> Void
+        onPin: @escaping (_ folder: URL) -> Void,
+        renameRequest: UUID?,
+        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool
     ) {
         self.items = items
         self._selection = selection
         self._sortOrder = sortOrder
         self.onDrop = onDrop
         self.onPin = onPin
+        self.renameRequest = renameRequest
+        self.onRename = onRename
     }
 
     private static let sizeFormatter: ByteCountFormatter = {

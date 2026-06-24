@@ -13,19 +13,25 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     @Binding var sortOrder: [KeyPathComparator<FileItem>]
     let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
     let onPin: (_ folder: URL) -> Void
+    let renameRequest: UUID?
+    let onRename: (_ item: FileItem, _ newName: String) -> Bool
 
     init(
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
         sortOrder: Binding<[KeyPathComparator<FileItem>]>,
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
-        onPin: @escaping (_ folder: URL) -> Void
+        onPin: @escaping (_ folder: URL) -> Void,
+        renameRequest: UUID?,
+        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool
     ) {
         self.items = items
         self._selection = selection
         self._sortOrder = sortOrder
         self.onDrop = onDrop
         self.onPin = onPin
+        self.renameRequest = renameRequest
+        self.onRename = onRename
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -42,6 +48,9 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         // Right-click "Open / Open With…" menu, built for the clicked row.
         table.menuProvider = { [weak coordinator = context.coordinator] row in
             coordinator?.contextMenu(forRow: row)
+        }
+        table.beginEdit = { [weak coordinator = context.coordinator] row in
+            coordinator?.beginEditing(row: row)
         }
 
         addColumn(table, id: Column.name, title: "Name", width: 210, sortKey: "name")
@@ -78,6 +87,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         guard let table = scroll.documentView as? NSTableView else { return }
         context.coordinator.syncContents(table)
         context.coordinator.syncSelection(table)
+        context.coordinator.handleRenameRequest(table)
     }
 
     private func addColumn(_ table: NSTableView, id: String, title: String, width: CGFloat,
@@ -94,10 +104,12 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
 
     // MARK: - Coordinator
 
-    final class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate {
+    final class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSTextFieldDelegate {
         var parent: NSTableViewFileList
         weak var table: NSTableView?
         private var displayedIDs: [FileItem.ID] = []
+        /// Last inline-rename token handled, so a new request edits exactly once.
+        private var lastRenameRequest: UUID?
         private var isSyncingSelection = false
         /// The selection we last pushed to the binding. Lets us tell a binding
         /// change that *we* caused (echo) from one made externally (e.g. nav
@@ -174,9 +186,25 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         private func makeCell(id: NSUserInterfaceItemIdentifier, withIcon: Bool) -> NSTableCellView {
             let cell = withIcon ? NameCellView() : NSTableCellView()
             cell.identifier = id
-            let text = NSTextField(labelWithString: "")
+            // Name cell uses an editable field (inline rename, issue 11) styled like
+            // a label; AppKit gives slow-click-to-edit for free once it's editable.
+            // It reports as *static text* to accessibility until actually editing
+            // (see EditableNameTextField), so VoiceOver + UI tests still see labels.
+            let text: NSTextField = withIcon ? EditableNameTextField() : NSTextField(labelWithString: "")
             text.translatesAutoresizingMaskIntoConstraints = false
             text.lineBreakMode = .byTruncatingTail
+            if withIcon {
+                // Editable only *while* renaming (issue 11) — kept non-editable
+                // otherwise so a normal click selects the row (doesn't steal focus).
+                text.isBordered = false
+                text.isBezeled = false
+                text.drawsBackground = false
+                text.isEditable = false
+                text.isSelectable = false
+                text.focusRingType = .none
+                text.font = .systemFont(ofSize: NSFont.systemFontSize)
+                text.delegate = self
+            }
             // Numeric Size column → right-aligned + monospaced digits so values
             // line up by place value for at-a-glance comparison (issue 17).
             if id.rawValue == Column.size {
@@ -224,6 +252,53 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             let ids = Set(table.selectedRowIndexes.compactMap { $0 < parent.items.count ? parent.items[$0].id : nil })
             lastPublished = ids
             parent.selection = ids
+        }
+
+        // MARK: Inline rename (issue 11)
+
+        /// ⌘R on a single row bumps `renameRequest`; begin editing that row's name.
+        func handleRenameRequest(_ table: NSTableView) {
+            guard let request = parent.renameRequest, request != lastRenameRequest else { return }
+            lastRenameRequest = request
+            beginEditing(row: table.selectedRow)
+        }
+
+        /// Start an inline rename of `row`: flip the name field editable just for the
+        /// edit (it's non-editable otherwise so clicks select normally) and focus it.
+        /// Shared by ⌘R and slow-click.
+        func beginEditing(row: Int) {
+            guard let table = table, row >= 0, row < parent.items.count else { return }
+            let nameColumn = table.column(withIdentifier: .init(Column.name))
+            guard nameColumn >= 0 else { return }
+            if let cell = table.view(atColumn: nameColumn, row: row, makeIfNecessary: true) as? NSTableCellView {
+                cell.textField?.isEditable = true
+            }
+            table.editColumn(nameColumn, row: row, with: nil, select: false)
+        }
+
+        /// Pre-select the base name (extension stays put) when editing starts.
+        func controlTextDidBeginEditing(_ obj: Notification) {
+            guard let field = obj.object as? NSTextField, let editor = field.currentEditor() else { return }
+            let base = (field.stringValue as NSString).deletingPathExtension
+            editor.selectedRange = NSRange(location: 0, length: (base as NSString).length)
+        }
+
+        /// Commit on Return / click-away (one undoable RenameOperation); revert on
+        /// Escape, an empty/unchanged name, or a rejected (colliding) name.
+        func controlTextDidEndEditing(_ obj: Notification) {
+            guard let field = obj.object as? NSTextField, let table = table else { return }
+            defer { field.isEditable = false }            // back to non-editable (selectable) label
+            let row = table.row(for: field)
+            guard row >= 0, row < parent.items.count else { return }
+            let item = parent.items[row]
+            let movement = (obj.userInfo?["NSTextMovement"] as? Int).flatMap(NSTextMovement.init(rawValue:))
+            if movement == .cancel {                      // Escape
+                field.stringValue = item.name
+                return
+            }
+            if !parent.onRename(item, field.stringValue) {
+                field.stringValue = item.name             // rejected / unchanged → revert
+            }
         }
 
         // MARK: Sorting
@@ -375,16 +450,57 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
 /// cursor (so "Open With" can target the clicked file even if unselected).
 final class FileTableView: NSTableView {
     var menuProvider: ((Int) -> NSMenu?)?
+    /// Begin an inline rename of a row (slow-click, issue 11). Set by the coordinator.
+    var beginEdit: ((Int) -> Void)?
+    private var pendingEdit: DispatchWorkItem?
 
     override func menu(for event: NSEvent) -> NSMenu? {
         let point = convert(event.locationInWindow, from: nil)
         return menuProvider?(row(at: point))
+    }
+
+    /// Finder-style slow-click rename: a single click on the row that was *already*
+    /// the sole selection (no drag, no double-click) begins editing after the
+    /// double-click window. Double-click (open) cancels it; a drag skips it.
+    override func mouseDown(with event: NSEvent) {
+        let downPoint = convert(event.locationInWindow, from: nil)
+        let clickedRow = row(at: downPoint)
+        let wasSoleSelection = clickedRow >= 0 && selectedRowIndexes.count == 1 && selectedRow == clickedRow
+        pendingEdit?.cancel(); pendingEdit = nil
+
+        super.mouseDown(with: event)   // selection + any row-drag tracking
+
+        guard event.clickCount == 1, clickedRow >= 0, wasSoleSelection else { return }
+        let up = convert(window?.mouseLocationOutsideOfEventStream ?? .zero, from: nil)
+        guard abs(up.x - downPoint.x) < 4, abs(up.y - downPoint.y) < 4 else { return }  // dragged → skip
+        let work = DispatchWorkItem { [weak self] in self?.beginEdit?(clickedRow) }
+        pendingEdit = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + NSEvent.doubleClickInterval + 0.05, execute: work)
     }
 }
 
 /// Name-column cell that also carries a trailing tag-dots view.
 final class NameCellView: NSTableCellView {
     let tagDots = FinderTagDotsView()
+}
+
+/// Editable name field (inline rename, issue 11) that reports as **static text**
+/// to accessibility while it's not being edited — so VoiceOver reads the list as
+/// labels and XCUITest keeps finding rows via `staticTexts[name]`. Once the field
+/// editor is active it reports as a text field.
+final class EditableNameTextField: NSTextField {
+    override func accessibilityRole() -> NSAccessibility.Role? {
+        currentEditor() == nil ? .staticText : .textField
+    }
+
+    /// Transparent to the mouse unless actively editing — so a click selects the
+    /// row and a right-click hits the table's row menu (not the field), exactly
+    /// like a plain label. Editing is driven programmatically via `editColumn`
+    /// (⌘R / slow-click), after which `currentEditor()` is non-nil and normal
+    /// hit-testing resumes so the field editor is interactive. (Issue 11.)
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        currentEditor() == nil ? nil : super.hitTest(point)
+    }
 }
 
 /// A trailing row of up to 3 tag color dots, then "+N" if there are more. The

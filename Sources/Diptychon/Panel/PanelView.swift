@@ -12,6 +12,9 @@ struct PanelView: View {
     var onGoToFolder: () -> Void = {}
     /// Pin a folder to the sidebar (issue 16) — owned by the workspace.
     var onPin: (_ folder: URL) -> Void = { _ in }
+    /// Commit an inline rename (issue 11) — owned by the workspace. Returns false
+    /// if rejected (collision / empty / unchanged) so the cell reverts.
+    var onRename: (_ item: FileItem, _ newName: String) -> Bool = { _, _ in false }
 
     var body: some View {
         @Bindable var model = model
@@ -80,7 +83,9 @@ struct PanelView: View {
                     selection: $model.selection,
                     sortOrder: $model.sortOrder,
                     onDrop: onDrop,
-                    onPin: onPin
+                    onPin: onPin,
+                    renameRequest: model.inlineRenameRequest,
+                    onRename: onRename
                 )
             case .failed(let message):
                 if model.accessDenied {

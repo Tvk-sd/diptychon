@@ -39,6 +39,12 @@ final class PanelModel {
     var sortOrder = [KeyPathComparator(\FileItem.name)] { didSet { recomputeVisible() } }
     /// Current row selection (lifted here so the Commander gesture can act on it).
     var selection = Set<FileItem.ID>()
+    /// Bumped to ask the list to begin an inline rename on the selected row (issue
+    /// 11). The `NSTableView` watches this token and calls `editColumn`.
+    var inlineRenameRequest: UUID?
+
+    /// Ask the file list to start editing the single selected row's name in place.
+    func requestInlineRename() { inlineRenameRequest = UUID() }
 
     private var loadedItems: [FileItem] = []
     private var loadTask: Task<Void, Never>?
