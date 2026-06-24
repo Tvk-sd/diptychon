@@ -44,14 +44,15 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             coordinator?.contextMenu(forRow: row)
         }
 
-        addColumn(table, id: Column.name, title: "Name", width: 280, sortKey: "name")
+        addColumn(table, id: Column.name, title: "Name", width: 210, sortKey: "name")
         addColumn(table, id: Column.size, title: "Size", width: 90, sortKey: "size", alignment: .right)
         addColumn(table, id: Column.date, title: "Date Modified", width: 160, sortKey: "date")
 
-        // Narrow-panel fix (issue 17): only the Name column flexes — it absorbs/
-        // yields width so the fixed Size & Date columns stay visible instead of
-        // being pushed off-screen. Name truncates with “…” (full name in tooltip).
-        table.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
+        // Issue 17: Name starts at a compact width and the user's drag-resize sticks
+        // (only the last column auto-resizes on window changes, so Name is left
+        // alone). Date takes up any slack on wide windows → no trailing gap; narrow
+        // panels scroll to reach Size/Date. Name truncates with “…” (name in tooltip).
+        table.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
         if let nameCol = table.tableColumn(withIdentifier: .init(Column.name)) {
             nameCol.minWidth = 120
             nameCol.maxWidth = .greatestFiniteMagnitude
@@ -65,6 +66,9 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         let scroll = NSScrollView()
         scroll.documentView = table
         scroll.hasVerticalScroller = true
+        // Narrow panels scroll to reach Size/Date rather than hiding them; columns
+        // also stay user-resizable/reorderable (issue 17).
+        scroll.hasHorizontalScroller = true
         context.coordinator.table = table
         return scroll
     }
@@ -110,8 +114,16 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         func syncContents(_ table: NSTableView) {
             let ids = parent.items.map(\.id)
             if ids != displayedIDs {
+                let isNavigation = !displayedIDs.isEmpty   // not the very first fill
                 displayedIDs = ids
                 table.reloadData()
+                // Start scrolled to the left so Name is visible first when a folder
+                // loads (issue 17). The user can still scroll right to Size/Date;
+                // navigating to another folder returns to Name-first.
+                if isNavigation, let clip = table.enclosingScrollView?.contentView {
+                    clip.scroll(to: NSPoint(x: 0, y: clip.bounds.origin.y))
+                    table.enclosingScrollView?.reflectScrolledClipView(clip)
+                }
             }
             // Reflect the current sort order in the header indicator.
             table.sortDescriptors = parent.sortOrder.first.map { descriptorFor($0) }.map { [$0] } ?? []
@@ -368,40 +380,6 @@ final class FileTableView: NSTableView {
         let point = convert(event.locationInWindow, from: nil)
         return menuProvider?(row(at: point))
     }
-
-    // Responsive columns (issue 17): when the panel is too narrow to show Date (or
-    // Size) next to the flexible Name column, hide them — deterministically, by the
-    // visible width — instead of relying on AppKit's borderline autoresize. Name
-    // then flexes to fill via `.firstColumnOnlyAutoresizingStyle`. Driven off both
-    // `layout()` and the clip view's frame changes so it stays in sync on resize.
-    private enum Width { static let showDate: CGFloat = 380, showSize: CGFloat = 250 }
-
-    override func viewDidMoveToWindow() {
-        super.viewDidMoveToWindow()
-        guard let clip = enclosingScrollView?.contentView else { return }
-        clip.postsFrameChangedNotifications = true
-        NotificationCenter.default.addObserver(self, selector: #selector(updateResponsiveColumns),
-                                               name: NSView.frameDidChangeNotification, object: clip)
-        updateResponsiveColumns()
-    }
-
-    override func layout() {
-        super.layout()
-        updateResponsiveColumns()
-    }
-
-    @objc private func updateResponsiveColumns() {
-        let visible = enclosingScrollView?.contentView.bounds.width ?? bounds.width
-        setColumn(NSTableViewFileList.Column.date, hidden: visible < Width.showDate)
-        setColumn(NSTableViewFileList.Column.size, hidden: visible < Width.showSize)
-    }
-
-    private func setColumn(_ id: String, hidden: Bool) {
-        guard let col = tableColumn(withIdentifier: .init(id)), col.isHidden != hidden else { return }
-        col.isHidden = hidden   // guarded so we never re-enter layout when unchanged
-    }
-
-    deinit { NotificationCenter.default.removeObserver(self) }
 }
 
 /// Name-column cell that also carries a trailing tag-dots view.

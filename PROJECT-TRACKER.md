@@ -280,14 +280,25 @@ Presentation pass applying "data drives the form" (`context/dashboard-research.m
   or the issue-08 tag dots.
 - Tests: 4 new `FileDateFormatterTests` (fixed `now` + UTC calendar, no clock/TZ
   flakiness); all unit tests green; UI tests green in isolation. Verified on screen.
-- **Narrow-panel handling (surfaced in review):** with sidebar + two panels (+
-  preview), panels got too narrow and Size/Date were pushed off-screen. Fixed:
-  the **Name column flexes** (`.firstColumnOnlyAutoresizingStyle`, truncates with
-  full name in tooltip) so the fixed Size/Date stay put; plus **deterministic
-  responsive hiding** in `FileTableView` (hide Date < 380px, Size < 250px of
-  visible width, driven off `layout()` + the clip view's frame-change
-  notification). Default window widened to 1280×720. Degrades cleanly:
-  Name·Size·Date → Name·Size → Name.
+- **Narrow-panel handling (iterated in review with the user):** with sidebar +
+  two panels (+ preview), panels got too narrow and Size/Date were pushed
+  off-screen. Final design (after trying responsive column-hiding, which the user
+  rejected — he wanted nothing hidden):
+  - **Name column** starts compact (210px, ~25% smaller) and the user's
+    drag-resize sticks; `.lastColumnOnlyAutoresizingStyle` so only Date takes up
+    slack (no trailing gap), Name is left alone. Name truncates with the full name
+    in a tooltip.
+  - **Horizontal scroll** (`hasHorizontalScroller`) so narrow panels scroll to
+    reach Size/Date rather than hiding them; columns stay user-resizable/reorderable.
+    A folder load resets the scroll to the left (Name-first) via `syncContents`.
+  - **Window layout:** a real `NSWindow.contentMinSize` that tracks the open
+    regions (`WindowMinWidth` accessor) — the window can't shrink below what fits
+    (sidebar always visible, nothing clipped), and **opening the preview compresses
+    the panels** within the current window (panel min 180) rather than growing it;
+    it only grows when panels would otherwise fall below 180. Default 1280×720.
+  - **Toolbar background made visible** (`.toolbarBackground(.visible,
+    for: .windowToolbar)`) so the panel divider no longer bleeds up through the
+    title-bar area.
 - Out of scope (per spec): charts/timelines/date-section grouping — no summary
   surface in a file manager.
 
