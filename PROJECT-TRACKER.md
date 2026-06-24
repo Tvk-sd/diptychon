@@ -116,7 +116,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
 | 13 | Panel resize + collapse/expand right panel | ✅ done, PR #16 |
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
-| 15 | Path bar / Go to Folder | ⬜ backlog (raised in 10) |
+| 15 | Path bar / Go to Folder | ✅ done on `feat/15-…` — all ACs; PR pending |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -213,6 +213,19 @@ QuickLook (09).
 - **Two gotchas (see PLAN/commit):** HSplitView can't drop a conditional child
   (swap the whole container); launch-arg/default-true needs `register` +
   `bool(forKey:)`, not `object as? Bool`.
+
+### Issue 15 outcome (2026-06-24) — Path bar / Go to Folder (PR pending)
+- **Go to Folder (⇧⌘G):** `GoToFolderSheet` pre-filled with the active path;
+  `PathInput.resolve` (pure: `~` expansion, standardize, dir-exists check; 6 unit
+  tests) gates navigation, invalid paths show an inline error.
+- **Clickable path:** the header path is a menu of ancestor folders (jump up to
+  any) + "Go to Folder…". `PanelModel.go(to:)`.
+- 34 tests (28 unit + 6 UI), incl. `testGoToFolderNavigates`.
+- Note: ⇧⌘G (a Keymap chord) is inactive while the Filter field is focused — same
+  as ⌘T/⌘R; the path-menu item is the always-available mouse path.
+- **Dev-loop reminder reinforced:** `pkill -f Diptychon` before every test run —
+  leftover manual instances foreground over the XCUITest app and cause spurious
+  failures (bundle-id gotcha).
 
 **Gotcha (SwiftUI + XCUITest):** a `.plain` Button's hit area for *synthetic*
 clicks is the rendered content, not the framed row; a real pointer respects
