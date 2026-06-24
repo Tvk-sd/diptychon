@@ -117,6 +117,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 13 | Panel resize + collapse/expand right panel | ✅ done, PR #16 |
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
 | 15 | Path bar / Go to Folder | ✅ done, PR #17 |
+| 16 | Left sidebar (places + pinned folders) | ⬜ backlog — research in `context/`, spec written |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
