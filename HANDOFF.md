@@ -101,7 +101,7 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 18 | Operation history / time-travel undo | ⬜ needs-triage (differentiation bet) |
 | 19 | Command palette (⌘K) | ⬜ needs-triage (differentiation bet) |
 | 20 | Virtual staging panel | ⬜ needs-triage (differentiation bet) |
-| 21 | Unified top bar (breadcrumb, back/forward, search) | ⬜ ready-for-agent — foundational chrome for 18+ |
+| 21 | Unified top bar (breadcrumb, back/forward, search) | 🔴 slice 1 on branch `feat/21-unified-top-bar` but **MEMORY RUNAWAY (~15 GB, crashes machine) — do not merge/run**; fix per PLAN.md before resuming |
 
 ## Architecture (current)
 - `App/DiptychonApp.swift` — `@main struct DiptychonApp: App` with
