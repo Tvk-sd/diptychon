@@ -13,28 +13,37 @@ struct PanelView: View {
         @Bindable var model = model
         VStack(spacing: 0) {
             // Header
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 Button { model.navigateUp() } label: {
                     Image(systemName: "chevron.up")
                 }
                 .disabled(!model.canGoUp)
                 .help("Go up (⌘↑)")
+                .fixedSize()
 
                 Text(model.title)
                     .font(.headline)
                     .lineLimit(1)
                     .truncationMode(.head)
+                    .layoutPriority(-1) // give up width first so controls never wrap
 
-                Spacer()
+                Spacer(minLength: 4)
 
-                Toggle("Hidden", isOn: $model.showHidden)
-                    .toggleStyle(.checkbox)
+                // Icon-only toggle for hidden files (keeps the header compact when
+                // the preview pane narrows the panel — no wrapping "Hidden" label).
+                Button { model.showHidden.toggle() } label: {
+                    Image(systemName: model.showHidden ? "eye" : "eye.slash")
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(model.showHidden ? Color.accentColor : Color.secondary)
+                .help(model.showHidden ? "Hide hidden files" : "Show hidden files")
+                .fixedSize()
 
                 tagFilterMenu
 
                 TextField("Filter", text: $model.filter)
                     .textFieldStyle(.roundedBorder)
-                    .frame(width: 160)
+                    .frame(minWidth: 70, maxWidth: 160)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
