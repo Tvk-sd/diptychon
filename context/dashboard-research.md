@@ -74,5 +74,5 @@ Concrete techniques:
 ## Using these docs
 - **This doc** = cross-cutting principles → a checklist when designing any view.
 - **`sidebar-research.md`** = the sidebar-specific application.
-- Candidate future issue: a "file-list polish" pass applying Principle 1
-  (right-aligned sizes, date grouping) once higher-value features land.
+- Promoted to a real spec: **issue 17 — file-list polish** (Principle 1:
+  right-aligned sizes, scan-friendly dates) — `.scratch/diptychon-mvp/issues/17-file-list-polish.md`.
