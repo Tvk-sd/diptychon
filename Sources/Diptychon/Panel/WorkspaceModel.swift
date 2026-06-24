@@ -48,6 +48,20 @@ final class WorkspaceModel {
         didSet { UserDefaults.standard.set(previewVisible, forKey: "previewVisible") }
     }
 
+    /// Whether the left sidebar (places + pinned folders) is shown (issue 16).
+    /// Defaults to true (a registered default in `DiptychonApp`). Persisted.
+    var sidebarVisible = UserDefaults.standard.bool(forKey: "sidebarVisible") {
+        didSet { UserDefaults.standard.set(sidebarVisible, forKey: "sidebarVisible") }
+    }
+
+    /// Folders the user pinned to the sidebar (issue 16, slice 2). Backed by a
+    /// `[String]` of paths in `UserDefaults`; deduped on add via `PinnedFolders`.
+    var pinnedFolders: [URL] = PinnedFolders.decode(
+        UserDefaults.standard.stringArray(forKey: "pinnedFolders") ?? []
+    ) {
+        didSet { UserDefaults.standard.set(PinnedFolders.encode(pinnedFolders), forKey: "pinnedFolders") }
+    }
+
     /// Whether the right file panel is shown (issue 13). Defaults to true (a
     /// registered default in `DiptychonApp`). Hiding it forces the Active Panel to
     /// the left so keyboard/clicks stay coherent.
@@ -124,6 +138,17 @@ final class WorkspaceModel {
         activeModel.go(to: url)
         return true
     }
+
+    /// Navigate the Active Panel to a known directory URL (sidebar click,
+    /// breadcrumb). Unlike `toPath`, the URL is already trusted.
+    func navigateActive(to url: URL) {
+        activeModel.go(to: url)
+    }
+
+    // MARK: - Pinned folders (sidebar, issue 16)
+
+    func pin(_ url: URL) { pinnedFolders = PinnedFolders.adding(url, to: pinnedFolders) }
+    func unpin(_ url: URL) { pinnedFolders = PinnedFolders.removing(url, from: pinnedFolders) }
 
 
     // MARK: - QuickLook

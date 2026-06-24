@@ -231,6 +231,142 @@ final class DiptychonUITests: XCTestCase {
                        "Placeholder should be replaced once a file is selected")
     }
 
+    /// Issue 16: the sidebar toggles (⌃⌘S / toolbar) and clicking a Place
+    /// navigates the Active Panel. Navigation is verified by the temp dir's marker
+    /// file disappearing after navigating to `/Applications` (not TCC-protected,
+    /// unlike Home/Desktop which can hang an XCUITest on a privacy prompt).
+    func testSidebarToggleAndNavigate() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-sidebar-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let marker = "marker-\(UUID().uuidString).txt"
+        fm.createFile(atPath: dir.appendingPathComponent(marker).path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launchArguments += ["-sidebarVisible", "YES"]   // known starting state
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts[marker].waitForExistence(timeout: 10))
+
+        // Sidebar visible → its section header shows.
+        XCTAssertTrue(app.staticTexts["PLACES"].waitForExistence(timeout: 5), "Sidebar should be visible")
+
+        let toggle = app.buttons["toggle-sidebar"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        toggle.click()
+        XCTAssertTrue(waitFor { !app.staticTexts["PLACES"].exists }, "Sidebar should hide")
+        toggle.click()
+        XCTAssertTrue(waitFor { app.staticTexts["PLACES"].exists }, "Sidebar should restore")
+
+        // Clicking a Place navigates the Active Panel away from the temp dir.
+        app.buttons["Applications"].firstMatch.click()
+        XCTAssertTrue(waitFor { !leftTable.staticTexts[marker].exists },
+                      "Clicking a Place should navigate the Active Panel")
+    }
+
+    /// Issue 16 slice 2: pin a folder via its context menu → it appears in the
+    /// sidebar's Pinned section → clicking it navigates the Active Panel → removing
+    /// it (via context menu) makes it disappear. The remove also cleans up the
+    /// persisted pin so the test doesn't leave junk in real prefs.
+    func testPinFolderAppearsNavigatesAndRemoves() throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("dipt-pin-\(UUID().uuidString)")
+        let folderName = "target-\(UUID().uuidString)"
+        let target = root.appendingPathComponent(folderName)
+        try fm.createDirectory(at: target, withIntermediateDirectories: true)
+        fm.createFile(atPath: target.appendingPathComponent("inner.txt").path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: root) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = root.path
+        app.launchArguments += ["-sidebarVisible", "YES"]
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts[folderName].waitForExistence(timeout: 10))
+
+        // Right-click the folder → "Add to Sidebar".
+        leftTable.staticTexts[folderName].rightClick()
+        let pinItem = app.menuItems["Add to Sidebar"]
+        XCTAssertTrue(pinItem.waitForExistence(timeout: 5), "Folder menu should offer Add to Sidebar")
+        pinItem.click()
+
+        // It appears in the sidebar's Pinned section (distinct a11y id, since the
+        // same name also exists as a file-list row).
+        let pinnedRow = app.buttons["pinned:\(folderName)"]
+        XCTAssertTrue(pinnedRow.waitForExistence(timeout: 5), "Pinned folder should appear in the sidebar")
+
+        // Clicking it navigates the Active Panel into the folder.
+        pinnedRow.click()
+        XCTAssertTrue(leftTable.staticTexts["inner.txt"].waitForExistence(timeout: 5),
+                      "Clicking a pin should navigate the Active Panel")
+
+        // Remove via context menu → disappears (and clears the persisted pin).
+        pinnedRow.rightClick()
+        let removeItem = app.menuItems["Remove from Sidebar"]
+        XCTAssertTrue(removeItem.waitForExistence(timeout: 5))
+        removeItem.click()
+        XCTAssertTrue(waitFor { !app.buttons["pinned:\(folderName)"].exists },
+                      "Removed pin should disappear from the sidebar")
+    }
+
+    /// Issue 16 slice 3: a pinned folder that no longer exists degrades
+    /// gracefully — it shows as "missing" (greyed, distinct a11y id), clicking it
+    /// does not navigate, and the app stays responsive (no crash). Still removable.
+    func testMissingPinnedFolderDegradesGracefully() throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("dipt-missing-\(UUID().uuidString)")
+        let folderName = "victim-\(UUID().uuidString)"
+        let victim = root.appendingPathComponent(folderName)
+        try fm.createDirectory(at: victim, withIntermediateDirectories: true)
+        let marker = "marker-\(UUID().uuidString).txt"
+        fm.createFile(atPath: root.appendingPathComponent(marker).path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: root) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = root.path
+        app.launchArguments += ["-sidebarVisible", "YES"]
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts[folderName].waitForExistence(timeout: 10))
+
+        // Pin the folder.
+        leftTable.staticTexts[folderName].rightClick()
+        let pinItem = app.menuItems["Add to Sidebar"]
+        XCTAssertTrue(pinItem.waitForExistence(timeout: 5))
+        pinItem.click()
+        XCTAssertTrue(app.buttons["pinned:\(folderName)"].waitForExistence(timeout: 5))
+
+        // Delete it on disk, then force the sidebar to re-render (toggle off/on).
+        try fm.removeItem(at: victim)
+        let toggle = app.buttons["toggle-sidebar"]
+        toggle.click()
+        XCTAssertTrue(waitFor { !app.staticTexts["PLACES"].exists })
+        toggle.click()
+        XCTAssertTrue(waitFor { app.staticTexts["PLACES"].exists })
+
+        // The pin now shows as missing rather than crashing.
+        let missingRow = app.buttons["pinned-missing:\(folderName)"]
+        XCTAssertTrue(missingRow.waitForExistence(timeout: 5), "Deleted pin should show as missing")
+
+        // Clicking it is a no-op: the Active Panel stays put (marker still listed).
+        missingRow.click()
+        XCTAssertTrue(leftTable.staticTexts[marker].waitForExistence(timeout: 3),
+                      "Clicking a missing pin should not navigate")
+        XCTAssertTrue(app.staticTexts["PLACES"].exists, "App should remain responsive")
+
+        // Still removable (also clears the stale persisted pin).
+        missingRow.rightClick()
+        let removeItem = app.menuItems["Remove from Sidebar"]
+        XCTAssertTrue(removeItem.waitForExistence(timeout: 5))
+        removeItem.click()
+        XCTAssertTrue(waitFor { !app.buttons["pinned-missing:\(folderName)"].exists })
+    }
+
     /// Poll the file's tag xattr (the op is async) until it matches, or time out.
     private func waitForTagNames(of path: String, toEqual expected: [String], timeout: TimeInterval = 5) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)

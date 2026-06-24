@@ -96,7 +96,7 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 13 | Panel resize + collapse/expand right panel | ✅ merged (PR #16) |
 | 14 | Inline preview / inspector pane (raised during 09) | ✅ merged (PR #15) |
 | 15 | Path bar / Go to Folder (raised during 10) | ✅ merged (PR #17) |
-| 16 | Left sidebar (places + pinned folders) | ⬜ backlog — spec + `context/` research ready |
+| 16 | Left sidebar (places + pinned folders) | ✅ done on branch `feat/16-left-sidebar` — 3 slices, user-verified; PR pending |
 | 17 | File-list polish (data-driven display) | ⬜ backlog — from dashboard research |
 
 ## Architecture (current)

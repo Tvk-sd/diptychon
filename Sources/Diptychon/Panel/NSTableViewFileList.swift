@@ -12,17 +12,20 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     @Binding var selection: Set<FileItem.ID>
     @Binding var sortOrder: [KeyPathComparator<FileItem>]
     let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
+    let onPin: (_ folder: URL) -> Void
 
     init(
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
         sortOrder: Binding<[KeyPathComparator<FileItem>]>,
-        onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void
+        onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
+        onPin: @escaping (_ folder: URL) -> Void
     ) {
         self.items = items
         self._selection = selection
         self._sortOrder = sortOrder
         self.onDrop = onDrop
+        self.onPin = onPin
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -284,6 +287,16 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             sub.addItem(other)
             openWith.submenu = sub
             menu.addItem(openWith)
+
+            // "Add to Sidebar" for a single folder (issue 16, slice 2). Finder
+            // pins one folder at a time, so this only appears for a lone folder.
+            if urls.count == 1, parent.items.contains(where: { $0.url == first && $0.isDirectory }) {
+                menu.addItem(.separator())
+                let pin = NSMenuItem(title: "Add to Sidebar", action: #selector(pinClicked(_:)), keyEquivalent: "")
+                pin.target = self
+                pin.representedObject = first
+                menu.addItem(pin)
+            }
             return menu
         }
 
@@ -302,6 +315,11 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
                 table?.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
             }
             return parent.items.filter { ids.contains($0.id) }.map(\.url)
+        }
+
+        @objc private func pinClicked(_ sender: NSMenuItem) {
+            guard let url = sender.representedObject as? URL else { return }
+            parent.onPin(url)
         }
 
         @objc private func openClicked(_ sender: NSMenuItem) {
