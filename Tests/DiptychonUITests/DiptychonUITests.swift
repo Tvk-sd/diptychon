@@ -131,6 +131,47 @@ final class DiptychonUITests: XCTestCase {
                       "Undo should remove the tag")
     }
 
+    /// Issue 13: the toolbar button hides and restores the right file panel
+    /// (two tables ↔ one), and the restored panel keeps its directory.
+    func testToggleRightPanel() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-split-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        fm.createFile(atPath: dir.appendingPathComponent("x.txt").path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        // Force a known starting state (the setting persists across runs).
+        app.launchArguments += ["-rightPanelVisible", "YES"]
+        app.launch()
+
+        XCTAssertTrue(app.tables.element(boundBy: 1).waitForExistence(timeout: 10))
+        XCTAssertEqual(app.tables.count, 2, "Both panels visible by default")
+
+        let toggle = app.buttons["toggle-right-panel"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        toggle.click()
+        // Right panel hidden → only the left table remains.
+        XCTAssertTrue(waitFor { app.tables.count == 1 }, "Right panel should hide")
+
+        toggle.click()
+        // Restored → two tables again, both still listing the directory.
+        XCTAssertTrue(waitFor { app.tables.count == 2 }, "Right panel should restore")
+        XCTAssertTrue(app.tables.element(boundBy: 1).staticTexts["x.txt"].waitForExistence(timeout: 5),
+                      "Restored panel keeps its directory")
+    }
+
+    /// Poll a condition until true or timeout (for async UI state changes).
+    private func waitFor(timeout: TimeInterval = 5, _ condition: () -> Bool) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return true }
+            usleep(100_000)
+        }
+        return condition()
+    }
+
     /// Issue 14: the inline preview pane reacts to the Active Panel's selection —
     /// placeholder when nothing is selected, metadata once a file is picked.
     func testPreviewPaneShowsSelectedFile() throws {

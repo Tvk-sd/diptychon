@@ -10,6 +10,13 @@ import SwiftUI
 /// directory (`DIPTYCHON_DIR` override). So the scene is a one-liner.
 @main
 struct DiptychonApp: App {
+    init() {
+        // Right panel defaults to shown; `bool(forKey:)` then honors the persisted
+        // value or a `-rightPanelVisible NO` launch arg. (Registered before the
+        // WorkspaceModel reads it.)
+        UserDefaults.standard.register(defaults: ["rightPanelVisible": true])
+    }
+
     var body: some Scene {
         WindowGroup {
             WorkspaceView()
