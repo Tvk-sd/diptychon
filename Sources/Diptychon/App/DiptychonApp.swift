@@ -14,7 +14,7 @@ struct DiptychonApp: App {
         // Right panel defaults to shown; `bool(forKey:)` then honors the persisted
         // value or a `-rightPanelVisible NO` launch arg. (Registered before the
         // WorkspaceModel reads it.)
-        UserDefaults.standard.register(defaults: ["rightPanelVisible": true])
+        UserDefaults.standard.register(defaults: ["rightPanelVisible": true, "sidebarVisible": true])
     }
 
     var body: some Scene {

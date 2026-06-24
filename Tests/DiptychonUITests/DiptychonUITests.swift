@@ -231,6 +231,42 @@ final class DiptychonUITests: XCTestCase {
                        "Placeholder should be replaced once a file is selected")
     }
 
+    /// Issue 16: the sidebar toggles (⌃⌘S / toolbar) and clicking a Place
+    /// navigates the Active Panel. Navigation is verified by the temp dir's marker
+    /// file disappearing after navigating to `/Applications` (not TCC-protected,
+    /// unlike Home/Desktop which can hang an XCUITest on a privacy prompt).
+    func testSidebarToggleAndNavigate() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-sidebar-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let marker = "marker-\(UUID().uuidString).txt"
+        fm.createFile(atPath: dir.appendingPathComponent(marker).path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launchArguments += ["-sidebarVisible", "YES"]   // known starting state
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts[marker].waitForExistence(timeout: 10))
+
+        // Sidebar visible → its section header shows.
+        XCTAssertTrue(app.staticTexts["PLACES"].waitForExistence(timeout: 5), "Sidebar should be visible")
+
+        let toggle = app.buttons["toggle-sidebar"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        toggle.click()
+        XCTAssertTrue(waitFor { !app.staticTexts["PLACES"].exists }, "Sidebar should hide")
+        toggle.click()
+        XCTAssertTrue(waitFor { app.staticTexts["PLACES"].exists }, "Sidebar should restore")
+
+        // Clicking a Place navigates the Active Panel away from the temp dir.
+        app.buttons["Applications"].firstMatch.click()
+        XCTAssertTrue(waitFor { !leftTable.staticTexts[marker].exists },
+                      "Clicking a Place should navigate the Active Panel")
+    }
+
     /// Poll the file's tag xattr (the op is async) until it matches, or time out.
     private func waitForTagNames(of path: String, toEqual expected: [String], timeout: TimeInterval = 5) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)

@@ -17,6 +17,13 @@ struct WorkspaceView: View {
     var body: some View {
         @Bindable var model = model
         HStack(spacing: 0) {
+            // Issue 16: the left sidebar (places + pinned) sits outermost-left,
+            // fixed width. Collapsible via ⌃⌘S / toolbar.
+            if model.sidebarVisible {
+                SidebarView(model: model)
+                    .frame(width: 200)
+                Divider()
+            }
             // Issue 13: when both panels show, an HSplitView gives a draggable
             // divider. When the right panel is hidden the container is swapped for
             // the left panel alone — HSplitView can't drop a conditional child, so
@@ -44,6 +51,16 @@ struct WorkspaceView: View {
             }
         }
         .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    model.sidebarVisible.toggle()
+                } label: {
+                    Image(systemName: "sidebar.leading")
+                }
+                .help("Show/Hide Sidebar (⌃⌘S)")
+                .keyboardShortcut("s", modifiers: [.command, .control])
+                .accessibilityIdentifier("toggle-sidebar")
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     model.rightPanelVisible.toggle()
@@ -138,8 +155,15 @@ struct WorkspaceView: View {
             mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
                 if let contentView = event.window?.contentView {
                     let x = event.locationInWindow.x
-                    // When the right panel is hidden the left spans the window.
-                    model.active = (model.rightPanelVisible && x >= contentView.bounds.midX) ? .right : .left
+                    // The panels occupy the space between the sidebar (left, issue
+                    // 16) and the preview pane (right, issue 14); their divider sits
+                    // mid-way between those edges by default. When the right panel is
+                    // hidden the left panel spans that whole area.
+                    let bounds = contentView.bounds
+                    let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX        // 200 + divider
+                    let rightEdge = model.previewVisible ? bounds.maxX - 301.0 : bounds.maxX
+                    let panelsMid = (leftEdge + rightEdge) / 2
+                    model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
                 }
                 // Double-click opens the selected row (first click already selected
                 // it). Handled here so the Table keeps native single-click select.

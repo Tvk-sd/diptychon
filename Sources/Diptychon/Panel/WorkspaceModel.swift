@@ -48,6 +48,12 @@ final class WorkspaceModel {
         didSet { UserDefaults.standard.set(previewVisible, forKey: "previewVisible") }
     }
 
+    /// Whether the left sidebar (places + pinned folders) is shown (issue 16).
+    /// Defaults to true (a registered default in `DiptychonApp`). Persisted.
+    var sidebarVisible = UserDefaults.standard.bool(forKey: "sidebarVisible") {
+        didSet { UserDefaults.standard.set(sidebarVisible, forKey: "sidebarVisible") }
+    }
+
     /// Whether the right file panel is shown (issue 13). Defaults to true (a
     /// registered default in `DiptychonApp`). Hiding it forces the Active Panel to
     /// the left so keyboard/clicks stay coherent.
@@ -123,6 +129,12 @@ final class WorkspaceModel {
         guard let url = PathInput.resolve(raw) else { return false }
         activeModel.go(to: url)
         return true
+    }
+
+    /// Navigate the Active Panel to a known directory URL (sidebar click,
+    /// breadcrumb). Unlike `toPath`, the URL is already trusted.
+    func navigateActive(to url: URL) {
+        activeModel.go(to: url)
     }
 
 

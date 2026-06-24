@@ -68,6 +68,13 @@ Branch: `feat/16-left-sidebar`.
   collapsible and ~200px; fine. (Resizable sidebar = future.)
 
 ## Progress
-- [ ] Slice 1 — scaffold + toggle (⌃⌘S) + Places navigate
+- [x] Slice 1 — scaffold + toggle (⌃⌘S) + Places navigate
+  - `WorkspaceModel.sidebarVisible` (registered default true, persisted) +
+    `navigateActive(to url:)`. `SidebarView`/`SidebarPlace` (Places: Home, Desktop,
+    Documents, Downloads, Applications; empty Pinned). Layout `Sidebar | HSplitView
+    | Preview`; toolbar `sidebar.leading` toggle (⌃⌘S). Mouse active-panel boundary
+    now accounts for sidebar + preview widths. UI test `testSidebarToggleAndNavigate`
+    (navigates to /Applications to avoid the Home/Desktop TCC-prompt hang). Verified
+    on screen.
 - [ ] Slice 2 — pinning via context menu (persist) + remove
 - [ ] Slice 3 — drag-to-pin + missing-folder resilience
