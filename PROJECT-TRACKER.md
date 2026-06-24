@@ -114,7 +114,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 10 | Full Disk Access onboarding | ✅ done, PR #14 (all ACs, user-verified) — **MVP complete** |
 | 11 | Inline single-file rename | ⬜ backlog (split from 07) |
 | 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
-| 13 | Panel resize + collapse/expand right panel | ✅ done on `feat/13-…` — all ACs; PR pending |
+| 13 | Panel resize + collapse/expand right panel | ✅ done, PR #16 |
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
 | 15 | Path bar / Go to Folder | ⬜ backlog (raised in 10) |
 
