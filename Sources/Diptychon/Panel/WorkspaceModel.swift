@@ -39,6 +39,8 @@ final class WorkspaceModel {
     var renaming: RenameRequest?
     /// Whether the tag picker is open for the Active Panel's selection.
     var tagging = false
+    /// Whether the Go to Folder sheet is open (issue 15).
+    var goingToFolder = false
 
     /// Whether the inline preview pane is shown (issue 14). Persisted across
     /// launches so it stays where the user left it.
@@ -108,8 +110,21 @@ final class WorkspaceModel {
         case .showTags: beginTagging()
         case .openSelection: openSelection()
         case .preview: togglePreview()
+        case .goToFolder: goingToFolder = true
         }
     }
+
+    // MARK: - Go to Folder / path navigation (issue 15)
+
+    /// Navigate the Active Panel to a typed path. Returns false (and changes
+    /// nothing) if the path doesn't resolve to an existing directory.
+    @discardableResult
+    func navigateActive(toPath raw: String) -> Bool {
+        guard let url = PathInput.resolve(raw) else { return false }
+        activeModel.go(to: url)
+        return true
+    }
+
 
     // MARK: - QuickLook
 

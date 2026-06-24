@@ -38,6 +38,15 @@ directory and lets you jump to an ancestor.
 - Symlinks: resolve/standardize but don't over-engineer.
 
 ## Progress
-- [ ] Slice 1 — PathInput.resolve (pure) + unit tests
-- [ ] Slice 2 — Go to Folder sheet (⇧⌘G) + nav plumbing
-- [ ] Slice 3 — header path menu (ancestors + Go to Folder…)
+- [x] Slice 1 — `PathInput.resolve` (pure) + 6 unit tests.
+- [x] Slice 2 — Go to Folder sheet (⇧⌘G) + `PanelModel.go(to:)` /
+      `WorkspaceModel.navigateActive(toPath:)`; `testGoToFolderNavigates`.
+- [x] Slice 3 — header path = menu of ancestor folders + "Go to Folder…".
+
+## Notes
+- ⇧⌘G is a Keymap chord, so (like ⌘T/⌘R) it's inactive while the Filter field is
+  the first responder — consistent with the rest of the app; the path-menu's
+  "Go to Folder…" is the always-available mouse path.
+- 34 tests green (28 unit + 6 UI). NB: always `pkill -f Diptychon` before a test
+  run — leftover manual instances foreground over the test app (bundle-id gotcha)
+  and cause spurious UI failures.
