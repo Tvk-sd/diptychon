@@ -84,4 +84,10 @@ Branch: `feat/16-left-sidebar`.
     WorkspaceView; added to the FileListView protocol). Sidebar Pinned section
     lists pins (a11y id `pinned:<name>`), click navigates, "Remove from Sidebar"
     context menu. UI test `testPinFolderAppearsNavigatesAndRemoves`.
-- [ ] Slice 3 — drag-to-pin + missing-folder resilience
+- [x] Slice 3 — drag-to-pin + missing-folder resilience
+  - Drop a folder anywhere on the sidebar to pin it (`.dropDestination(for: URL)`,
+    folders-only, accent-border highlight while targeted). Missing pinned folders
+    render greyed + non-navigable (`folder.badge.questionmark`, distinct a11y id
+    `pinned-missing:<name>`, click re-checks existence → no-op) but stay listed so
+    they're removable. UI test `testMissingPinnedFolderDegradesGracefully`.
+    Drag-to-pin verified by dogfooding (XCUITest drag is flaky — ADR 0002 context).

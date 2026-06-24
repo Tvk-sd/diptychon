@@ -119,6 +119,9 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 15 | Path bar / Go to Folder | ✅ done, PR #17 |
 | 16 | Left sidebar (places + pinned folders) | ⬜ backlog — research in `context/`, spec written |
 | 17 | File-list polish (data-driven display) | ⬜ backlog — from `context/dashboard-research.md` |
+| 18 | Operation history / time-travel undo | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
+| 19 | Command palette (⌘K) | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
+| 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but

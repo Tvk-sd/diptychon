@@ -37,6 +37,8 @@ struct SidebarPlace: Identifiable {
 /// Panel; the row matching the active directory is highlighted.
 struct SidebarView: View {
     let model: WorkspaceModel
+    /// True while a drag hovers the sidebar — highlights the drop zone.
+    @State private var dropTargeted = false
 
     private let places = SidebarPlace.standard
 
@@ -57,20 +59,44 @@ struct SidebarView: View {
                             .padding(.vertical, 2)
                     } else {
                         ForEach(model.pinnedFolders, id: \.self) { url in
-                            row(name: url.lastPathComponent, icon: "folder", url: url)
-                                .accessibilityIdentifier("pinned:\(url.lastPathComponent)")
-                                .contextMenu {
-                                    Button("Remove from Sidebar") { model.unpin(url) }
-                                }
+                            pinnedRow(url)
                         }
                     }
                 }
             }
             .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxHeight: .infinity)
         .background(.regularMaterial)
+        // Drop a folder anywhere on the sidebar to pin it (issue 16, slice 3).
+        // Files are ignored — the sidebar is a navigation surface.
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(Color.accentColor, lineWidth: 2)
+                .padding(4)
+                .opacity(dropTargeted ? 1 : 0)
+                .allowsHitTesting(false)
+        }
+        .dropDestination(for: URL.self) { urls, _ in
+            let folders = urls.filter(Self.isDirectory)
+            folders.forEach { model.pin($0) }
+            return !folders.isEmpty
+        } isTargeted: { dropTargeted = $0 }
         .accessibilityIdentifier("sidebar")
+    }
+
+    /// A pinned-folder row. If the folder no longer exists it's greyed and
+    /// non-navigable (slice 3 resilience) but stays listed so it can be removed.
+    private func pinnedRow(_ url: URL) -> some View {
+        let exists = Self.isDirectory(url)
+        return row(name: url.lastPathComponent,
+                   icon: exists ? "folder" : "folder.badge.questionmark",
+                   url: url, missing: !exists)
+            .accessibilityIdentifier("pinned\(exists ? "" : "-missing"):\(url.lastPathComponent)")
+            .contextMenu {
+                Button("Remove from Sidebar") { model.unpin(url) }
+            }
     }
 
     @ViewBuilder
@@ -85,19 +111,24 @@ struct SidebarView: View {
         }
     }
 
-    private func row(name: String, icon: String, url: URL) -> some View {
-        let selected = url == model.activeModel.directory
+    private func row(name: String, icon: String, url: URL, missing: Bool = false) -> some View {
+        let selected = !missing && url == model.activeModel.directory
         return Button {
+            // Re-check at click time so a folder deleted since render is a no-op.
+            guard Self.isDirectory(url) else { return }
             model.navigateActive(to: url)
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .frame(width: 16)
-                    .foregroundStyle(selected ? Color.accentColor : Color.secondary)
+                    .foregroundStyle(missing ? Color.secondary
+                                     : (selected ? Color.accentColor : Color.secondary))
                 Text(name)
                     .lineLimit(1)
+                    .foregroundStyle(missing ? Color.secondary : Color.primary)
                 Spacer(minLength: 0)
             }
+            .opacity(missing ? 0.5 : 1)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .contentShape(Rectangle())
@@ -108,5 +139,12 @@ struct SidebarView: View {
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 6)
+        .help(missing ? "“\(name)” can’t be found — remove it from the sidebar" : url.path)
+    }
+
+    /// Whether `url` points to an existing directory (folders-only + resilience).
+    private static func isDirectory(_ url: URL) -> Bool {
+        var isDir: ObjCBool = false
+        return FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) && isDir.boolValue
     }
 }
