@@ -49,12 +49,21 @@ struct SidebarView: View {
                     }
                 }
                 section(header: "Pinned") {
-                    // Empty in slice 1; pinning lands in slice 2.
-                    Text("No pinned folders")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
+                    if model.pinnedFolders.isEmpty {
+                        Text("No pinned folders")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 2)
+                    } else {
+                        ForEach(model.pinnedFolders, id: \.self) { url in
+                            row(name: url.lastPathComponent, icon: "folder", url: url)
+                                .accessibilityIdentifier("pinned:\(url.lastPathComponent)")
+                                .contextMenu {
+                                    Button("Remove from Sidebar") { model.unpin(url) }
+                                }
+                        }
+                    }
                 }
             }
             .padding(.vertical, 10)

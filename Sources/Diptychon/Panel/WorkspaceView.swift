@@ -32,17 +32,20 @@ struct WorkspaceView: View {
                 HSplitView {
                     PanelView(model: model.left, isActive: model.active == .left,
                               onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                              onGoToFolder: { model.active = .left; model.goingToFolder = true })
+                              onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                              onPin: { model.pin($0) })
                     .frame(minWidth: 240)
                     PanelView(model: model.right, isActive: model.active == .right,
                               onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
-                              onGoToFolder: { model.active = .right; model.goingToFolder = true })
+                              onGoToFolder: { model.active = .right; model.goingToFolder = true },
+                              onPin: { model.pin($0) })
                     .frame(minWidth: 240)
                 }
             } else {
                 PanelView(model: model.left, isActive: true,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                          onGoToFolder: { model.active = .left; model.goingToFolder = true })
+                          onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                          onPin: { model.pin($0) })
             }
             if model.previewVisible {
                 Divider()

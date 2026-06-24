@@ -76,5 +76,12 @@ Branch: `feat/16-left-sidebar`.
     now accounts for sidebar + preview widths. UI test `testSidebarToggleAndNavigate`
     (navigates to /Applications to avoid the Home/Desktop TCC-prompt hang). Verified
     on screen.
-- [ ] Slice 2 — pinning via context menu (persist) + remove
+- [x] Slice 2 — pinning via context menu (persist) + remove
+  - `PinnedFolders` pure helper (add/remove/dedup by standardized path, encode/
+    decode paths) + 6 unit tests. `WorkspaceModel.pinnedFolders` ([URL] backed by
+    [String] in UserDefaults) + `pin`/`unpin`. "Add to Sidebar" on a single-folder
+    context menu (new `onPin` closure threaded NSTableViewFileList → PanelView →
+    WorkspaceView; added to the FileListView protocol). Sidebar Pinned section
+    lists pins (a11y id `pinned:<name>`), click navigates, "Remove from Sidebar"
+    context menu. UI test `testPinFolderAppearsNavigatesAndRemoves`.
 - [ ] Slice 3 — drag-to-pin + missing-folder resilience

@@ -54,6 +54,14 @@ final class WorkspaceModel {
         didSet { UserDefaults.standard.set(sidebarVisible, forKey: "sidebarVisible") }
     }
 
+    /// Folders the user pinned to the sidebar (issue 16, slice 2). Backed by a
+    /// `[String]` of paths in `UserDefaults`; deduped on add via `PinnedFolders`.
+    var pinnedFolders: [URL] = PinnedFolders.decode(
+        UserDefaults.standard.stringArray(forKey: "pinnedFolders") ?? []
+    ) {
+        didSet { UserDefaults.standard.set(PinnedFolders.encode(pinnedFolders), forKey: "pinnedFolders") }
+    }
+
     /// Whether the right file panel is shown (issue 13). Defaults to true (a
     /// registered default in `DiptychonApp`). Hiding it forces the Active Panel to
     /// the left so keyboard/clicks stay coherent.
@@ -136,6 +144,11 @@ final class WorkspaceModel {
     func navigateActive(to url: URL) {
         activeModel.go(to: url)
     }
+
+    // MARK: - Pinned folders (sidebar, issue 16)
+
+    func pin(_ url: URL) { pinnedFolders = PinnedFolders.adding(url, to: pinnedFolders) }
+    func unpin(_ url: URL) { pinnedFolders = PinnedFolders.removing(url, from: pinnedFolders) }
 
 
     // MARK: - QuickLook

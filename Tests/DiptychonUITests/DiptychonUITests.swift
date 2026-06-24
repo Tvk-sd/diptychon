@@ -267,6 +267,52 @@ final class DiptychonUITests: XCTestCase {
                       "Clicking a Place should navigate the Active Panel")
     }
 
+    /// Issue 16 slice 2: pin a folder via its context menu → it appears in the
+    /// sidebar's Pinned section → clicking it navigates the Active Panel → removing
+    /// it (via context menu) makes it disappear. The remove also cleans up the
+    /// persisted pin so the test doesn't leave junk in real prefs.
+    func testPinFolderAppearsNavigatesAndRemoves() throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("dipt-pin-\(UUID().uuidString)")
+        let folderName = "target-\(UUID().uuidString)"
+        let target = root.appendingPathComponent(folderName)
+        try fm.createDirectory(at: target, withIntermediateDirectories: true)
+        fm.createFile(atPath: target.appendingPathComponent("inner.txt").path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: root) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = root.path
+        app.launchArguments += ["-sidebarVisible", "YES"]
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts[folderName].waitForExistence(timeout: 10))
+
+        // Right-click the folder → "Add to Sidebar".
+        leftTable.staticTexts[folderName].rightClick()
+        let pinItem = app.menuItems["Add to Sidebar"]
+        XCTAssertTrue(pinItem.waitForExistence(timeout: 5), "Folder menu should offer Add to Sidebar")
+        pinItem.click()
+
+        // It appears in the sidebar's Pinned section (distinct a11y id, since the
+        // same name also exists as a file-list row).
+        let pinnedRow = app.buttons["pinned:\(folderName)"]
+        XCTAssertTrue(pinnedRow.waitForExistence(timeout: 5), "Pinned folder should appear in the sidebar")
+
+        // Clicking it navigates the Active Panel into the folder.
+        pinnedRow.click()
+        XCTAssertTrue(leftTable.staticTexts["inner.txt"].waitForExistence(timeout: 5),
+                      "Clicking a pin should navigate the Active Panel")
+
+        // Remove via context menu → disappears (and clears the persisted pin).
+        pinnedRow.rightClick()
+        let removeItem = app.menuItems["Remove from Sidebar"]
+        XCTAssertTrue(removeItem.waitForExistence(timeout: 5))
+        removeItem.click()
+        XCTAssertTrue(waitFor { !app.buttons["pinned:\(folderName)"].exists },
+                      "Removed pin should disappear from the sidebar")
+    }
+
     /// Poll the file's tag xattr (the op is async) until it matches, or time out.
     private func waitForTagNames(of path: String, toEqual expected: [String], timeout: TimeInterval = 5) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)

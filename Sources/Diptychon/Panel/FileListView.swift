@@ -13,7 +13,8 @@ protocol FileListView: View {
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
         sortOrder: Binding<[KeyPathComparator<FileItem>]>,
-        onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void
+        onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
+        onPin: @escaping (_ folder: URL) -> Void
     )
 }
 
@@ -31,17 +32,20 @@ struct TableFileListView: FileListView {
     @Binding var selection: Set<FileItem.ID>
     @Binding var sortOrder: [KeyPathComparator<FileItem>]
     let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
+    let onPin: (_ folder: URL) -> Void
 
     init(
         items: [FileItem],
         selection: Binding<Set<FileItem.ID>>,
         sortOrder: Binding<[KeyPathComparator<FileItem>]>,
-        onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void
+        onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
+        onPin: @escaping (_ folder: URL) -> Void
     ) {
         self.items = items
         self._selection = selection
         self._sortOrder = sortOrder
         self.onDrop = onDrop
+        self.onPin = onPin
     }
 
     private static let sizeFormatter: ByteCountFormatter = {

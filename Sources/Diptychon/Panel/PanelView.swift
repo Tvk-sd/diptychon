@@ -10,6 +10,8 @@ struct PanelView: View {
     let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
     /// Open the Go to Folder sheet (issue 15) — owned by the workspace.
     var onGoToFolder: () -> Void = {}
+    /// Pin a folder to the sidebar (issue 16) — owned by the workspace.
+    var onPin: (_ folder: URL) -> Void = { _ in }
 
     var body: some View {
         @Bindable var model = model
@@ -77,7 +79,8 @@ struct PanelView: View {
                     items: model.visibleItems,
                     selection: $model.selection,
                     sortOrder: $model.sortOrder,
-                    onDrop: onDrop
+                    onDrop: onDrop,
+                    onPin: onPin
                 )
             case .failed(let message):
                 if model.accessDenied {
