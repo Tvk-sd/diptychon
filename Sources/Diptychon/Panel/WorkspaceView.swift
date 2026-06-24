@@ -61,7 +61,6 @@ struct WorkspaceView: View {
                     Image(systemName: "sidebar.leading")
                 }
                 .help("Show/Hide Sidebar (⌃⌘S)")
-                .keyboardShortcut("s", modifiers: [.command, .control])
                 .accessibilityIdentifier("toggle-sidebar")
             }
             ToolbarItem(placement: .primaryAction) {

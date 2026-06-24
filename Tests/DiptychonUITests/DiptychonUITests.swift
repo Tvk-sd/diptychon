@@ -254,6 +254,14 @@ final class DiptychonUITests: XCTestCase {
         // Sidebar visible → its section header shows.
         XCTAssertTrue(app.staticTexts["PLACES"].waitForExistence(timeout: 5), "Sidebar should be visible")
 
+        // ⌃⌘S also toggles (routed via the app's Keymap, not a SwiftUI toolbar
+        // shortcut). Focus the table first so the key monitor handles it.
+        leftTable.staticTexts[marker].click()
+        app.typeKey("s", modifierFlags: [.command, .control])
+        XCTAssertTrue(waitFor { !app.staticTexts["PLACES"].exists }, "⌃⌘S should hide the sidebar")
+        app.typeKey("s", modifierFlags: [.command, .control])
+        XCTAssertTrue(waitFor { app.staticTexts["PLACES"].exists }, "⌃⌘S should restore the sidebar")
+
         let toggle = app.buttons["toggle-sidebar"]
         XCTAssertTrue(toggle.waitForExistence(timeout: 5))
         toggle.click()

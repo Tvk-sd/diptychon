@@ -125,6 +125,7 @@ final class WorkspaceModel {
         case .openSelection: openSelection()
         case .preview: togglePreview()
         case .goToFolder: goingToFolder = true
+        case .toggleSidebar: sidebarVisible.toggle()
         }
     }
 
