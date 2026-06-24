@@ -1,12 +1,38 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-24. 10-issue MVP complete (08–10 merged: PRs #12/#13/#14).
-Post-MVP: issue 14 inline preview pane merged (PR #15). Backlog: 11 (inline
-rename), 12 (tag sidebar color), 13 (panel resize/collapse), 15 (path bar)._
+_Updated: 2026-06-24._ Dual-panel, keyboard-first macOS file manager (Finder
+alternative, Nimble Commander spirit).
 
-Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
-Commander spirit). MVP in progress — **7 of 10 issues merged; Xcode migration +
-two issue-07 QA fixes merged to `main`; issue 08 underway.**
+## 🔴 Read first — open blocker
+**Issue 21 (unified top bar) slice 1 has a memory/CPU runaway (~15 GB, crashes the
+machine).** It lives ONLY on branch `feat/21-unified-top-bar` (WIP commit, **not
+merged**). **`main` is clean and safe.** Do not merge or run that branch until the
+leak is fixed. Full symptom + prime suspect (`WindowMinWidth` `setFrame`↔layout
+loop) + fix plan are in **`PLAN.md`**. (Also saved as an auto-memory.)
+
+## Where things stand
+- **Done & merged to `main`:** issues 01–17 + the Xcode migration. Most recent:
+  **issue 11 inline rename (PR #20)**, issue 17 file-list polish + narrow-panel UX
+  (PR #19), issue 16 sidebar (PR #18). See the progress table + per-issue outcomes
+  in `PROJECT-TRACKER.md`.
+- **In flight:** issue 21 slice 1 — built, **blocked by the runaway above**.
+- **47 tests** on `main` (38 unit + 9 UI). Note the long-standing **bundle-id
+  flake**: a leftover app instance foregrounds over the XCUITest app → spurious
+  failures. Always `pkill -9 -f Diptychon` before a run; re-run a lone failure in
+  isolation to confirm. UserDefaults are NOT isolated between tests — manual launches
+  can pollute `previewVisible`/pins; `defaults delete com.diptychon.app` to reset.
+
+## Resume here (next session)
+1. **Fix the issue-21 runaway** per `PLAN.md` (isolate `WindowMinWidth`; don't run
+   the full UI suite to repro — it crashed the machine; test a single launch with
+   Activity Monitor). Then finish issue 21 slices 2 (back/forward) + 3 (search +
+   move hidden/tag into the bar).
+2. Or park 21 and pick a **ready-for-agent** backlog item: **12** (custom tag color
+   registration). Needs-triage bets: 18 time-travel, 19 ⌘K palette, 20 staging,
+   22 perf baseline.
+
+Workflow note (user preference, also a memory): **show & let the user test a change
+before committing/pushing.**
 
 ## ✅ DONE: Xcode migration (PR #9, merged)
 Migrated off the no-Xcode SwiftPM + hand-wrapped `.app` setup to a real Xcode
@@ -158,15 +184,6 @@ Preferred order, cheapest first:
   `Status:` line + check acceptance boxes; close PLAN into PROJECT-TRACKER.
 - Merge PRs **bottom-up, no `--delete-branch` on a PR that has a stacked child**
   (it auto-closes the child — happened to #2).
-
-## To resume (issue 08)
-1. `git checkout feat/08-finder-tags`; `xcodegen generate`;
-   `xcodebuild -scheme Diptychon -destination 'platform=macOS' test` → 26 green.
-2. **UX check** the running build (all 4 ACs): per-panel header tag menu filters;
-   ⌘T picker toggles built-in colors, creates new tags, re-applies custom tags.
-3. **Push branch + open PR.** Then close PLAN.md into PROJECT-TRACKER.
-4. **Follow-up issue (optional):** custom-color Finder *sidebar* registration via
-   Finder's undocumented system tag store (the only deferred piece of AC3).
 
 ## Dev-loop gotcha (post-migration)
 The app keeps a fixed bundle id, so launching never starts a second copy — macOS
