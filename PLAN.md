@@ -1,52 +1,73 @@
-# PLAN — Issue 15: Path bar / Go to Folder
+# PLAN — Issue 16: Left sidebar (places + pinned folders)
 
-Spec: `.scratch/diptychon-mvp/issues/15-path-bar-go-to-folder.md`.
-Branch: `feat/15-path-bar`.
+Spec: `.scratch/diptychon-mvp/issues/16-left-sidebar.md`.
+Research: `context/sidebar-research.md`, `context/dashboard-research.md`.
+Branch: `feat/16-left-sidebar`.
 
-## What I understood
-A way to navigate the Active Panel to an arbitrary directory (today only
-double-click-in + go-up). Two parts: a **Go to Folder…** entry (type/paste a path,
-⇧⌘G) and a **clickable path control** in the header that reflects the current
-directory and lets you jump to an ancestor.
+## Resolved open questions
+1. **Collapse shortcut → ⌃⌘S** (Control-⌘-S, Apple's standard "Show/Hide Sidebar").
+   Keeps the family legible: **⌃⌘S = left sidebar** (Apple convention), **⌥⌘S =
+   right file panel** (issue 13), **⇧⌘P = preview** (issue 14). Plus a toolbar
+   button (`sidebar.leading`).
+2. **Pinning → context-menu first, drag second.** "Add to Sidebar" on a folder's
+   right-click menu (reliable, reuses the existing `FileTableView` NSMenu) is the
+   committed path; **drag-a-folder-onto-the-sidebar** is added after. Remove a pin
+   via its row's context menu / hover affordance (progressive disclosure).
+3. **Standard places → fixed list** in v1 (not hideable). Defer hiding to later.
 
-## Approach
-- **Path resolution (pure, testable):** `PathInput.resolve(_:) -> URL?` — expand
-  `~`, standardize, return the URL only if it exists and is a directory; else nil.
-  Unit-tested (tilde, missing, file-not-dir, trailing slash).
-- **Go to Folder sheet (⇧⌘G):** `AppAction.goToFolder` + `Keymap` (⇧⌘G) →
-  `WorkspaceModel.goingToFolder` (sheet). `GoToFolderSheet` pre-filled with the
-  Active Panel's path; Return/Go validates via `PathInput.resolve` → navigate, or
-  shows an inline "Not a folder / doesn't exist" error (no crash).
-- **Header path control (breadcrumb-as-menu):** replace the static `Text(title)`
-  with a `Menu` whose label is the path; items = ancestor directories (each jumps
-  there) + a divider + "Go to Folder…". Compact — fits the tight header, gives
-  click-to-navigate (ancestors) and editing (the sheet).
-- **Plumbing:** `PanelModel.go(to url:)` sets `directory` + `afterNavigation()`;
-  `WorkspaceModel.navigateActive(to:)` / `navigateActive(toPath:)`.
+## Layout & defaults
+- Order: **`Sidebar | HSplitView(panels) | PreviewPane`** — sidebar outermost-left,
+  fixed width ~200.
+- `sidebarVisible` defaults **true** (registered default, like `rightPanelVisible`),
+  persisted. Toggle = toolbar button + ⌃⌘S.
+- Clicking any item → `navigateActive(to:)` (reuse issue 15). Highlight the item
+  whose URL matches the Active Panel's directory.
+
+## Architecture
+- `WorkspaceModel`:
+  - `sidebarVisible: Bool` (registered default true; persisted).
+  - `pinnedFolders: [URL]` backed by a `[String]` paths array in `UserDefaults`
+    (add/remove/dedup; skip-or-grey ones that no longer exist).
+  - `pin(_:)` / `unpin(_:)`; reuse `navigateActive(to:)`.
+- `Panel/Sidebar.swift` — `SidebarView(model:)`: **Places** section (static
+  standard URLs) + **Pinned** section, section headers + divider (clustering /
+  visible grouping). Row = icon + name; click navigates; pinned row has a
+  remove action on hover/context-menu.
+- `Panel/SidebarPlace.swift` (or inline) — the 5 standard places (Home, Desktop,
+  Documents, Downloads, Applications) via `FileManager.url(for:in:)`, with SF icons.
+- `WorkspaceView` — prepend the sidebar to the `HStack`; add the toolbar toggle.
+- `NSTableViewFileList` context menu — add "Add to Sidebar" for folder rows
+  (calls back via a new `onPin: (URL) -> Void` closure, like `onDrop`).
+- Persistence helper kept tiny + unit-testable (paths ↔ URLs, dedup, drop-missing).
+
+## Slices
+1. **Scaffold + toggle + navigate.** `sidebarVisible` (persisted) + toolbar button
+   + ⌃⌘S; `SidebarView` with the Places section (+ empty Pinned section); click a
+   place → active panel navigates. Layout wired. (Pinned shows but is empty.)
+2. **Pinning via context menu.** `pinnedFolders` persistence + `pin/unpin`;
+   "Add to Sidebar" in the folder context menu; Pinned section lists them, click
+   navigates, remove via context menu. Unit test the persistence/dedup; UI test
+   add→appears→click navigates.
+3. **Drag-to-pin + resilience.** Drop a folder onto the sidebar to pin; missing
+   pinned folders degrade gracefully (greyed/skipped, no crash).
 
 ## "Done" = checkable
-- ⇧⌘G (and clicking the path → "Go to Folder…") opens an entry; typing a valid
-  path (incl. `~/…`) jumps the Active Panel there.
-- An invalid / non-directory path shows a clear error, no crash, panel unchanged.
-- The header path menu lists ancestors; picking one navigates there.
-- `PathInput` unit tests + build green; verified on-screen (e.g. reach ~/Library).
+- Sidebar shows Places + Pinned with clear grouping; ⌃⌘S / toolbar toggles it;
+  state persists.
+- Clicking a place or a pin navigates the Active Panel there.
+- "Add to Sidebar" (and drag-in) pins a folder; removing un-pins; pins persist
+  across launches; a deleted pinned folder doesn't crash.
+- Unit tests (pin persistence) + UI tests (toggle, navigate, add→navigate) green;
+  verified on-screen.
 
-## Risks / notes
-- Keep ⇧⌘G out of the NSEvent keymap conflicts — it's a new chord; the monitor
-  passes unknown chords through, and we add it to `Keymap` so it's handled there
-  consistently (route → set `goingToFolder = true`).
-- Symlinks: resolve/standardize but don't over-engineer.
+## Risks
+- Three left-side toggles now (sidebar/right-panel/preview) — keep toolbar icons +
+  shortcuts distinct (icon set: `sidebar.leading`, `rectangle.split.2x1`,
+  `sidebar.right`).
+- Window gets busy at 1100px with sidebar + 2 panels + preview — sidebar is
+  collapsible and ~200px; fine. (Resizable sidebar = future.)
 
 ## Progress
-- [x] Slice 1 — `PathInput.resolve` (pure) + 6 unit tests.
-- [x] Slice 2 — Go to Folder sheet (⇧⌘G) + `PanelModel.go(to:)` /
-      `WorkspaceModel.navigateActive(toPath:)`; `testGoToFolderNavigates`.
-- [x] Slice 3 — header path = menu of ancestor folders + "Go to Folder…".
-
-## Notes
-- ⇧⌘G is a Keymap chord, so (like ⌘T/⌘R) it's inactive while the Filter field is
-  the first responder — consistent with the rest of the app; the path-menu's
-  "Go to Folder…" is the always-available mouse path.
-- 34 tests green (28 unit + 6 UI). NB: always `pkill -f Diptychon` before a test
-  run — leftover manual instances foreground over the test app (bundle-id gotcha)
-  and cause spurious UI failures.
+- [ ] Slice 1 — scaffold + toggle (⌃⌘S) + Places navigate
+- [ ] Slice 2 — pinning via context menu (persist) + remove
+- [ ] Slice 3 — drag-to-pin + missing-folder resilience
