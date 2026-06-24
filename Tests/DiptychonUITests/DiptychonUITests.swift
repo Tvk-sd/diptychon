@@ -12,7 +12,18 @@ final class DiptychonUITests: XCTestCase {
     /// exists and it contains exactly two file lists (the left + right Panels,
     /// each an NSTableView → XCUIElement `table`).
     func testLaunchesWithTwoPanels() throws {
+        // Point both panels at a controlled temp dir rather than the user's home:
+        // home can contain TCC-protected folders (Desktop/Documents/…) whose load
+        // may block on a permission prompt under XCUITest, leaving panels stuck
+        // "Loading…". A temp dir keeps this smoke test deterministic.
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-launch-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        fm.createFile(atPath: dir.appendingPathComponent("file.txt").path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
         let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
         app.launch()
 
         XCTAssertTrue(
@@ -118,6 +129,36 @@ final class DiptychonUITests: XCTestCase {
         app.typeKey("z", modifierFlags: .command)
         XCTAssertTrue(waitForTagNames(of: fileURL.path, toEqual: []),
                       "Undo should remove the tag")
+    }
+
+    /// Issue 14: the inline preview pane reacts to the Active Panel's selection —
+    /// placeholder when nothing is selected, metadata once a file is picked.
+    func testPreviewPaneShowsSelectedFile() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-preview-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        fm.createFile(atPath: dir.appendingPathComponent("doc.txt").path, contents: Data("hi".utf8))
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        // Force the pane on regardless of the persisted default (argument domain
+        // overrides UserDefaults).
+        app.launchArguments += ["-previewVisible", "YES"]
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts["doc.txt"].waitForExistence(timeout: 10))
+        // Nothing selected yet → placeholder.
+        XCTAssertTrue(app.staticTexts["No Selection"].waitForExistence(timeout: 5),
+                      "Preview pane should start with the no-selection placeholder")
+
+        // Select the file → the pane swaps to metadata (the placeholder is gone).
+        leftTable.staticTexts["doc.txt"].click()
+        XCTAssertTrue(app.staticTexts["Kind"].waitForExistence(timeout: 5),
+                      "Preview pane should show metadata for the selected file")
+        XCTAssertFalse(app.staticTexts["No Selection"].exists,
+                       "Placeholder should be replaced once a file is selected")
     }
 
     /// Poll the file's tag xattr (the op is async) until it matches, or time out.

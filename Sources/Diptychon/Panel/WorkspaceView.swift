@@ -24,6 +24,23 @@ struct WorkspaceView: View {
             PanelView(model: model.right, isActive: model.active == .right) { urls, folder in
                 model.handleDrop(urls, on: model.right, targetFolder: folder)
             }
+            if model.previewVisible {
+                Divider()
+                PreviewPane(model: model)
+                    .frame(width: 300)
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    model.previewVisible.toggle()
+                } label: {
+                    Image(systemName: "sidebar.right")
+                }
+                .help("Show Preview (⇧⌘P)")
+                .keyboardShortcut("p", modifiers: [.command, .shift])
+                .accessibilityIdentifier("toggle-preview")
+            }
         }
         .onAppear(perform: installMonitors)
         .onDisappear(perform: removeMonitors)
