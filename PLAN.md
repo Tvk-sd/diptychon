@@ -46,5 +46,14 @@ active panel; off by default; visibility persists.
 - Toolbar adds titlebar chrome — first toolbar in the app; confirm it looks native.
 
 ## Progress
-- [ ] Slice 1 — pane scaffold + toolbar/shortcut toggle (persisted)
-- [ ] Slice 2 — QLPreviewView + metadata, live on active selection
+- [x] Slice 1 — pane scaffold + toolbar/shortcut toggle (UserDefaults-persisted).
+- [x] Slice 2 — QLPreviewView + metadata, live on active selection.
+
+## Notes
+- Verified: pane renders (placeholder), toggle works; `testPreviewPaneShowsSelectedFile`
+  proves the placeholder→metadata swap on selection.
+- **Test hardening (not issue 14 code):** `testLaunchesWithTwoPanels` was opening
+  the user's HOME, which can stall on a TCC permission prompt under XCUITest
+  (panels stuck "Loading…"). Repointed it at a temp dir. (`testSetAndUndoTagViaPicker`
+  red was a bundle-id collision flake from leftover manual instances — green clean.)
+- 26 tests green (22 unit + 4 UI).

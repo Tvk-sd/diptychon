@@ -39,6 +39,7 @@ struct WorkspaceView: View {
                 }
                 .help("Show Preview (⇧⌘P)")
                 .keyboardShortcut("p", modifiers: [.command, .shift])
+                .accessibilityIdentifier("toggle-preview")
             }
         }
         .onAppear(perform: installMonitors)

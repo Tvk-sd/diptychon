@@ -131,6 +131,36 @@ final class DiptychonUITests: XCTestCase {
                       "Undo should remove the tag")
     }
 
+    /// Issue 14: the inline preview pane reacts to the Active Panel's selection —
+    /// placeholder when nothing is selected, metadata once a file is picked.
+    func testPreviewPaneShowsSelectedFile() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-preview-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        fm.createFile(atPath: dir.appendingPathComponent("doc.txt").path, contents: Data("hi".utf8))
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        // Force the pane on regardless of the persisted default (argument domain
+        // overrides UserDefaults).
+        app.launchArguments += ["-previewVisible", "YES"]
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts["doc.txt"].waitForExistence(timeout: 10))
+        // Nothing selected yet → placeholder.
+        XCTAssertTrue(app.staticTexts["No Selection"].waitForExistence(timeout: 5),
+                      "Preview pane should start with the no-selection placeholder")
+
+        // Select the file → the pane swaps to metadata (the placeholder is gone).
+        leftTable.staticTexts["doc.txt"].click()
+        XCTAssertTrue(app.staticTexts["Kind"].waitForExistence(timeout: 5),
+                      "Preview pane should show metadata for the selected file")
+        XCTAssertFalse(app.staticTexts["No Selection"].exists,
+                       "Placeholder should be replaced once a file is selected")
+    }
+
     /// Poll the file's tag xattr (the op is async) until it matches, or time out.
     private func waitForTagNames(of path: String, toEqual expected: [String], timeout: TimeInterval = 5) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
