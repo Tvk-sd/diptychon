@@ -25,13 +25,7 @@ struct WorkspaceView: View {
 
     var body: some View {
         @Bindable var model = model
-        VStack(spacing: 0) {
-            // Issue 21: unified top bar (up + breadcrumb on the Active Panel) above
-            // the whole content row.
-            TopBarView(model: model)
-            Divider()
-            content
-        }
+        content
         .background(WindowMinWidth(minWidth: minContentWidth))
         .toolbar {
             ToolbarItem(placement: .navigation) {
@@ -108,50 +102,72 @@ struct WorkspaceView: View {
         .overlay { progressOverlay }
     }
 
-    /// The main content row: sidebar | panels | preview.
+    /// The main content row: sidebar | (top bar + panels) | preview.
+    ///
+    /// Issue 21: the unified top bar is scoped to the **panel column** — the sidebar
+    /// and preview rise to the title bar, only the panel tops get pushed down. So the
+    /// bar lives inside this VStack, not above the whole row.
     @ViewBuilder
     private var content: some View {
         @Bindable var model = model
-        HStack(spacing: 0) {
-            // Issue 16: the left sidebar (places + pinned) sits outermost-left,
-            // fixed width. Collapsible via ⌃⌘S / toolbar.
-            if model.sidebarVisible {
-                SidebarView(model: model)
-                    .frame(width: 200)
-                Divider()
-            }
-            // Issue 13: when both panels show, an HSplitView gives a draggable
-            // divider. When the right panel is hidden the container is swapped for
-            // the left panel alone — HSplitView can't drop a conditional child, so
-            // we toggle the whole container instead.
-            if model.rightPanelVisible {
-                HSplitView {
-                    PanelView(model: model.left, isActive: model.active == .left,
-                              onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                              onGoToFolder: { model.active = .left; model.goingToFolder = true },
-                              onPin: { model.pin($0) },
-                              onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 180)
-                    PanelView(model: model.right, isActive: model.active == .right,
-                              onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
-                              onGoToFolder: { model.active = .right; model.goingToFolder = true },
-                              onPin: { model.pin($0) },
-                              onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 180)
+        VStack(spacing: 0) {
+            // Full-width marker separating the title-bar region from the content
+            // (sidebar + panels + preview) below it.
+            Divider()
+            HStack(spacing: 0) {
+                // Issue 16: the left sidebar (places + pinned) sits outermost-left,
+                // fixed width. Collapsible via ⌃⌘S / toolbar.
+                if model.sidebarVisible {
+                    SidebarView(model: model)
+                        .frame(width: 200)
+                    Divider()
                 }
-            } else {
-                PanelView(model: model.left, isActive: true,
+                VStack(spacing: 0) {
+                    // Up + breadcrumb + back/forward on the Active Panel, directly
+                    // above the panels it acts on.
+                    TopBarView(model: model)
+                    Divider()
+                    panels
+                }
+                if model.previewVisible {
+                    Divider()
+                    PreviewPane(model: model)
+                        .frame(width: 300)
+                }
+            }
+        }
+    }
+
+    /// The panel column body: both panels in an HSplitView, or the left panel alone.
+    @ViewBuilder
+    private var panels: some View {
+        @Bindable var model = model
+        // Issue 13: when both panels show, an HSplitView gives a draggable divider.
+        // When the right panel is hidden the container is swapped for the left panel
+        // alone — HSplitView can't drop a conditional child, so we toggle the whole
+        // container instead.
+        if model.rightPanelVisible {
+            HSplitView {
+                PanelView(model: model.left, isActive: model.active == .left,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
                           onGoToFolder: { model.active = .left; model.goingToFolder = true },
                           onPin: { model.pin($0) },
                           onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 320)
+                .frame(minWidth: 180)
+                PanelView(model: model.right, isActive: model.active == .right,
+                          onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
+                          onGoToFolder: { model.active = .right; model.goingToFolder = true },
+                          onPin: { model.pin($0) },
+                          onRename: { model.renameInline($0, to: $1) })
+                .frame(minWidth: 180)
             }
-            if model.previewVisible {
-                Divider()
-                PreviewPane(model: model)
-                    .frame(width: 300)
-            }
+        } else {
+            PanelView(model: model.left, isActive: true,
+                      onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
+                      onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                      onPin: { model.pin($0) },
+                      onRename: { model.renameInline($0, to: $1) })
+                .frame(minWidth: 320)
         }
     }
 
@@ -186,22 +202,37 @@ struct WorkspaceView: View {
             // of whether the selection changed. Not consumed — the Table still
             // gets the click to select the row.
             mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
-                if let contentView = event.window?.contentView {
+                if let window = event.window, let contentView = window.contentView {
                     let x = event.locationInWindow.x
-                    // The panels occupy the space between the sidebar (left, issue
-                    // 16) and the preview pane (right, issue 14); their divider sits
-                    // mid-way between those edges by default. When the right panel is
-                    // hidden the left panel spans that whole area.
                     let bounds = contentView.bounds
-                    let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX        // 200 + divider
-                    let rightEdge = model.previewVisible ? bounds.maxX - 301.0 : bounds.maxX
-                    let panelsMid = (leftEdge + rightEdge) / 2
-                    model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
-                }
-                // Double-click opens the selected row (first click already selected
-                // it). Handled here so the Table keeps native single-click select.
-                if event.clickCount == 2 {
-                    DispatchQueue.main.async { model.openSelection() }
+                    // The unified top bar / sidebar search occupy the top band of the
+                    // content (full-width divider + 36pt bar + divider). Clicks there
+                    // — e.g. the Filter field — must NOT re-activate a panel by their
+                    // x-position, or clicking the Filter would steal the active panel.
+                    //
+                    // NB: the content view is full-size (spans behind the title bar),
+                    // so measure from `contentLayoutRect.maxY` — the top of the usable
+                    // area BELOW the title bar — not `bounds.maxY` (the window top).
+                    let topBarBand: CGFloat = 38
+                    let contentTop = window.contentLayoutRect.maxY
+                    let inTopBar = event.locationInWindow.y >= contentTop - topBarBand
+                    if !inTopBar {
+                        // The panels occupy the space between the sidebar (left, issue
+                        // 16) and the preview pane (right, issue 14); their divider sits
+                        // mid-way between those edges by default. When the right panel is
+                        // hidden the left panel spans that whole area.
+                        let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX      // 200 + divider
+                        let rightEdge = model.previewVisible ? bounds.maxX - 301.0 : bounds.maxX
+                        let panelsMid = (leftEdge + rightEdge) / 2
+                        model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
+
+                        // Double-click opens the selected row (first click already
+                        // selected it). Handled here so the Table keeps native
+                        // single-click select. Skipped in the top bar (no row there).
+                        if event.clickCount == 2 {
+                            DispatchQueue.main.async { model.openSelection() }
+                        }
+                    }
                 }
                 return event
             }

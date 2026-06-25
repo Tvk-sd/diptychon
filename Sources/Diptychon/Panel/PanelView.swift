@@ -43,10 +43,8 @@ struct PanelView: View {
                 .fixedSize()
 
                 tagFilterMenu
-
-                TextField("Filter", text: $model.filter)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(minWidth: 70, maxWidth: 160)
+                // Name filter now lives in the unified top bar (issue 21) and acts
+                // on the Active Panel — see TopBarView.
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -97,7 +95,7 @@ struct PanelView: View {
         .task { model.load() }
         // Active Panel is visually distinct.
         .overlay {
-            RoundedRectangle(cornerRadius: 6)
+            Rectangle()
                 .strokeBorder(Color.accentColor, lineWidth: isActive ? 2 : 0)
         }
     }

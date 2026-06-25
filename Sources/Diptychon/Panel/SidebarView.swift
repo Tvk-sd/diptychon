@@ -39,11 +39,18 @@ struct SidebarView: View {
     let model: WorkspaceModel
     /// True while a drag hovers the sidebar — highlights the drop zone.
     @State private var dropTargeted = false
+    /// The Go-to-Folder path field at the top of the sidebar (issue 21): type or
+    /// paste a path, press Enter to navigate the Active Panel there.
+    @State private var pathQuery = ""
+    @State private var pathError = false
 
     private let places = SidebarPlace.standard
 
     var body: some View {
-        ScrollView {
+        VStack(spacing: 0) {
+            pathField
+            Divider()
+            ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 section(header: "Places") {
                     ForEach(places) { place in
@@ -66,9 +73,17 @@ struct SidebarView: View {
             }
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .frame(maxHeight: .infinity)
-        .background(.regularMaterial)
+        // Slightly tinted material so the sidebar reads as a distinct, recessed
+        // surface vs the panels. `primary` opacity adapts to light/dark (lifts in
+        // dark, darkens in light) — kept behind the rows so it doesn't dim text.
+        .background {
+            Rectangle()
+                .fill(.regularMaterial)
+                .overlay(Color.primary.opacity(0.045))
+        }
         // Drop a folder anywhere on the sidebar to pin it (issue 16, slice 3).
         // Files are ignored — the sidebar is a navigation surface.
         .overlay {
@@ -84,6 +99,35 @@ struct SidebarView: View {
             return !folders.isEmpty
         } isTargeted: { dropTargeted = $0 }
         .accessibilityIdentifier("sidebar")
+    }
+
+    /// Go-to-Folder field (issue 21): replaces the old top-bar "Go to Folder…"
+    /// button. Enter navigates the Active Panel to the typed path; an invalid path
+    /// flags red rather than navigating.
+    private var pathField: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(pathError ? Color.red : .secondary)
+            TextField("Go to folder…", text: $pathQuery)
+                .textFieldStyle(.plain)
+                .onSubmit(goToPath)
+                .onChange(of: pathQuery) { pathError = false }
+                .accessibilityIdentifier("sidebar-goto-path")
+        }
+        .padding(.horizontal, 12)
+        // Match TopBarView's 36pt height so this field's bottom divider lines up
+        // with the top bar's divider across the sidebar/panel seam (issue 21).
+        .frame(height: 36)
+    }
+
+    private func goToPath() {
+        let trimmed = pathQuery.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        if model.navigateActive(toPath: trimmed) {
+            pathQuery = ""
+        } else {
+            pathError = true
+        }
     }
 
     /// A pinned-folder row. If the folder no longer exists it's greyed and

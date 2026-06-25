@@ -36,11 +36,19 @@ struct TopBarView: View {
 
             Spacer(minLength: 8)
 
-            Button("Go to Folder…") { model.goingToFolder = true }
-                .buttonStyle(.borderless)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .help("Go to Folder (⇧⌘G)")
+            // Name filter for the Active Panel (issue 21). Binds straight to the
+            // active PanelModel so it swaps context when the active panel changes.
+            HStack(spacing: 4) {
+                Image(systemName: "line.3.horizontal.decrease.circle")
+                    .foregroundStyle(.secondary)
+                TextField("Filter", text: Binding(
+                    get: { model.activeModel.filter },
+                    set: { model.activeModel.filter = $0 }
+                ))
+                .textFieldStyle(.plain)
+                .frame(width: 140)
+            }
+            .help("Filter the active panel by name")
         }
         .padding(.horizontal, 12)
         .frame(height: 36)

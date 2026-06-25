@@ -143,7 +143,7 @@ final class WorkspaceModel {
     /// nothing) if the path doesn't resolve to an existing directory.
     @discardableResult
     func navigateActive(toPath raw: String) -> Bool {
-        guard let url = PathInput.resolve(raw) else { return false }
+        guard let url = PathInput.resolve(raw, relativeTo: activeModel.directory) else { return false }
         activeModel.go(to: url)
         return true
     }
