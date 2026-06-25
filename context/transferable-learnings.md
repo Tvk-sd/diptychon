@@ -234,6 +234,38 @@ kill-switch. The net is cheap; reproducing destructively isn't.
 
 ---
 
+## 11. Routing by geometry is content-blind — and a coordinate-space mismatch is a silent gap
+
+**Diptychon moment.** Moving the Filter into the unified top bar made clicking it
+*steal the active panel to the right*. The cause was a global `NSEvent` `leftMouseDown`
+monitor that picks the active panel purely from the click's **x**. Two compounding
+bugs: (a) it measured the top-bar guard band from `contentView.bounds.maxY`, but
+SwiftUI uses a **full-size content view** that extends behind the title bar — so
+`bounds.maxY` is ~28pt *above* where content actually renders, and the band sat over
+the title bar and missed the real bar. My first fix used that wrong anchor and *failed
+silently* — no error, the Filter just kept stealing. The right anchor was
+`window.contentLayoutRect.maxY` (the usable area *below* the title bar). And (b) the
+monitor has no idea the Filter exists — it routes by position, so *any* interactive
+control later dropped into the panels' x-range inherits "click here = activate this
+panel."
+
+**Principle.** (a) Whenever you correlate two coordinate systems (event space vs view
+space, content vs window), an off-by-a-constant offset throws **no error** — it just
+opens a dead zone where behaviour quietly differs. Anchor to the *semantically correct*
+rect, not the convenient one, and verify against the running surface, not the math in
+your head. (b) A dispatcher keyed on **geometry is blind to identity** — it can't tell
+a file row from a text field at the same x. Every element you add inside its zone
+silently inherits its rule; adding a case means re-checking the ones that "worked."
+
+**Where it transfers.** Any hit-testing, drag-routing, or coordinate-mapping code
+(canvas/drawing tools, games, custom gesture handlers), and more broadly any router
+that dispatches on *position or surface features* rather than *explicit identity* —
+analytics that attribute by screen region, or an LLM router that classifies by keywords
+instead of declared intent. The failure mode is the same: it works until you add
+something new inside the zone, then an old path breaks with no error to point at it.
+
+---
+
 ## How to use this doc
 - **When starting a new product** (especially AI): read §1 and §5 *before* you
   design the second pane or give an agent write-access. They're the expensive
@@ -243,6 +275,9 @@ kill-switch. The net is cheap; reproducing destructively isn't.
 - **When debugging a runaway / freeze / non-terminating loop** (code *or* agent):
   §7–§10, in order — find the feedback writer → fix the termination on logical state →
   suspect the structure, not the suspect → reproduce safely with a kill-switch.
+- **When a click / event / route goes to the wrong place** (especially after adding
+  UI inside an existing zone): §11 — check the coordinate anchor and remember the
+  router is blind to *what* it hit.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).
