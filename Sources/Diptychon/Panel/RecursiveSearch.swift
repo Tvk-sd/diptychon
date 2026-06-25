@@ -31,6 +31,7 @@ enum RecursiveSearch {
         guard !needle.isEmpty else { return [] }
 
         let fm = FileManager.default
+        let rootPath = root.standardizedFileURL.path
         // No prefetch keys: the walk is a cheap name-only `readdir`, and we fetch
         // resource values lazily for matches alone (below). Prefetching for every
         // entry — especially the tag xattr — is what made searching Home crawl.
@@ -62,10 +63,22 @@ enum RecursiveSearch {
                 size: isDir ? nil : values?.fileSize.map(Int64.init),
                 modificationDate: values?.contentModificationDate,
                 isDirectory: isDir,
-                tags: tags
+                tags: tags,
+                subtitle: relativeParent(of: url, under: rootPath)
             ))
             if results.count >= resultCap { break }
         }
         return results
+    }
+
+    /// The match's containing folder relative to the search root, for the result's
+    /// location subtitle. `nil` for a direct child of the root (nothing to show).
+    private static func relativeParent(of url: URL, under rootPath: String) -> String? {
+        let parent = url.deletingLastPathComponent().standardizedFileURL.path
+        guard parent != rootPath else { return nil }
+        if parent.hasPrefix(rootPath + "/") {
+            return String(parent.dropFirst(rootPath.count + 1))
+        }
+        return parent   // fallback: not under root (shouldn't happen) → full path
     }
 }
