@@ -7,6 +7,8 @@ enum AppAction {
     case undo
     case redo
     case goUp
+    case goBack          // ⌘[  — back in the Active Panel's history
+    case goForward       // ⌘]  — forward in the Active Panel's history
     case switchPanel
     case clipboardCopy   // ⌘C  — mark selection on the clipboard
     case paste           // ⌘V  — copy clipboard into Active Panel
@@ -71,6 +73,8 @@ enum Keymap {
         (KeyChord(.character("z"), command: true), .undo),
         (KeyChord(.character("z"), command: true, shift: true), .redo),
         (KeyChord(.code(Key.upArrow), command: true), .goUp),   // ⌘↑ leave directory
+        (KeyChord(.character("["), command: true), .goBack),    // ⌘[ back (Finder convention)
+        (KeyChord(.character("]"), command: true), .goForward), // ⌘] forward
         (KeyChord(.code(Key.tab)), .switchPanel),               // Tab switch Active Panel
         (KeyChord(.character("c"), command: true), .clipboardCopy),
         (KeyChord(.character("v"), command: true), .paste),

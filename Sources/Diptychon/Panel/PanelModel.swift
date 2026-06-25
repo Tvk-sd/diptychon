@@ -29,12 +29,25 @@ final class PanelModel {
     /// each access made the `Table` reload mid-click and eat the selection.)
     private(set) var visibleItems: [FileItem] = []
 
-    /// Show hidden (dot) files. Reloads on change.
-    var showHidden = false { didSet { reload() } }
+    /// Show hidden (dot) files. Reloads on change; re-runs an active search so its
+    /// results respect the new visibility.
+    var showHidden = false { didSet { reload(); if isSearching { scheduleSearch() } } }
     /// Type-ahead filter text; narrows the visible entries.
     var filter = "" { didSet { recomputeVisible() } }
     /// Optional tag filter (by name): when set, show only files carrying it.
     var tagFilter: String? = nil { didSet { recomputeVisible() } }
+    /// Recursive search query (issue 21 slice 3). Non-empty ⇒ the panel shows
+    /// matches from the subtree under `directory` instead of its direct contents.
+    /// Debounced; cancels the prior walk on each change.
+    var searchQuery = "" { didSet { scheduleSearch() } }
+    /// Matches from the last/in-flight search — the base set for `visibleItems`
+    /// while `isSearching`.
+    private(set) var searchResults: [FileItem] = []
+    /// Whether the panel is currently showing search results rather than `directory`.
+    var isSearching: Bool { !searchQuery.trimmingCharacters(in: .whitespaces).isEmpty }
+    /// True while a search walk is in flight — drives the "Searching…" state so the
+    /// panel never shows the stale directory listing under a search header.
+    private(set) var isSearchRunning = false
     /// Column sort order, driven by the `Table` header.
     var sortOrder = [KeyPathComparator(\FileItem.name)] { didSet { recomputeVisible() } }
     /// Current row selection (lifted here so the Commander gesture can act on it).
@@ -46,8 +59,15 @@ final class PanelModel {
     /// Ask the file list to start editing the single selected row's name in place.
     func requestInlineRename() { inlineRenameRequest = UUID() }
 
+    /// Per-panel browser-style navigation history (issue 21 slice 2). Every dir
+    /// change pushes the prior directory onto `backStack` and clears `forwardStack`;
+    /// goBack/goForward shuttle between them without recording new history.
+    private var backStack: [URL] = []
+    private var forwardStack: [URL] = []
+
     private var loadedItems: [FileItem] = []
     private var loadTask: Task<Void, Never>?
+    private var searchTask: Task<Void, Never>?
     /// Live watch on `directory`; refreshes the Panel on external changes (AC3).
     private var watcher: DirectoryWatcher?
     private var watchedDirectory: URL?
@@ -59,6 +79,9 @@ final class PanelModel {
     var title: String { directory.path }
     /// Can we go up? False at the filesystem root.
     var canGoUp: Bool { directory.path != "/" }
+    /// Back/forward availability (issue 21 slice 2).
+    var canGoBack: Bool { !backStack.isEmpty }
+    var canGoForward: Bool { !forwardStack.isEmpty }
 
     /// URLs of the currently selected rows (source set for the Commander gesture).
     var selectionURLs: [URL] { Array(selection) }
@@ -88,28 +111,80 @@ final class PanelModel {
     /// Enter `item` if it's a directory (files are not activatable yet).
     func navigate(into item: FileItem) {
         guard item.isDirectory else { return }
-        directory = item.url
-        afterNavigation()
+        pushHistoryAndGo(to: item.url)
     }
 
     /// Jump directly to a directory (path bar / Go to Folder / breadcrumb).
     func go(to url: URL) {
-        guard url != directory else { return }
-        directory = url
-        afterNavigation()
+        pushHistoryAndGo(to: url)
     }
 
     func navigateUp() {
         guard canGoUp else { return }
-        directory = directory.deletingLastPathComponent()
+        pushHistoryAndGo(to: directory.deletingLastPathComponent())
+    }
+
+    /// Go to `url`, recording the current directory in history (browser-style):
+    /// push the prior dir onto back, drop any forward trail. No-op if unchanged.
+    private func pushHistoryAndGo(to url: URL) {
+        guard url != directory else { return }
+        backStack.append(directory)
+        forwardStack.removeAll()
+        directory = url
+        afterNavigation()
+    }
+
+    /// Step back to the previous directory (forward becomes available).
+    func goBack() {
+        guard let previous = backStack.popLast() else { return }
+        forwardStack.append(directory)
+        directory = previous
+        afterNavigation()
+    }
+
+    /// Step forward again after going back.
+    func goForward() {
+        guard let next = forwardStack.popLast() else { return }
+        backStack.append(directory)
+        directory = next
         afterNavigation()
     }
 
     private func afterNavigation() {
+        searchQuery = ""   // leaving the folder exits search
         filter = ""
         tagFilter = nil
         selection = []
         reload()
+    }
+
+    /// Debounced recursive search of the current subtree. Cancels any in-flight
+    /// walk first (so each keystroke supersedes the last); an empty query clears
+    /// results and returns to the normal directory listing.
+    private func scheduleSearch() {
+        searchTask?.cancel()
+        let query = searchQuery.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else {
+            isSearchRunning = false
+            searchResults = []
+            recomputeVisible()
+            return
+        }
+        // Switch the panel into search mode *now* so the stale directory listing is
+        // dropped immediately (the header already reads `isSearching` live).
+        isSearchRunning = true
+        recomputeVisible()
+        let root = directory
+        let includeHidden = showHidden
+        searchTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(250))   // debounce
+            if Task.isCancelled { return }
+            let results = await RecursiveSearch.run(query: query, in: root, includeHidden: includeHidden)
+            if Task.isCancelled { return }
+            self?.searchResults = results
+            self?.isSearchRunning = false
+            self?.recomputeVisible()
+        }
     }
 
     /// Re-list the current directory off the main thread. Cancels any in-flight
@@ -144,9 +219,11 @@ final class PanelModel {
         watcher = DirectoryWatcher(url: directory) { [weak self] in self?.refresh() }
     }
 
-    /// Apply the current filter + sort to the loaded rows, into the cache.
+    /// Apply the current filter + sort to the base rows, into the cache. The base
+    /// set is the search results while searching, otherwise the loaded directory.
     private func recomputeVisible() {
-        visibleItems = Self.applyFilters(loadedItems, text: filter, tagName: tagFilter)
+        let base = isSearching ? searchResults : loadedItems
+        visibleItems = Self.applyFilters(base, text: filter, tagName: tagFilter)
             .sorted(using: sortOrder)
     }
 

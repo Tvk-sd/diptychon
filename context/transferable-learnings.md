@@ -146,12 +146,138 @@ resist abstracting every model/provider behind config you'll never vary.
 
 ---
 
+## 7. An infinite loop needs a "feedback writer" — find the one thing that writes back
+
+**Diptychon moment.** Issue 21 slice 1 pegged the CPU to 99% and ballooned RAM until
+the Mac froze. Instead of bisecting by running it (it crashed the machine), we
+inventoried *everything slice 1 changed* and asked which code could write back into
+the layout system mid-pass. Exactly one could: `WindowMinWidth.apply` calling
+`window.setFrame`, whose forced relayout re-invokes `updateNSView`, which calls
+`setFrame` again. The breadcrumb, the new `VStack`, the per-panel label — all pure
+rendering, incapable of looping. We found the culprit by elimination, without a repro.
+
+**Principle.** A one-directional transform can't loop; an infinite loop requires a
+*cycle* — something that, during the pass, mutates an input the pass depends on. To
+locate an unexplained runaway, don't trace forward from the start; **inventory the
+writers-back in the changed surface.** There's usually exactly one, and it's the bug.
+
+**Where it transfers.** Agent loops and chains that never terminate: find the step
+that feeds its own input — a tool whose output re-triggers planning, a scratchpad the
+planner both reads and appends to, a "reflect" step that always finds more to do. The
+diagnosis is identical: which single step closes the cycle? Fix that, not the symptom.
+
+---
+
+## 8. Terminate on a logical state change, not on a measurement the loop perturbs
+
+**Diptychon moment.** The old `WindowMinWidth` stopped only when `current < minWidth`
+was false, where `current` was the window's *measured* content width read mid-relayout
+— a value the loop's own `setFrame` was actively disturbing. In a flat `HStack` it
+settled in one step; nested in a `VStack`+`HSplitView` the measurement never reliably
+reached `minWidth`, so the brake never engaged. The fix keyed termination on a
+**logical** condition: act only when `minWidth` actually *increased* (a pane opened),
+updating the baseline *before* the side effect so the triggered relayout sees "no
+change" and stops.
+
+**Principle.** A loop's stop condition must not depend on a quantity the loop's own
+action changes. Brake on a **discrete state transition you control**, recorded before
+you cause the side effect — not on a re-measurement of the thing you're perturbing.
+
+**Where it transfers.** Agent stop conditions. "Stop when the output looks complete"
+or "when the model seems confident" are perturbable measurements — they loop or halt
+wrong. Prefer explicit logical state: a tool returned success, a required field is now
+populated, an iteration counter, a done-flag the step sets. Guard on progress you can
+name, not on a self-affected signal.
+
+---
+
+## 9. A regression after a refactor that didn't touch the suspect = the *structure* tripped a latent bug
+
+**Diptychon moment.** `WindowMinWidth`'s code was byte-identical between `main` (fine)
+and the slice-1 branch (runaway). Slice 1 only **moved where it was attached** — from
+the inner `HStack` to a new outer `VStack` wrapping an `HSplitView`. The fragility (a
+brake that relied on a settling measurement) was always there; the new structure
+changed the relayout timing enough to expose it.
+
+**Principle.** When a regression appears after a change that *didn't modify the
+suspected code*, stop staring at the code — the cause is the **surrounding structure /
+wiring** exposing a pre-existing latent fragility. Diff how the thing is composed and
+fed, not just what it does.
+
+**Where it transfers.** A prompt, tool, or chain step that worked suddenly misbehaves
+after you reorder the pipeline, add a pane/agent, or change the context budget — the
+component is usually fine; its *inputs, ordering, or timing* changed. Diff the
+composition (what's upstream, in what order, with what context), not the unit alone.
+
+---
+
+## 10. Match the observation window to the failure's timescale — and build the kill-switch before you reproduce
+
+**Diptychon moment.** Two receipts, one good and one a mistake. The mistake: I called
+the fix verified after watching memory stay flat for ~16 seconds — but the real
+runaway was *automation-triggered* and I hadn't actually reproduced it, so the flat
+sample proved nothing. The good move: before any repro attempt on a bug that had
+already crashed the machine once, I gave the app a self-quit **watchdog** (force-quit
+at 1.5 GB) plus an external memory **kill-switch**, so reproducing it couldn't take
+the machine down again.
+
+**Principle.** (a) A clean *short* observation does not prove absence of a *slow or
+conditional* failure — size the watch to the failure's actual timescale and trigger
+before you trust it. (b) For any failure that can damage the environment, **build the
+safety net before you reproduce**, not after.
+
+**Where it transfers.** Evals and agent safety. A model that passes 16 quick prompts
+can still fail on long-context, rare, or adversarial inputs — size the eval to the
+failure mode you fear, not to convenience. And before the first real run of an agent
+that can spend, send, delete, or deploy, wrap it in a hard budget / dry-run /
+kill-switch. The net is cheap; reproducing destructively isn't.
+
+---
+
+## 11. Routing by geometry is content-blind — and a coordinate-space mismatch is a silent gap
+
+**Diptychon moment.** Moving the Filter into the unified top bar made clicking it
+*steal the active panel to the right*. The cause was a global `NSEvent` `leftMouseDown`
+monitor that picks the active panel purely from the click's **x**. Two compounding
+bugs: (a) it measured the top-bar guard band from `contentView.bounds.maxY`, but
+SwiftUI uses a **full-size content view** that extends behind the title bar — so
+`bounds.maxY` is ~28pt *above* where content actually renders, and the band sat over
+the title bar and missed the real bar. My first fix used that wrong anchor and *failed
+silently* — no error, the Filter just kept stealing. The right anchor was
+`window.contentLayoutRect.maxY` (the usable area *below* the title bar). And (b) the
+monitor has no idea the Filter exists — it routes by position, so *any* interactive
+control later dropped into the panels' x-range inherits "click here = activate this
+panel."
+
+**Principle.** (a) Whenever you correlate two coordinate systems (event space vs view
+space, content vs window), an off-by-a-constant offset throws **no error** — it just
+opens a dead zone where behaviour quietly differs. Anchor to the *semantically correct*
+rect, not the convenient one, and verify against the running surface, not the math in
+your head. (b) A dispatcher keyed on **geometry is blind to identity** — it can't tell
+a file row from a text field at the same x. Every element you add inside its zone
+silently inherits its rule; adding a case means re-checking the ones that "worked."
+
+**Where it transfers.** Any hit-testing, drag-routing, or coordinate-mapping code
+(canvas/drawing tools, games, custom gesture handlers), and more broadly any router
+that dispatches on *position or surface features* rather than *explicit identity* —
+analytics that attribute by screen region, or an LLM router that classifies by keywords
+instead of declared intent. The failure mode is the same: it works until you add
+something new inside the zone, then an old path breaks with no error to point at it.
+
+---
+
 ## How to use this doc
 - **When starting a new product** (especially AI): read §1 and §5 *before* you
   design the second pane or give an agent write-access. They're the expensive
   lessons to learn late.
 - **When a surface feels noisy or unreadable:** §2 and §3.
 - **When scope is creeping:** §4.
+- **When debugging a runaway / freeze / non-terminating loop** (code *or* agent):
+  §7–§10, in order — find the feedback writer → fix the termination on logical state →
+  suspect the structure, not the suspect → reproduce safely with a kill-switch.
+- **When a click / event / route goes to the wrong place** (especially after adding
+  UI inside an existing zone): §11 — check the coordinate anchor and remember the
+  router is blind to *what* it hit.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).

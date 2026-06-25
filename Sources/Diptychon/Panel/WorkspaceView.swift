@@ -25,52 +25,7 @@ struct WorkspaceView: View {
 
     var body: some View {
         @Bindable var model = model
-        HStack(spacing: 0) {
-            // Issue 16: the left sidebar (places + pinned) sits outermost-left,
-            // fixed width. Collapsible via ⌃⌘S / toolbar.
-            if model.sidebarVisible {
-                SidebarView(model: model)
-                    .frame(width: 200)
-                Divider()
-            }
-            // Issue 13: when both panels show, an HSplitView gives a draggable
-            // divider. When the right panel is hidden the container is swapped for
-            // the left panel alone — HSplitView can't drop a conditional child, so
-            // we toggle the whole container instead.
-            if model.rightPanelVisible {
-                HSplitView {
-                    PanelView(model: model.left, isActive: model.active == .left,
-                              onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                              onGoToFolder: { model.active = .left; model.goingToFolder = true },
-                              onPin: { model.pin($0) },
-                              onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 180)
-                    PanelView(model: model.right, isActive: model.active == .right,
-                              onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
-                              onGoToFolder: { model.active = .right; model.goingToFolder = true },
-                              onPin: { model.pin($0) },
-                              onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 180)
-                }
-            } else {
-                PanelView(model: model.left, isActive: true,
-                          onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                          onGoToFolder: { model.active = .left; model.goingToFolder = true },
-                          onPin: { model.pin($0) },
-                          onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 320)
-            }
-            if model.previewVisible {
-                Divider()
-                PreviewPane(model: model)
-                    .frame(width: 300)
-            }
-        }
-        // Enforce a real window minimum (NSWindow.contentMinSize) that tracks the
-        // open regions, and grow the window when a pane opens — so the preview /
-        // second panel never overflows and clips the sidebar off the left edge
-        // (issue 16/14 layout fix). A plain `.frame(minWidth:)` only makes the
-        // content claim the width; it doesn't push the window wider.
+        content
         .background(WindowMinWidth(minWidth: minContentWidth))
         .toolbar {
             ToolbarItem(placement: .navigation) {
@@ -147,6 +102,75 @@ struct WorkspaceView: View {
         .overlay { progressOverlay }
     }
 
+    /// The main content row: sidebar | (top bar + panels) | preview.
+    ///
+    /// Issue 21: the unified top bar is scoped to the **panel column** — the sidebar
+    /// and preview rise to the title bar, only the panel tops get pushed down. So the
+    /// bar lives inside this VStack, not above the whole row.
+    @ViewBuilder
+    private var content: some View {
+        @Bindable var model = model
+        VStack(spacing: 0) {
+            // Full-width marker separating the title-bar region from the content
+            // (sidebar + panels + preview) below it.
+            Divider()
+            HStack(spacing: 0) {
+                // Issue 16: the left sidebar (places + pinned) sits outermost-left,
+                // fixed width. Collapsible via ⌃⌘S / toolbar.
+                if model.sidebarVisible {
+                    SidebarView(model: model)
+                        .frame(width: 200)
+                    Divider()
+                }
+                VStack(spacing: 0) {
+                    // Up + breadcrumb + back/forward on the Active Panel, directly
+                    // above the panels it acts on.
+                    TopBarView(model: model)
+                    Divider()
+                    panels
+                }
+                if model.previewVisible {
+                    Divider()
+                    PreviewPane(model: model)
+                        .frame(width: 300)
+                }
+            }
+        }
+    }
+
+    /// The panel column body: both panels in an HSplitView, or the left panel alone.
+    @ViewBuilder
+    private var panels: some View {
+        @Bindable var model = model
+        // Issue 13: when both panels show, an HSplitView gives a draggable divider.
+        // When the right panel is hidden the container is swapped for the left panel
+        // alone — HSplitView can't drop a conditional child, so we toggle the whole
+        // container instead.
+        if model.rightPanelVisible {
+            HSplitView {
+                PanelView(model: model.left, isActive: model.active == .left,
+                          onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
+                          onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                          onPin: { model.pin($0) },
+                          onRename: { model.renameInline($0, to: $1) })
+                .frame(minWidth: 180)
+                PanelView(model: model.right, isActive: model.active == .right,
+                          onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
+                          onGoToFolder: { model.active = .right; model.goingToFolder = true },
+                          onPin: { model.pin($0) },
+                          onRename: { model.renameInline($0, to: $1) })
+                .frame(minWidth: 180)
+            }
+        } else {
+            PanelView(model: model.left, isActive: true,
+                      onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
+                      onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                      onPin: { model.pin($0) },
+                      onRename: { model.renameInline($0, to: $1) })
+                .frame(minWidth: 320)
+        }
+    }
+
     @ViewBuilder
     private var progressOverlay: some View {
         if let running = model.coordinator.running {
@@ -178,22 +202,40 @@ struct WorkspaceView: View {
             // of whether the selection changed. Not consumed — the Table still
             // gets the click to select the row.
             mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
-                if let contentView = event.window?.contentView {
+                if let window = event.window, let contentView = window.contentView {
                     let x = event.locationInWindow.x
-                    // The panels occupy the space between the sidebar (left, issue
-                    // 16) and the preview pane (right, issue 14); their divider sits
-                    // mid-way between those edges by default. When the right panel is
-                    // hidden the left panel spans that whole area.
                     let bounds = contentView.bounds
-                    let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX        // 200 + divider
+                    // The unified top bar / sidebar search occupy the top band of the
+                    // content (full-width divider + 36pt bar + divider). Clicks there
+                    // — e.g. the Filter field — must NOT re-activate a panel by their
+                    // x-position, or clicking the Filter would steal the active panel.
+                    //
+                    // NB: the content view is full-size (spans behind the title bar),
+                    // so measure from `contentLayoutRect.maxY` — the top of the usable
+                    // area BELOW the title bar — not `bounds.maxY` (the window top).
+                    let topBarBand: CGFloat = 38
+                    let contentTop = window.contentLayoutRect.maxY
+                    let inTopBar = event.locationInWindow.y >= contentTop - topBarBand
+                    // The panels occupy the space between the sidebar (left, issue 16)
+                    // and the preview pane (right, issue 14). When the right panel is
+                    // hidden the left panel spans that whole area.
+                    let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX      // 200 + divider
                     let rightEdge = model.previewVisible ? bounds.maxX - 301.0 : bounds.maxX
-                    let panelsMid = (leftEdge + rightEdge) / 2
-                    model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
-                }
-                // Double-click opens the selected row (first click already selected
-                // it). Handled here so the Table keeps native single-click select.
-                if event.clickCount == 2 {
-                    DispatchQueue.main.async { model.openSelection() }
+                    // Only clicks inside the panels re-activate a panel. Clicks in the
+                    // sidebar or preview must NOT — else clicking the sidebar with the
+                    // right panel active would flip to left and navigate the wrong side.
+                    let inPanels = x >= leftEdge && x <= rightEdge
+                    if !inTopBar && inPanels {
+                        let panelsMid = (leftEdge + rightEdge) / 2
+                        model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
+
+                        // Double-click opens the selected row (first click already
+                        // selected it). Handled here so the Table keeps native
+                        // single-click select.
+                        if event.clickCount == 2 {
+                            DispatchQueue.main.async { model.openSelection() }
+                        }
+                    }
                 }
                 return event
             }
@@ -215,23 +257,44 @@ struct WorkspaceView: View {
 private struct WindowMinWidth: NSViewRepresentable {
     let minWidth: CGFloat
 
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    /// Holds cross-update state so `apply` is edge-triggered, not level-triggered:
+    /// `setFrame` only runs when `minWidth` genuinely increased, so growing the
+    /// window can't feed back into another grow (the old code looped → runaway).
+    final class Coordinator {
+        var lastMinWidth: CGFloat = 0
+        var retriesLeft = 20            // ~2s of 0.1s retries before the window attaches
+    }
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
-        DispatchQueue.main.async { apply(to: view) }
+        DispatchQueue.main.async { apply(to: view, context.coordinator) }
         return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async { apply(to: nsView) }
+        DispatchQueue.main.async { apply(to: nsView, context.coordinator) }
     }
 
-    private func apply(to view: NSView) {
+    private func apply(to view: NSView, _ coordinator: Coordinator) {
         guard let window = view.window else {
-            // Not attached to a window yet (early launch) — retry shortly.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { apply(to: view) }
+            // Not attached to a window yet (early launch) — retry, but capped so a
+            // never-attaching view can't spawn timers forever.
+            guard coordinator.retriesLeft > 0 else { return }
+            coordinator.retriesLeft -= 1
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { apply(to: view, coordinator) }
             return
         }
+        // contentMinSize is idempotent — safe to set every pass.
         window.contentMinSize.width = minWidth
+
+        // Only grow on a real increase (a pane opened). Update the baseline first
+        // so the relayout that setFrame triggers sees no increase and stops here.
+        let didIncrease = minWidth > coordinator.lastMinWidth
+        coordinator.lastMinWidth = minWidth
+        guard didIncrease else { return }
+
         let current = window.contentLayoutRect.width
         guard current < minWidth else { return }
         var frame = window.frame

@@ -19,35 +19,30 @@ struct PanelView: View {
     var body: some View {
         @Bindable var model = model
         VStack(spacing: 0) {
-            // Header
+            // Header. Navigation + breadcrumb now live in the unified top bar
+            // (issue 21); each panel keeps a minimal current-folder label so both
+            // panels' locations stay visible.
             HStack(spacing: 6) {
-                Button { model.navigateUp() } label: {
-                    Image(systemName: "chevron.up")
-                }
-                .disabled(!model.canGoUp)
-                .help("Go up (⌘↑)")
-                .fixedSize()
-
-                // Clickable path: a menu of ancestor folders (jump up to any) plus
-                // Go to Folder… (type an arbitrary path). Issue 15.
-                Menu {
-                    ForEach(ancestors, id: \.self) { url in
-                        Button(url.lastPathComponent.isEmpty ? "/" : url.lastPathComponent) {
-                            model.go(to: url)
-                        }
-                    }
-                    Divider()
-                    Button("Go to Folder…", action: onGoToFolder)
-                } label: {
-                    Text(model.title)
+                if model.isSearching {
+                    // While searching, the label reports progress / the result set
+                    // instead of the folder name (issue 21 slice 3).
+                    Label(model.isSearchRunning
+                          ? "Searching…"
+                          : "\(model.visibleItems.count) result\(model.visibleItems.count == 1 ? "" : "s")",
+                          systemImage: "magnifyingglass")
                         .font(.headline)
                         .lineLimit(1)
-                        .truncationMode(.head)
+                        .truncationMode(.middle)
+                        .foregroundStyle(isActive ? .primary : .secondary)
+                        .layoutPriority(-1)
+                } else {
+                    Text(model.directory.lastPathComponent.isEmpty ? "/" : model.directory.lastPathComponent)
+                        .font(.headline)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .foregroundStyle(isActive ? .primary : .secondary)
+                        .layoutPriority(-1) // give up width first so controls never wrap
                 }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .fixedSize()
-                .layoutPriority(-1) // give up width first so controls never wrap
 
                 Spacer(minLength: 4)
 
@@ -62,10 +57,8 @@ struct PanelView: View {
                 .fixedSize()
 
                 tagFilterMenu
-
-                TextField("Filter", text: $model.filter)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(minWidth: 70, maxWidth: 160)
+                // Name filter now lives in the unified top bar (issue 21) and acts
+                // on the Active Panel — see TopBarView.
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -78,15 +71,24 @@ struct PanelView: View {
                 ProgressView("Loading…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded:
-                PanelFileList(
-                    items: model.visibleItems,
-                    selection: $model.selection,
-                    sortOrder: $model.sortOrder,
-                    onDrop: onDrop,
-                    onPin: onPin,
-                    renameRequest: model.inlineRenameRequest,
-                    onRename: onRename
-                )
+                if model.isSearching && model.visibleItems.isEmpty {
+                    if model.isSearchRunning {
+                        ProgressView("Searching…")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ContentUnavailableView.search(text: model.searchQuery)
+                    }
+                } else {
+                    PanelFileList(
+                        items: model.visibleItems,
+                        selection: $model.selection,
+                        sortOrder: $model.sortOrder,
+                        onDrop: onDrop,
+                        onPin: onPin,
+                        renameRequest: model.inlineRenameRequest,
+                        onRename: onRename
+                    )
+                }
             case .failed(let message):
                 if model.accessDenied {
                     VStack(spacing: 10) {
@@ -116,22 +118,9 @@ struct PanelView: View {
         .task { model.load() }
         // Active Panel is visually distinct.
         .overlay {
-            RoundedRectangle(cornerRadius: 6)
+            Rectangle()
                 .strokeBorder(Color.accentColor, lineWidth: isActive ? 2 : 0)
         }
-    }
-
-    /// This panel's ancestor directories, deepest first (current excluded), for
-    /// the header path menu.
-    private var ancestors: [URL] {
-        var result: [URL] = []
-        var url = model.directory
-        while url.path != "/" {
-            let parent = url.deletingLastPathComponent()
-            result.append(parent)
-            url = parent
-        }
-        return result
     }
 
     /// Header control to filter the Panel to a single tag (AC4). Lists the tags

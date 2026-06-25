@@ -43,7 +43,10 @@ struct SidebarView: View {
     private let places = SidebarPlace.standard
 
     var body: some View {
-        ScrollView {
+        VStack(spacing: 0) {
+            searchField
+            Divider()
+            ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 section(header: "Places") {
                     ForEach(places) { place in
@@ -66,9 +69,17 @@ struct SidebarView: View {
             }
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .frame(maxHeight: .infinity)
-        .background(.regularMaterial)
+        // Slightly tinted material so the sidebar reads as a distinct, recessed
+        // surface vs the panels. `primary` opacity adapts to light/dark (lifts in
+        // dark, darkens in light) — kept behind the rows so it doesn't dim text.
+        .background {
+            Rectangle()
+                .fill(.regularMaterial)
+                .overlay(Color.primary.opacity(0.045))
+        }
         // Drop a folder anywhere on the sidebar to pin it (issue 16, slice 3).
         // Files are ignored — the sidebar is a navigation surface.
         .overlay {
@@ -84,6 +95,34 @@ struct SidebarView: View {
             return !folders.isEmpty
         } isTargeted: { dropTargeted = $0 }
         .accessibilityIdentifier("sidebar")
+    }
+
+    /// Recursive Search field (issue 21 slice 3): finds files in the subtree under
+    /// the Active Panel's folder; results render in that panel. Binds to the active
+    /// panel so it swaps context when the active panel changes. Go-to-Folder lives
+    /// on ⇧⌘G. A clear (✕) button cancels the search and restores the listing.
+    private var searchField: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Search…", text: Binding(
+                get: { model.activeModel.searchQuery },
+                set: { model.activeModel.searchQuery = $0 }
+            ))
+            .textFieldStyle(.plain)
+            .accessibilityIdentifier("sidebar-search")
+            if !model.activeModel.searchQuery.isEmpty {
+                Button { model.activeModel.searchQuery = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+                .help("Clear search")
+            }
+        }
+        .padding(.horizontal, 12)
+        // Match TopBarView's 36pt height so this field's bottom divider lines up
+        // with the top bar's divider across the sidebar/panel seam (issue 21).
+        .frame(height: 36)
     }
 
     /// A pinned-folder row. If the folder no longer exists it's greyed and

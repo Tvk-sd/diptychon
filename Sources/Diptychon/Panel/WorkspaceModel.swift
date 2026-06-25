@@ -106,6 +106,8 @@ final class WorkspaceModel {
         case .undo: coordinator.undo(onFinish: refreshBoth)
         case .redo: coordinator.redo(onFinish: refreshBoth)
         case .goUp: activeModel.navigateUp()
+        case .goBack: activeModel.goBack()
+        case .goForward: activeModel.goForward()
         case .switchPanel:
             if !rightPanelVisible {
                 rightPanelVisible = true   // Tab brings the right panel back…
@@ -141,7 +143,7 @@ final class WorkspaceModel {
     /// nothing) if the path doesn't resolve to an existing directory.
     @discardableResult
     func navigateActive(toPath raw: String) -> Bool {
-        guard let url = PathInput.resolve(raw) else { return false }
+        guard let url = PathInput.resolve(raw, relativeTo: activeModel.directory) else { return false }
         activeModel.go(to: url)
         return true
     }
