@@ -25,52 +25,13 @@ struct WorkspaceView: View {
 
     var body: some View {
         @Bindable var model = model
-        HStack(spacing: 0) {
-            // Issue 16: the left sidebar (places + pinned) sits outermost-left,
-            // fixed width. Collapsible via ⌃⌘S / toolbar.
-            if model.sidebarVisible {
-                SidebarView(model: model)
-                    .frame(width: 200)
-                Divider()
-            }
-            // Issue 13: when both panels show, an HSplitView gives a draggable
-            // divider. When the right panel is hidden the container is swapped for
-            // the left panel alone — HSplitView can't drop a conditional child, so
-            // we toggle the whole container instead.
-            if model.rightPanelVisible {
-                HSplitView {
-                    PanelView(model: model.left, isActive: model.active == .left,
-                              onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                              onGoToFolder: { model.active = .left; model.goingToFolder = true },
-                              onPin: { model.pin($0) },
-                              onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 180)
-                    PanelView(model: model.right, isActive: model.active == .right,
-                              onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
-                              onGoToFolder: { model.active = .right; model.goingToFolder = true },
-                              onPin: { model.pin($0) },
-                              onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 180)
-                }
-            } else {
-                PanelView(model: model.left, isActive: true,
-                          onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                          onGoToFolder: { model.active = .left; model.goingToFolder = true },
-                          onPin: { model.pin($0) },
-                          onRename: { model.renameInline($0, to: $1) })
-                    .frame(minWidth: 320)
-            }
-            if model.previewVisible {
-                Divider()
-                PreviewPane(model: model)
-                    .frame(width: 300)
-            }
+        VStack(spacing: 0) {
+            // Issue 21: unified top bar (up + breadcrumb on the Active Panel) above
+            // the whole content row.
+            TopBarView(model: model)
+            Divider()
+            content
         }
-        // Enforce a real window minimum (NSWindow.contentMinSize) that tracks the
-        // open regions, and grow the window when a pane opens — so the preview /
-        // second panel never overflows and clips the sidebar off the left edge
-        // (issue 16/14 layout fix). A plain `.frame(minWidth:)` only makes the
-        // content claim the width; it doesn't push the window wider.
         .background(WindowMinWidth(minWidth: minContentWidth))
         .toolbar {
             ToolbarItem(placement: .navigation) {
@@ -147,6 +108,53 @@ struct WorkspaceView: View {
         .overlay { progressOverlay }
     }
 
+    /// The main content row: sidebar | panels | preview.
+    @ViewBuilder
+    private var content: some View {
+        @Bindable var model = model
+        HStack(spacing: 0) {
+            // Issue 16: the left sidebar (places + pinned) sits outermost-left,
+            // fixed width. Collapsible via ⌃⌘S / toolbar.
+            if model.sidebarVisible {
+                SidebarView(model: model)
+                    .frame(width: 200)
+                Divider()
+            }
+            // Issue 13: when both panels show, an HSplitView gives a draggable
+            // divider. When the right panel is hidden the container is swapped for
+            // the left panel alone — HSplitView can't drop a conditional child, so
+            // we toggle the whole container instead.
+            if model.rightPanelVisible {
+                HSplitView {
+                    PanelView(model: model.left, isActive: model.active == .left,
+                              onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
+                              onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                              onPin: { model.pin($0) },
+                              onRename: { model.renameInline($0, to: $1) })
+                    .frame(minWidth: 180)
+                    PanelView(model: model.right, isActive: model.active == .right,
+                              onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
+                              onGoToFolder: { model.active = .right; model.goingToFolder = true },
+                              onPin: { model.pin($0) },
+                              onRename: { model.renameInline($0, to: $1) })
+                    .frame(minWidth: 180)
+                }
+            } else {
+                PanelView(model: model.left, isActive: true,
+                          onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
+                          onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                          onPin: { model.pin($0) },
+                          onRename: { model.renameInline($0, to: $1) })
+                    .frame(minWidth: 320)
+            }
+            if model.previewVisible {
+                Divider()
+                PreviewPane(model: model)
+                    .frame(width: 300)
+            }
+        }
+    }
+
     @ViewBuilder
     private var progressOverlay: some View {
         if let running = model.coordinator.running {
@@ -215,23 +223,44 @@ struct WorkspaceView: View {
 private struct WindowMinWidth: NSViewRepresentable {
     let minWidth: CGFloat
 
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    /// Holds cross-update state so `apply` is edge-triggered, not level-triggered:
+    /// `setFrame` only runs when `minWidth` genuinely increased, so growing the
+    /// window can't feed back into another grow (the old code looped → runaway).
+    final class Coordinator {
+        var lastMinWidth: CGFloat = 0
+        var retriesLeft = 20            // ~2s of 0.1s retries before the window attaches
+    }
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
-        DispatchQueue.main.async { apply(to: view) }
+        DispatchQueue.main.async { apply(to: view, context.coordinator) }
         return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        DispatchQueue.main.async { apply(to: nsView) }
+        DispatchQueue.main.async { apply(to: nsView, context.coordinator) }
     }
 
-    private func apply(to view: NSView) {
+    private func apply(to view: NSView, _ coordinator: Coordinator) {
         guard let window = view.window else {
-            // Not attached to a window yet (early launch) — retry shortly.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { apply(to: view) }
+            // Not attached to a window yet (early launch) — retry, but capped so a
+            // never-attaching view can't spawn timers forever.
+            guard coordinator.retriesLeft > 0 else { return }
+            coordinator.retriesLeft -= 1
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { apply(to: view, coordinator) }
             return
         }
+        // contentMinSize is idempotent — safe to set every pass.
         window.contentMinSize.width = minWidth
+
+        // Only grow on a real increase (a pane opened). Update the baseline first
+        // so the relayout that setFrame triggers sees no increase and stops here.
+        let didIncrease = minWidth > coordinator.lastMinWidth
+        coordinator.lastMinWidth = minWidth
+        guard didIncrease else { return }
+
         let current = window.contentLayoutRect.width
         guard current < minWidth else { return }
         var frame = window.frame

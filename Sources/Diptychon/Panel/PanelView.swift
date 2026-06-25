@@ -19,35 +19,16 @@ struct PanelView: View {
     var body: some View {
         @Bindable var model = model
         VStack(spacing: 0) {
-            // Header
+            // Header. Navigation + breadcrumb now live in the unified top bar
+            // (issue 21); each panel keeps a minimal current-folder label so both
+            // panels' locations stay visible.
             HStack(spacing: 6) {
-                Button { model.navigateUp() } label: {
-                    Image(systemName: "chevron.up")
-                }
-                .disabled(!model.canGoUp)
-                .help("Go up (⌘↑)")
-                .fixedSize()
-
-                // Clickable path: a menu of ancestor folders (jump up to any) plus
-                // Go to Folder… (type an arbitrary path). Issue 15.
-                Menu {
-                    ForEach(ancestors, id: \.self) { url in
-                        Button(url.lastPathComponent.isEmpty ? "/" : url.lastPathComponent) {
-                            model.go(to: url)
-                        }
-                    }
-                    Divider()
-                    Button("Go to Folder…", action: onGoToFolder)
-                } label: {
-                    Text(model.title)
-                        .font(.headline)
-                        .lineLimit(1)
-                        .truncationMode(.head)
-                }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .fixedSize()
-                .layoutPriority(-1) // give up width first so controls never wrap
+                Text(model.directory.lastPathComponent.isEmpty ? "/" : model.directory.lastPathComponent)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .foregroundStyle(isActive ? .primary : .secondary)
+                    .layoutPriority(-1) // give up width first so controls never wrap
 
                 Spacer(minLength: 4)
 
@@ -119,19 +100,6 @@ struct PanelView: View {
             RoundedRectangle(cornerRadius: 6)
                 .strokeBorder(Color.accentColor, lineWidth: isActive ? 2 : 0)
         }
-    }
-
-    /// This panel's ancestor directories, deepest first (current excluded), for
-    /// the header path menu.
-    private var ancestors: [URL] {
-        var result: [URL] = []
-        var url = model.directory
-        while url.path != "/" {
-            let parent = url.deletingLastPathComponent()
-            result.append(parent)
-            url = parent
-        }
-        return result
     }
 
     /// Header control to filter the Panel to a single tag (AC4). Lists the tags
