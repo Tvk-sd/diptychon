@@ -45,9 +45,33 @@ run to verify). Unrelated to the runaway.
 reproducing — I twice declared `WindowMinWidth` fixed without a real repro; and test
 with *real* inputs — synthetic URLs hid the divergence).
 
-### Remaining slices (after the fix is committed)
-- **Slice 1 (done):** top bar + breadcrumb + Up + per-panel minimal label.
-- **Slice 2:** back/forward history (`PanelModel` stack + ‹ › buttons).
+### Remaining slices
+- **Slice 1 (done, PR #21):** top bar + breadcrumb + Up + per-panel minimal label.
+
+- **Slice 2 (IN PROGRESS): back/forward history.** Per-panel browser-style history.
+  - `PanelModel`: add `backStack`/`forwardStack` (`[URL]`), `canGoBack`/`canGoForward`.
+    Route every dir change through a private `pushHistoryAndGo(to:)` that appends the
+    current dir to `backStack`, clears `forwardStack`, then sets `directory` +
+    `afterNavigation()`. `navigate(into:)`, `go(to:)`, `navigateUp()` call it.
+    `goBack()`/`goForward()` move between stacks (no history push) + `afterNavigation()`.
+  - `AppAction`: add `.goBack`/`.goForward`. `Keymap`: ⌘[ → back, ⌘] → forward (Finder
+    convention). `WorkspaceModel.handleKeyDown`: dispatch to `activeModel`.
+  - `TopBarView`: ‹ › buttons before Up (chevron.left/right), disabled via
+    `canGoBack`/`canGoForward`, `.help("Back (⌘[)")` / `("Forward (⌘])")`.
+  - Tests: unit-test the stack transitions in `DiptychonTests` (temp dirs; assert
+    `directory` + `canGoBack`/`canGoForward` synchronously — independent of async
+    reload). Skip UI tests for now (sidebar table-index fragility — see issue 23).
+  - Decisions: history is per-panel; navigating anywhere new clears forward (browser
+    norm); back/forward reuse `afterNavigation()` so filter/selection reset stays
+    consistent.
+
+- **Slice 2 design tweaks (approved, building):**
+  1. TopBar button order → `^ ‹ ›` (Up left of back/forward, per user).
+  2. Top bar scoped to **panels only**: sidebar + preview rise to the title bar;
+     the bar + its divider move *inside* the panel column (VStack), pushing only the
+     panel tops down. Restructure `WorkspaceView`: outer HStack = sidebar | (VStack:
+     topbar/divider/panels) | preview.
+
 - **Slice 3:** promote Filter → search in the bar; move hidden + tag controls into the
   bar; drop the old per-panel header row.
 

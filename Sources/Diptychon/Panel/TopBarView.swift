@@ -16,6 +16,20 @@ struct TopBarView: View {
             .disabled(!model.activeModel.canGoUp)
             .help("Go up (⌘↑)")
 
+            Button { model.activeModel.goBack() } label: {
+                Image(systemName: "chevron.left")
+            }
+            .buttonStyle(.borderless)
+            .disabled(!model.activeModel.canGoBack)
+            .help("Back (⌘[)")
+
+            Button { model.activeModel.goForward() } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.borderless)
+            .disabled(!model.activeModel.canGoForward)
+            .help("Forward (⌘])")
+
             Divider().frame(height: 16)
 
             breadcrumb

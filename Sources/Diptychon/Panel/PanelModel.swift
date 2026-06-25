@@ -46,6 +46,12 @@ final class PanelModel {
     /// Ask the file list to start editing the single selected row's name in place.
     func requestInlineRename() { inlineRenameRequest = UUID() }
 
+    /// Per-panel browser-style navigation history (issue 21 slice 2). Every dir
+    /// change pushes the prior directory onto `backStack` and clears `forwardStack`;
+    /// goBack/goForward shuttle between them without recording new history.
+    private var backStack: [URL] = []
+    private var forwardStack: [URL] = []
+
     private var loadedItems: [FileItem] = []
     private var loadTask: Task<Void, Never>?
     /// Live watch on `directory`; refreshes the Panel on external changes (AC3).
@@ -59,6 +65,9 @@ final class PanelModel {
     var title: String { directory.path }
     /// Can we go up? False at the filesystem root.
     var canGoUp: Bool { directory.path != "/" }
+    /// Back/forward availability (issue 21 slice 2).
+    var canGoBack: Bool { !backStack.isEmpty }
+    var canGoForward: Bool { !forwardStack.isEmpty }
 
     /// URLs of the currently selected rows (source set for the Commander gesture).
     var selectionURLs: [URL] { Array(selection) }
@@ -88,20 +97,42 @@ final class PanelModel {
     /// Enter `item` if it's a directory (files are not activatable yet).
     func navigate(into item: FileItem) {
         guard item.isDirectory else { return }
-        directory = item.url
-        afterNavigation()
+        pushHistoryAndGo(to: item.url)
     }
 
     /// Jump directly to a directory (path bar / Go to Folder / breadcrumb).
     func go(to url: URL) {
-        guard url != directory else { return }
-        directory = url
-        afterNavigation()
+        pushHistoryAndGo(to: url)
     }
 
     func navigateUp() {
         guard canGoUp else { return }
-        directory = directory.deletingLastPathComponent()
+        pushHistoryAndGo(to: directory.deletingLastPathComponent())
+    }
+
+    /// Go to `url`, recording the current directory in history (browser-style):
+    /// push the prior dir onto back, drop any forward trail. No-op if unchanged.
+    private func pushHistoryAndGo(to url: URL) {
+        guard url != directory else { return }
+        backStack.append(directory)
+        forwardStack.removeAll()
+        directory = url
+        afterNavigation()
+    }
+
+    /// Step back to the previous directory (forward becomes available).
+    func goBack() {
+        guard let previous = backStack.popLast() else { return }
+        forwardStack.append(directory)
+        directory = previous
+        afterNavigation()
+    }
+
+    /// Step forward again after going back.
+    func goForward() {
+        guard let next = forwardStack.popLast() else { return }
+        backStack.append(directory)
+        directory = next
         afterNavigation()
     }
 

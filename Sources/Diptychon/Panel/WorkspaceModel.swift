@@ -106,6 +106,8 @@ final class WorkspaceModel {
         case .undo: coordinator.undo(onFinish: refreshBoth)
         case .redo: coordinator.redo(onFinish: refreshBoth)
         case .goUp: activeModel.navigateUp()
+        case .goBack: activeModel.goBack()
+        case .goForward: activeModel.goForward()
         case .switchPanel:
             if !rightPanelVisible {
                 rightPanelVisible = true   // Tab brings the right panel back…
