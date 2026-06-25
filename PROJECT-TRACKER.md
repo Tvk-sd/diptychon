@@ -122,7 +122,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 18 | Operation history / time-travel undo | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 19 | Command palette (⌘K) | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
-| 21 | Unified top bar (breadcrumb, back/forward, search) | ⬜ ready-for-agent — foundational chrome for 18+; supersedes 15's path dropdown |
+| 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
@@ -266,6 +266,51 @@ user-verified end to end. Research: `context/sidebar-research.md`.
 - Tests: 36 green (34 unit + UI: `testSidebarToggleAndNavigate`,
   `testPinFolderAppearsNavigatesAndRemoves`, `testMissingPinnedFolderDegradesGracefully`).
   Drag-to-pin verified by dogfooding (XCUITest drag is unreliable — ADR 0002 context).
+
+### Issue 21 outcome (2026-06-25) — Unified top bar (branch `feat/21-unified-top-bar`, PR #21 open)
+Foundational chrome, built in slices, user-verified end to end. Full root-cause
+write-ups + debugging lessons in `context/transferable-learnings.md` (§7–§11).
+- **Slice 1 — top bar.** `TopBarView`: Up + clickable breadcrumb of the active
+  panel's path; navigation pulled out of per-panel headers into one bar.
+  - **Critical fix:** the first breadcrumb walked `deletingLastPathComponent()` in a
+    `while true` that never converges for the directory-style URLs
+    `contentsOfDirectory(at:)` returns → pinned CPU ~99% / ballooned RAM. Rebuilt
+    from the absolute path's `pathComponents` (bounded). `WindowMinWidth` hardened
+    into an edge-triggered window grow. (§7–§10.)
+- **Slice 2 — per-panel back/forward history.** `PanelModel.backStack/forwardStack`,
+  `canGoBack/canGoForward`; every dir change routes through `pushHistoryAndGo`
+  (push prior, clear forward); `goBack/goForward` shuttle the stacks. ⌘[ / ⌘] +
+  ‹ › buttons. `NavigationHistoryTests` (synchronous stack assertions).
+- **Top-bar redesign.** Bar scoped to the panel column (sidebar + preview rise to the
+  title bar; only panel tops pushed down); full-width divider under the title bar;
+  theme-adaptive sidebar tint; square active-panel ring. Filter moved into the bar
+  (active panel). Go-to-Folder button removed; the sidebar field replaced it (then
+  became Search). ⇧⌘G still opens the Go-to-Folder sheet.
+- **Slice 3 — recursive file search.** Sidebar field = Search (pure). `RecursiveSearch.run`
+  — a `nonisolated async` walk that runs off-main while honouring the caller's
+  cancellation (each keystroke abandons the prior walk); results render **in the
+  active panel** (Finder-style, reusing list/sort/open). `PanelModel.searchQuery`
+  (debounced) → `searchResults`; `visibleItems` branches while `isSearching`;
+  Searching… → results / "No results". **Bounded on both axes (§10):** ≤1000 matches
+  AND ≤100k entries scanned; no per-entry metadata prefetch + `.skipsPackageDescendants`
+  → Home search dropped from many seconds to a beat. `SearchTests` (nested match,
+  hidden visibility, empty query).
+- **Fixes (all the §11 content-blind-geometry-router trap):** the `leftMouseDown`
+  monitor re-activated a panel from any click's x-position. (a) It measured the
+  top-bar band from the full-size content view's top (behind the title bar) → clicking
+  the bar Filter stole the panel; fixed to measure from `contentLayoutRect`. (b) It
+  also fired for sidebar/preview clicks → with the right panel active, clicking the
+  sidebar flipped to left and navigated the wrong side; now only clicks inside the
+  panels' x-range re-activate.
+- **New §11 learning recorded:** routing by geometry is content-blind, and a
+  coordinate-space mismatch fails silently — `context/transferable-learnings.md` §11.
+- **Process learnings:** new source files need `xcodegen generate` (the `.xcodeproj`
+  is gitignored); and UI tests fail if a manually-launched app instance is running
+  (bundle-id collision) — quit it first.
+- **Deferred:** showing each search result's location (relative path) — needs a Table
+  column. ⇧⌘G could later focus the sidebar field instead of the redundant sheet.
+- Commits on branch: `22fdb58`-era slice 1 → `e1f7b64` slice 2 → `e6ccc97` redesign →
+  `518354b` §11 docs → `1fc8dad` slice 3 → `abd2a64` sidebar-click fix. All pushed.
 
 ### Issue 17 outcome (2026-06-24) — File-list polish (data-driven display) (PR pending)
 Presentation pass applying "data drives the form" (`context/dashboard-research.md`

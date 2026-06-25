@@ -1,12 +1,37 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-24. 10-issue MVP complete (08–10 merged: PRs #12/#13/#14).
-Post-MVP: issue 14 inline preview pane merged (PR #15). Backlog: 11 (inline
-rename), 12 (tag sidebar color), 13 (panel resize/collapse), 15 (path bar)._
+_Updated: 2026-06-25. 10-issue MVP complete; post-MVP issues 11–21 built.
+**Current: issue 21 (unified top bar) done on branch `feat/21-unified-top-bar`,
+PR #21 open, user-verified.** Full per-issue history in `PROJECT-TRACKER.md`._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
-Commander spirit). MVP in progress — **7 of 10 issues merged; Xcode migration +
-two issue-07 QA fixes merged to `main`; issue 08 underway.**
+Commander spirit).
+
+## CURRENT STATE (2026-06-25) — issue 21, unified top bar
+Branch **`feat/21-unified-top-bar`** (off `main`), **PR #21 open**, pushed, tree
+clean, all tests green (quit the running app before `test` — bundle-id collision).
+Slices 1–3 + a redesign + fixes, all user-verified in the running app:
+- **Slice 1** top bar (Up + clickable breadcrumb) — incl. the breadcrumb runaway
+  fix (bounded `pathComponents`, not a `deletingLastPathComponent()` loop).
+- **Slice 2** per-panel back/forward history (⌘[ / ⌘] + ‹ ›), `NavigationHistoryTests`.
+- **Redesign** bar scoped to the panel column; full-width title-bar divider;
+  sidebar tint; square active ring; Filter moved into the bar; Go-to-Folder button
+  replaced by the sidebar field (⇧⌘G still opens the sheet).
+- **Slice 3** recursive file **Search** (sidebar field) → results in the active
+  panel; `RecursiveSearch` bounded ≤1000 matches / ≤100k scanned, off-main +
+  cancellable; `SearchTests`.
+- **Fixes** — both the §11 content-blind-geometry-router trap: clicks on the bar
+  Filter, and on the sidebar/preview, no longer steal/flip the active panel
+  (monitor measures from `contentLayoutRect`, reassigns only inside the panels' x-range).
+
+**To resume / finish issue 21:** review + merge PR #21. Deferred niceties (own
+follow-ups): show each search result's location (relative path; needs a Table
+column); ⇧⌘G could focus the sidebar field instead of the redundant sheet.
+
+**New learning this session:** `context/transferable-learnings.md` **§11** — routing
+by geometry is content-blind, and a coordinate-space mismatch fails silently.
+
+_Older milestones below are historical; `PROJECT-TRACKER.md` is the canonical log._
 
 ## ✅ DONE: Xcode migration (PR #9, merged)
 Migrated off the no-Xcode SwiftPM + hand-wrapped `.app` setup to a real Xcode
@@ -71,8 +96,8 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 (the xattr) rather than the accessibility tree for robust, meaningful UI tests.
 
 ## Git state
-- Branch: **`feat/08-finder-tags`** (off `main`). All 5 slices committed locally,
-  **not yet pushed**; no PR open. `main` has issues 01–07 + PRs #9/#10/#11.
+- Branch: **`feat/21-unified-top-bar`** (off `main`), **pushed**, **PR #21 open**.
+  (Older branches 08/11/16/17 may still have pending PRs — see PROJECT-TRACKER.)
 - Repo: https://github.com/Tvk-sd/diptychon
 - Build/run: `xcodegen generate` then `open Diptychon.xcodeproj`, or
   `xcodebuild -scheme Diptychon -destination 'platform=macOS' build|test`.
@@ -101,7 +126,7 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 | 18 | Operation history / time-travel undo | ⬜ needs-triage (differentiation bet) |
 | 19 | Command palette (⌘K) | ⬜ needs-triage (differentiation bet) |
 | 20 | Virtual staging panel | ⬜ needs-triage (differentiation bet) |
-| 21 | Unified top bar (breadcrumb, back/forward, search) | ⬜ ready-for-agent — foundational chrome for 18+ |
+| 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch, PR #21 open — slices 1–3 + redesign, user-verified |
 
 ## Architecture (current)
 - `App/DiptychonApp.swift` — `@main struct DiptychonApp: App` with
@@ -159,14 +184,11 @@ Preferred order, cheapest first:
 - Merge PRs **bottom-up, no `--delete-branch` on a PR that has a stacked child**
   (it auto-closes the child — happened to #2).
 
-## To resume (issue 08)
-1. `git checkout feat/08-finder-tags`; `xcodegen generate`;
-   `xcodebuild -scheme Diptychon -destination 'platform=macOS' test` → 26 green.
-2. **UX check** the running build (all 4 ACs): per-panel header tag menu filters;
-   ⌘T picker toggles built-in colors, creates new tags, re-applies custom tags.
-3. **Push branch + open PR.** Then close PLAN.md into PROJECT-TRACKER.
-4. **Follow-up issue (optional):** custom-color Finder *sidebar* registration via
-   Finder's undocumented system tag store (the only deferred piece of AC3).
+## To resume
+See **CURRENT STATE** at the top — active work is issue 21 (PR #21 open, review +
+merge). `git checkout feat/21-unified-top-bar`; `xcodegen generate`;
+`xcodebuild -scheme Diptychon -destination 'platform=macOS' test` (quit any running
+app first). Per-issue history + outcomes: `PROJECT-TRACKER.md`.
 
 ## Dev-loop gotcha (post-migration)
 The app keeps a fixed bundle id, so launching never starts a second copy — macOS

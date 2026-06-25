@@ -1,6 +1,8 @@
 # 21 — Unified top bar: breadcrumb, back/forward, search
 
-Status: ready-for-agent
+Status: done — branch `feat/21-unified-top-bar`, PR #21 open, user-verified. Some
+ACs were superseded by user decisions during the build (see notes below + the
+issue-21 outcome in `PROJECT-TRACKER.md`).
 
 ## Parent
 
@@ -39,23 +41,27 @@ per-panel Filter field, and moves the hidden toggle + tag filter into the bar
 
 ## Acceptance criteria
 
-- [ ] A top bar spans above both panels and **acts on the Active Panel**:
-      back, forward, up; breadcrumb; search; hidden toggle; tag filter.
-- [ ] **Breadcrumb** shows the active panel's path as clickable segments; clicking a
-      segment navigates the active panel there. (Replaces issue 15's dropdown; keep
-      Go to Folder ⇧⌘G reachable.)
-- [ ] **Back / forward** navigate the active panel's own history (per-panel stack);
-      disabled when there's no history. **Up** goes to the parent.
-- [ ] **Search field** filters the active panel's current folder live (replaces the
-      old per-panel Filter). Recursive search is out of scope here.
-- [ ] **Switching the Active Panel updates the bar** to that panel's path, history
-      state, search text, and toggles.
-- [ ] Each panel still shows its **current folder name** so the inactive panel's
-      location is visible.
-- [ ] **Reserved, clean slots** for a view-switcher and a time-travel control exist
-      in the bar's layout, but neither feature is built here (no dead buttons).
-- [ ] No regression to navigation, selection, hidden toggle, tag filter, or the
-      file-list polish (issue 17).
+- [~] A top bar spans above the **panels** and **acts on the Active Panel**: back,
+      forward, up, breadcrumb, Filter. **Deviation:** scoped to the panel column (not
+      the whole width) per user; **hidden toggle + tag filter stayed per-panel** — the
+      user explicitly dropped the bar-consolidation ("UI consolidation no longer
+      needed, keep the design").
+- [x] **Breadcrumb** shows the active panel's path as clickable segments; clicking a
+      segment navigates the active panel. Go to Folder reachable via ⇧⌘G.
+- [x] **Back / forward** navigate the active panel's own history (per-panel stack),
+      disabled at the ends. **Up** goes to the parent.
+- [x] **Search.** **Changed by user decision:** the sidebar field became a **recursive
+      subtree search** (results in the active panel), not a current-folder filter — the
+      live name filter stays as the bar **Filter**. So both exist: Filter (current list)
+      + Search (recursive).
+- [x] **Switching the Active Panel updates the bar** to that panel's path, history
+      state, Filter, and search text.
+- [x] Each panel still shows its **current folder name** (and a result count while
+      searching) so the inactive panel's location stays visible.
+- [ ] **Reserved slots** for a view-switcher / time-travel control — **not added**
+      (no dead buttons either; deferred to when 18/19 land).
+- [x] No regression to navigation, selection, hidden toggle, tag filter, or the
+      file-list polish (issue 17). Full suite green.
 
 ## Notes
 
