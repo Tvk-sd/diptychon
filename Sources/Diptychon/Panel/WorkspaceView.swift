@@ -216,19 +216,22 @@ struct WorkspaceView: View {
                     let topBarBand: CGFloat = 38
                     let contentTop = window.contentLayoutRect.maxY
                     let inTopBar = event.locationInWindow.y >= contentTop - topBarBand
-                    if !inTopBar {
-                        // The panels occupy the space between the sidebar (left, issue
-                        // 16) and the preview pane (right, issue 14); their divider sits
-                        // mid-way between those edges by default. When the right panel is
-                        // hidden the left panel spans that whole area.
-                        let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX      // 200 + divider
-                        let rightEdge = model.previewVisible ? bounds.maxX - 301.0 : bounds.maxX
+                    // The panels occupy the space between the sidebar (left, issue 16)
+                    // and the preview pane (right, issue 14). When the right panel is
+                    // hidden the left panel spans that whole area.
+                    let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX      // 200 + divider
+                    let rightEdge = model.previewVisible ? bounds.maxX - 301.0 : bounds.maxX
+                    // Only clicks inside the panels re-activate a panel. Clicks in the
+                    // sidebar or preview must NOT — else clicking the sidebar with the
+                    // right panel active would flip to left and navigate the wrong side.
+                    let inPanels = x >= leftEdge && x <= rightEdge
+                    if !inTopBar && inPanels {
                         let panelsMid = (leftEdge + rightEdge) / 2
                         model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
 
                         // Double-click opens the selected row (first click already
                         // selected it). Handled here so the Table keeps native
-                        // single-click select. Skipped in the top bar (no row there).
+                        // single-click select.
                         if event.clickCount == 2 {
                             DispatchQueue.main.async { model.openSelection() }
                         }
