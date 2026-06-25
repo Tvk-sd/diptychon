@@ -39,16 +39,12 @@ struct SidebarView: View {
     let model: WorkspaceModel
     /// True while a drag hovers the sidebar — highlights the drop zone.
     @State private var dropTargeted = false
-    /// The Go-to-Folder path field at the top of the sidebar (issue 21): type or
-    /// paste a path, press Enter to navigate the Active Panel there.
-    @State private var pathQuery = ""
-    @State private var pathError = false
 
     private let places = SidebarPlace.standard
 
     var body: some View {
         VStack(spacing: 0) {
-            pathField
+            searchField
             Divider()
             ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -101,33 +97,32 @@ struct SidebarView: View {
         .accessibilityIdentifier("sidebar")
     }
 
-    /// Go-to-Folder field (issue 21): replaces the old top-bar "Go to Folder…"
-    /// button. Enter navigates the Active Panel to the typed path; an invalid path
-    /// flags red rather than navigating.
-    private var pathField: some View {
+    /// Recursive Search field (issue 21 slice 3): finds files in the subtree under
+    /// the Active Panel's folder; results render in that panel. Binds to the active
+    /// panel so it swaps context when the active panel changes. Go-to-Folder lives
+    /// on ⇧⌘G. A clear (✕) button cancels the search and restores the listing.
+    private var searchField: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(pathError ? Color.red : .secondary)
-            TextField("Go to folder…", text: $pathQuery)
-                .textFieldStyle(.plain)
-                .onSubmit(goToPath)
-                .onChange(of: pathQuery) { pathError = false }
-                .accessibilityIdentifier("sidebar-goto-path")
+                .foregroundStyle(.secondary)
+            TextField("Search…", text: Binding(
+                get: { model.activeModel.searchQuery },
+                set: { model.activeModel.searchQuery = $0 }
+            ))
+            .textFieldStyle(.plain)
+            .accessibilityIdentifier("sidebar-search")
+            if !model.activeModel.searchQuery.isEmpty {
+                Button { model.activeModel.searchQuery = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+                .help("Clear search")
+            }
         }
         .padding(.horizontal, 12)
         // Match TopBarView's 36pt height so this field's bottom divider lines up
         // with the top bar's divider across the sidebar/panel seam (issue 21).
         .frame(height: 36)
-    }
-
-    private func goToPath() {
-        let trimmed = pathQuery.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
-        if model.navigateActive(toPath: trimmed) {
-            pathQuery = ""
-        } else {
-            pathError = true
-        }
     }
 
     /// A pinned-folder row. If the folder no longer exists it's greyed and

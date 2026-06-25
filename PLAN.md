@@ -72,8 +72,18 @@ with *real* inputs — synthetic URLs hid the divergence).
      panel tops down. Restructure `WorkspaceView`: outer HStack = sidebar | (VStack:
      topbar/divider/panels) | preview.
 
-- **Slice 3:** promote Filter → search in the bar; move hidden + tag controls into the
-  bar; drop the old per-panel header row.
+- **Slice 3 (building): real recursive search.** The sidebar field becomes Search
+  (pure; go-to-folder stays on ⇧⌘G). Decisions: results render **in the active panel**
+  (Finder-style, reusing the list); scope is the **active panel's subtree**; hidden/tag
+  controls and per-panel headers stay as-is (no UI consolidation — user dropped it).
+  - `RecursiveSearch.run` — bounded, cancellable off-main walk (cap 1000, cancels on
+    each keystroke) so searching Home can't peg CPU/RAM (transferable-learnings §10).
+  - `PanelModel`: `searchQuery` (debounced ~250ms) → `searchResults`; `visibleItems`
+    branches to the results while `isSearching`; navigation/showHidden re-sync; clearing
+    exits search. Activating a result reuses open/navigate.
+  - `SidebarView`: field → Search (magnifier + clear button), bound to the active panel.
+  - `PanelView`: header shows result count; empty state when no matches.
+  - Deferred: showing each result's location (relative path) — needs a Table column.
 
 ## Backlog
 - **Ready for agent:** 12 (custom tag color registration).

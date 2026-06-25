@@ -23,12 +23,26 @@ struct PanelView: View {
             // (issue 21); each panel keeps a minimal current-folder label so both
             // panels' locations stay visible.
             HStack(spacing: 6) {
-                Text(model.directory.lastPathComponent.isEmpty ? "/" : model.directory.lastPathComponent)
-                    .font(.headline)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .foregroundStyle(isActive ? .primary : .secondary)
-                    .layoutPriority(-1) // give up width first so controls never wrap
+                if model.isSearching {
+                    // While searching, the label reports progress / the result set
+                    // instead of the folder name (issue 21 slice 3).
+                    Label(model.isSearchRunning
+                          ? "Searching…"
+                          : "\(model.visibleItems.count) result\(model.visibleItems.count == 1 ? "" : "s")",
+                          systemImage: "magnifyingglass")
+                        .font(.headline)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .foregroundStyle(isActive ? .primary : .secondary)
+                        .layoutPriority(-1)
+                } else {
+                    Text(model.directory.lastPathComponent.isEmpty ? "/" : model.directory.lastPathComponent)
+                        .font(.headline)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .foregroundStyle(isActive ? .primary : .secondary)
+                        .layoutPriority(-1) // give up width first so controls never wrap
+                }
 
                 Spacer(minLength: 4)
 
@@ -57,15 +71,24 @@ struct PanelView: View {
                 ProgressView("Loading…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded:
-                PanelFileList(
-                    items: model.visibleItems,
-                    selection: $model.selection,
-                    sortOrder: $model.sortOrder,
-                    onDrop: onDrop,
-                    onPin: onPin,
-                    renameRequest: model.inlineRenameRequest,
-                    onRename: onRename
-                )
+                if model.isSearching && model.visibleItems.isEmpty {
+                    if model.isSearchRunning {
+                        ProgressView("Searching…")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ContentUnavailableView.search(text: model.searchQuery)
+                    }
+                } else {
+                    PanelFileList(
+                        items: model.visibleItems,
+                        selection: $model.selection,
+                        sortOrder: $model.sortOrder,
+                        onDrop: onDrop,
+                        onPin: onPin,
+                        renameRequest: model.inlineRenameRequest,
+                        onRename: onRename
+                    )
+                }
             case .failed(let message):
                 if model.accessDenied {
                     VStack(spacing: 10) {
