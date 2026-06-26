@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bauen mit AI als Product Manager — Diptychon</title>
+<style>
+  :root {
+    --ink:        #14181d;
+    --ink-soft:   #4a525c;
+    --ink-faint:  #8a929c;
+    --line:       #e3e6ea;
+    --paper:      #fbfaf8;
+    --panel:      #ffffff;
+    --accent:     #c8542b;   /* warm terracotta — the diptych binding */
+    --accent-bg:  #fbeee8;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: #d9d6d0;
+    font-family: var(--sans);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 16:9 stage, scales to viewport, fixed internal coordinate system */
+  .stage {
+    width: min(96vw, 170.6vh);
+    aspect-ratio: 16 / 9;
+    background: var(--paper);
+    box-shadow: 0 24px 70px rgba(20,24,29,.28);
+    container-type: size;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* everything sizes off container query units so it scales as one piece */
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 6.2cqh 6cqw 5.2cqh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---- header ---- */
+  .kicker {
+    display: flex;
+    align-items: center;
+    gap: 1.4cqw;
+    font-size: 1.55cqh;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .kicker::before {
+    content: "";
+    width: 3.2cqw;
+    height: 2px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 5.1cqh;
+    line-height: 1.05;
+    letter-spacing: -.01em;
+    margin-top: 2.1cqh;
+    max-width: 78%;
+  }
+  .subhead {
+    font-size: 2.05cqh;
+    color: var(--ink-soft);
+    margin-top: 1.5cqh;
+    max-width: 70%;
+    line-height: 1.35;
+  }
+
+  /* ---- the two panels (diptych) ---- */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 4.2cqh;
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+  .panel {
+    padding: 3.4cqh 3cqw;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel + .panel { border-left: 1px solid var(--line); }
+
+  .pillar-no {
+    font-family: var(--serif);
+    font-size: 1.5cqh;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .pillar-title {
+    font-family: var(--serif);
+    font-size: 3.05cqh;
+    line-height: 1.12;
+    margin-top: 1.2cqh;
+    letter-spacing: -.01em;
+  }
+  ul {
+    list-style: none;
+    margin-top: 2.5cqh;
+    display: flex;
+    flex-direction: column;
+    gap: 1.55cqh;
+    flex: 1;
+  }
+  li {
+    position: relative;
+    padding-left: 2.5cqw;
+    font-size: 1.92cqh;
+    line-height: 1.34;
+    color: var(--ink-soft);
+  }
+  li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: .85cqh;
+    width: .9cqw;
+    height: .9cqw;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  li b { color: var(--ink); font-weight: 600; }
+
+  .takeaway {
+    margin-top: 2.6cqh;
+    padding-top: 2.2cqh;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: baseline;
+    gap: 1.2cqw;
+    font-size: 1.92cqh;
+    line-height: 1.3;
+  }
+  .takeaway .arrow { color: var(--accent); font-weight: 700; }
+  .takeaway span { color: var(--ink); font-weight: 600; }
+
+  /* ---- learning footer ---- */
+  .learning {
+    margin-top: 3.4cqh;
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 2.8cqh 3cqw;
+  }
+  .learning .lab {
+    font-size: 1.5cqh;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .learning p {
+    font-family: var(--serif);
+    font-size: 2.6cqh;
+    line-height: 1.32;
+    margin-top: 1.1cqh;
+    color: var(--ink);
+    max-width: 92%;
+  }
+  .learning em { font-style: italic; color: var(--accent); }
+
+  /* ---- footer line ---- */
+  .footer {
+    position: absolute;
+    bottom: 2.6cqh;
+    left: 6cqw;
+    right: 6cqw;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.45cqh;
+    letter-spacing: .04em;
+    color: var(--ink-faint);
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="slide">
+      <div class="kicker">Diptychon · ein PM-Lernstück</div>
+      <h1>Bauen mit AI als Product Manager</h1>
+      <p class="subhead">Der Engpass ist nicht mehr „kann ich es bauen?", sondern „weiß ich exakt, was ich will?"</p>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="pillar-no">Säule 1</div>
+          <div class="pillar-title">Sprache &amp; Entscheidungen vor Code</div>
+          <ul>
+            <li><b>Ubiquitäre Sprache</b> — ein Begriff pro Sache, inkl. <i>Avoid</i> (CONTEXT.md)</li>
+            <li><b>Entscheidungen mit Warum</b>, nicht nur Was (ADRs)</li>
+            <li><b>Expliziter Scope &amp; Non-Goals</b> — bewusst zurückgestellt (PRD)</li>
+          </ul>
+          <div class="takeaway"><span class="arrow">→</span><span>Die Spec ist die Schnittstelle zur Maschine.</span></div>
+        </div>
+
+        <div class="panel">
+          <div class="pillar-no">Säule 2</div>
+          <div class="pillar-title">Vertikal schneiden statt in Schichten</div>
+          <ul>
+            <li><b>Dünne, lauffähige Durchstiche</b> — nicht „erst alle Models"</li>
+            <li><b>Jeder Slice eigenständig greifbar</b> und sichtbar im Verhalten</li>
+            <li><b>Nach jedem Schritt prüfbar:</b> ist es noch, was ich wollte?</li>
+          </ul>
+          <div class="takeaway"><span class="arrow">→</span><span>Steuerbarkeit statt Kontrollverlust bei AI-Tempo.</span></div>
+        </div>
+      </div>
+
+      <div class="learning">
+        <div class="lab">Das Learning</div>
+        <p>Mehrdeutigkeit hat einen Preis — Bauen-mit-AI legt ihn <em>in Echtzeit</em> offen, dir gegenüber. Das macht dich nicht zum Entwickler, sondern zum PM, der schärfer spezifiziert.</p>
+      </div>
+
+      <div class="footer">
+        <span>Diptychon — keyboard-first dual-panel file manager für macOS</span>
+        <span>PM · AI Builder · UX</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

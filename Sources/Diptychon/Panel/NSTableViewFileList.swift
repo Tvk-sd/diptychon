@@ -170,10 +170,16 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             switch columnID {
             case Column.name:
                 cell.textField?.stringValue = item.name
-                cell.toolTip = item.name   // full name on hover, since it can truncate now
                 cell.imageView?.image = NSImage(systemSymbolName: item.isDirectory ? "folder" : "doc",
                                                 accessibilityDescription: nil)
-                (cell as? NameCellView)?.tagDots.setTags(item.tags)
+                if let nameCell = cell as? NameCellView {
+                    nameCell.tagDots.setTags(item.tags)
+                    // Search-result location after the name; hidden otherwise.
+                    nameCell.location.stringValue = item.subtitle ?? ""
+                    nameCell.location.isHidden = item.subtitle == nil
+                }
+                // Full name (+ location while searching) on hover, since it truncates.
+                cell.toolTip = item.subtitle.map { "\(item.name) — \($0)" } ?? item.name
             case Column.size:
                 cell.textField?.stringValue = item.size.map { Self.sizeFormatter.string(fromByteCount: $0) } ?? "—"
             case Column.date:
@@ -221,6 +227,8 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
                 let dots = cell.tagDots
                 dots.translatesAutoresizingMaskIntoConstraints = false
                 cell.addSubview(dots)
+                let location = cell.location
+                cell.addSubview(location)
                 NSLayoutConstraint.activate([
                     image.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 2),
                     image.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
@@ -228,8 +236,11 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
                     image.heightAnchor.constraint(equalToConstant: 16),
                     text.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 6),
                     text.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
-                    // Tag dots sit at the trailing edge; the name truncates before them.
-                    dots.leadingAnchor.constraint(equalTo: text.trailingAnchor, constant: 6),
+                    // Name → location (search) → tag dots, all on one line; name
+                    // truncates before the location, location before nothing.
+                    location.leadingAnchor.constraint(equalTo: text.trailingAnchor, constant: 8),
+                    location.firstBaselineAnchor.constraint(equalTo: text.firstBaselineAnchor),
+                    dots.leadingAnchor.constraint(equalTo: location.trailingAnchor, constant: 6),
                     dots.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -4),
                     dots.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
                 ])
@@ -482,6 +493,19 @@ final class FileTableView: NSTableView {
 /// Name-column cell that also carries a trailing tag-dots view.
 final class NameCellView: NSTableCellView {
     let tagDots = FinderTagDotsView()
+    /// Search-result location (issue 21 slice 3): the match's folder, shown gray
+    /// after the name. Hidden (and zero-width) outside search.
+    let location: NSTextField = {
+        let label = NSTextField(labelWithString: "")
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+        label.textColor = .secondaryLabelColor
+        label.lineBreakMode = .byTruncatingHead   // keep the tail folder visible
+        // Yield width before the name does, and never expand past its content.
+        label.setContentCompressionResistancePriority(.init(1), for: .horizontal)
+        label.setContentHuggingPriority(.required, for: .horizontal)
+        return label
+    }()
 }
 
 /// Editable name field (inline rename, issue 11) that reports as **static text**

@@ -16,6 +16,10 @@ struct FileItem: Identifiable, Hashable {
     /// Apple Finder tags read from the file's xattr (issue 08). Part of equality
     /// so a tag change marks the row as changed on reload.
     var tags: [FinderTag] = []
+    /// Containing folder shown under search (issue 21 slice 3): the match's parent
+    /// path **relative to the search root**. `nil` outside search and for direct
+    /// children of the root (no location to disambiguate).
+    var subtitle: String? = nil
 
     var id: URL { url }
 
