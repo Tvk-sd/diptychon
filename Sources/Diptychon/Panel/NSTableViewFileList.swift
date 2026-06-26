@@ -175,6 +175,10 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             let id = NSUserInterfaceItemIdentifier(columnID)
             let cell = (tableView.makeView(withIdentifier: id, owner: self) as? NSTableCellView) ?? makeCell(id: id, withIcon: columnID == Column.name)
 
+            // Dim hidden files (only ever present when "show hidden" is on) so they
+            // read as secondary. Reset every time — cells are reused across rows.
+            cell.alphaValue = item.isHidden ? 0.45 : 1.0
+
             switch columnID {
             case Column.name:
                 cell.textField?.stringValue = item.name
