@@ -13,6 +13,10 @@ struct FileItem: Identifiable, Hashable {
     let size: Int64?
     let modificationDate: Date?
     let isDirectory: Bool
+    /// Whether the OS considers this a hidden file (dot-prefixed or the hidden
+    /// flag). Only ever `true` when the panel's "show hidden" toggle is on; the
+    /// list dims these rows so they read as secondary (issue: gray hidden files).
+    var isHidden: Bool = false
     /// Apple Finder tags read from the file's xattr (issue 08). Part of equality
     /// so a tag change marks the row as changed on reload.
     var tags: [FinderTag] = []

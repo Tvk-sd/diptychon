@@ -15,6 +15,9 @@ struct PanelView: View {
     /// Commit an inline rename (issue 11) — owned by the workspace. Returns false
     /// if rejected (collision / empty / unchanged) so the cell reverts.
     var onRename: (_ item: FileItem, _ newName: String) -> Bool = { _, _ in false }
+    /// Stable a11y id for this panel's file-list table (`panel-left`/`panel-right`),
+    /// so UI tests can target it by id instead of a fragile positional index (issue 23).
+    var tableIdentifier: String = ""
 
     var body: some View {
         @Bindable var model = model
@@ -86,7 +89,8 @@ struct PanelView: View {
                         onDrop: onDrop,
                         onPin: onPin,
                         renameRequest: model.inlineRenameRequest,
-                        onRename: onRename
+                        onRename: onRename,
+                        accessibilityID: tableIdentifier
                     )
                 }
             case .failed(let message):

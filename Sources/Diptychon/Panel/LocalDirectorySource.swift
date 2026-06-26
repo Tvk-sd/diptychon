@@ -17,6 +17,7 @@ struct LocalDirectorySource: PanelSource {
         .fileSizeKey,
         .contentModificationDateKey,
         .isDirectoryKey,
+        .isHiddenKey, // batched; lets the list dim hidden rows when they're shown.
         .tagNamesKey, // cheap, batched; signals which files need the xattr color read.
     ]
 
@@ -45,6 +46,7 @@ struct LocalDirectorySource: PanelSource {
                     size: isDir ? nil : values?.fileSize.map(Int64.init),
                     modificationDate: values?.contentModificationDate,
                     isDirectory: isDir,
+                    isHidden: values?.isHidden ?? false,
                     tags: tags
                 )
             }

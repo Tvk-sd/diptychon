@@ -1,6 +1,7 @@
 # 23 — UI tests: fragile table indexing breaks when the sidebar is visible
 
-Status: ready-for-agent — found while fixing the issue-21 breadcrumb runaway
+Status: done — branch `fix/23-uitest-panel-identifiers`; the 3 sidebar-visible UI
+tests pass by id (33s, 0 failures). Found while fixing the issue-21 breadcrumb runaway.
 
 ## Parent
 
@@ -37,13 +38,21 @@ Make the panel-table lookup robust instead of positional:
 
 ## Acceptance criteria
 
-- [ ] Panel file-list tables expose stable a11y identifiers for left/right.
-- [ ] The three sidebar-visible UI tests pass reliably (run in isolation, after
-      `pkill -9 -f Diptychon`), targeting tables by identifier, not index.
-- [ ] No remaining `app.tables.element(boundBy:)` assumption that breaks when the
-      sidebar is visible.
+- [x] Panel file-list tables expose stable a11y identifiers for left/right
+      (`panel-left` / `panel-right`, threaded `WorkspaceView → PanelView →
+      NSTableViewFileList` → `table.setAccessibilityIdentifier`).
+- [x] The three sidebar-visible UI tests pass reliably (run in isolation, after
+      `pkill -9 -f Diptychon`), targeting `app.tables["panel-left"]`, not index.
+- [x] No remaining `boundBy:` assumption that breaks when the sidebar is visible.
+      The `boundBy:` lookups left in the sidebar-*hidden* tests are correct there
+      (no sidebar table in the a11y tree) and were intentionally not touched.
 
 ## Notes
 
-Diagnosed 2026-06-25. Verifying the fix needs a UI-test run (XCUITest takes over the
-pointer ~1 min per the automation notes in `context/automations-learnings.md`).
+Diagnosed 2026-06-25. Fixed 2026-06-26 on `fix/23-uitest-panel-identifiers`.
+Verified by a real UI-test run (XCUITest takes over the pointer ~1 min per the
+automation notes in `context/automations-learnings.md`): all 3 passed, 0 failures
+in 33s. The id had to be added to the `FileListView` protocol initializer (and the
+`TableFileListView` reference impl) — a defaulted arg on the concrete type alone
+does not satisfy a protocol's required init, so conformance broke until the
+protocol carried the parameter too.

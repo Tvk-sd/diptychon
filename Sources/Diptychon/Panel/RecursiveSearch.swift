@@ -20,7 +20,7 @@ enum RecursiveSearch {
     /// (mirrors `LocalDirectorySource`).
     private static let resourceKeys: [URLResourceKey] = [
         .nameKey, .localizedNameKey, .fileSizeKey,
-        .contentModificationDateKey, .isDirectoryKey, .tagNamesKey,
+        .contentModificationDateKey, .isDirectoryKey, .isHiddenKey, .tagNamesKey,
     ]
 
     /// Run the search. `nonisolated`/`async` (no actor isolation), so awaiting it
@@ -63,6 +63,7 @@ enum RecursiveSearch {
                 size: isDir ? nil : values?.fileSize.map(Int64.init),
                 modificationDate: values?.contentModificationDate,
                 isDirectory: isDir,
+                isHidden: values?.isHidden ?? false,
                 tags: tags,
                 subtitle: relativeParent(of: url, under: rootPath)
             ))

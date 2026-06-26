@@ -152,13 +152,15 @@ struct WorkspaceView: View {
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
                           onGoToFolder: { model.active = .left; model.goingToFolder = true },
                           onPin: { model.pin($0) },
-                          onRename: { model.renameInline($0, to: $1) })
+                          onRename: { model.renameInline($0, to: $1) },
+                          tableIdentifier: "panel-left")
                 .frame(minWidth: 180)
                 PanelView(model: model.right, isActive: model.active == .right,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
                           onGoToFolder: { model.active = .right; model.goingToFolder = true },
                           onPin: { model.pin($0) },
-                          onRename: { model.renameInline($0, to: $1) })
+                          onRename: { model.renameInline($0, to: $1) },
+                          tableIdentifier: "panel-right")
                 .frame(minWidth: 180)
             }
         } else {
@@ -166,7 +168,8 @@ struct WorkspaceView: View {
                       onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
                       onGoToFolder: { model.active = .left; model.goingToFolder = true },
                       onPin: { model.pin($0) },
-                      onRename: { model.renameInline($0, to: $1) })
+                      onRename: { model.renameInline($0, to: $1) },
+                      tableIdentifier: "panel-left")
                 .frame(minWidth: 320)
         }
     }
