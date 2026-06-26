@@ -15,6 +15,11 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     let onPin: (_ folder: URL) -> Void
     let renameRequest: UUID?
     let onRename: (_ item: FileItem, _ newName: String) -> Bool
+    /// Stable accessibility identifier for the table (e.g. `panel-left`), so UI
+    /// tests target a panel by id rather than a positional `boundBy:` index — the
+    /// sidebar `List` also surfaces as a `table`, breaking index assumptions
+    /// (issue 23).
+    let accessibilityID: String
 
     init(
         items: [FileItem],
@@ -23,7 +28,8 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
         onPin: @escaping (_ folder: URL) -> Void,
         renameRequest: UUID?,
-        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool
+        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
+        accessibilityID: String = ""
     ) {
         self.items = items
         self._selection = selection
@@ -32,12 +38,14 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         self.onPin = onPin
         self.renameRequest = renameRequest
         self.onRename = onRename
+        self.accessibilityID = accessibilityID
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeNSView(context: Context) -> NSScrollView {
         let table = FileTableView()
+        table.setAccessibilityIdentifier(accessibilityID)
         table.style = .inset
         table.usesAlternatingRowBackgroundColors = true
         table.allowsMultipleSelection = true

@@ -241,7 +241,9 @@ final class DiptychonUITests: XCTestCase {
         app.launchArguments += ["-sidebarVisible", "YES"]   // known starting state
         app.launch()
 
-        let leftTable = app.tables.element(boundBy: 0)
+        // Target by id, not index: with the sidebar visible its `List` also surfaces
+        // as a `table`, so `boundBy: 0` would resolve to the sidebar (issue 23).
+        let leftTable = app.tables["panel-left"]
         XCTAssertTrue(leftTable.staticTexts[marker].waitForExistence(timeout: 10))
 
         // Sidebar visible → its section header shows.
@@ -278,7 +280,9 @@ final class DiptychonUITests: XCTestCase {
         app.launchArguments += ["-sidebarVisible", "YES"]
         app.launch()
 
-        let leftTable = app.tables.element(boundBy: 0)
+        // Target by id, not index: the visible sidebar `List` also surfaces as a
+        // `table`, so `boundBy: 0` would resolve to the sidebar (issue 23).
+        let leftTable = app.tables["panel-left"]
         XCTAssertTrue(leftTable.staticTexts[folderName].waitForExistence(timeout: 10))
 
         // Right-click the folder → "Add to Sidebar".
@@ -324,7 +328,9 @@ final class DiptychonUITests: XCTestCase {
         app.launchArguments += ["-sidebarVisible", "YES"]
         app.launch()
 
-        let leftTable = app.tables.element(boundBy: 0)
+        // Target by id, not index: the visible sidebar `List` also surfaces as a
+        // `table`, so `boundBy: 0` would resolve to the sidebar (issue 23).
+        let leftTable = app.tables["panel-left"]
         XCTAssertTrue(leftTable.staticTexts[folderName].waitForExistence(timeout: 10))
 
         // Pin the folder.

@@ -16,7 +16,8 @@ protocol FileListView: View {
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
         onPin: @escaping (_ folder: URL) -> Void,
         renameRequest: UUID?,
-        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool
+        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
+        accessibilityID: String
     )
 }
 
@@ -37,6 +38,7 @@ struct TableFileListView: FileListView {
     let onPin: (_ folder: URL) -> Void
     let renameRequest: UUID?
     let onRename: (_ item: FileItem, _ newName: String) -> Bool
+    let accessibilityID: String
 
     init(
         items: [FileItem],
@@ -45,7 +47,8 @@ struct TableFileListView: FileListView {
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
         onPin: @escaping (_ folder: URL) -> Void,
         renameRequest: UUID?,
-        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool
+        onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
+        accessibilityID: String = ""
     ) {
         self.items = items
         self._selection = selection
@@ -54,6 +57,7 @@ struct TableFileListView: FileListView {
         self.onPin = onPin
         self.renameRequest = renameRequest
         self.onRename = onRename
+        self.accessibilityID = accessibilityID
     }
 
     private static let sizeFormatter: ByteCountFormatter = {
@@ -102,6 +106,7 @@ struct TableFileListView: FileListView {
             onDrop(urls, nil)
             return true
         }
+        .accessibilityIdentifier(accessibilityID)
     }
 }
 
