@@ -4,3 +4,6 @@
 *.xcodeproj
 .swiftpm/
 DerivedData/
+
+# Local presentation/scratch artifacts (not part of the app)
+presentations/
