@@ -170,8 +170,9 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             switch columnID {
             case Column.name:
                 cell.textField?.stringValue = item.name
-                cell.imageView?.image = NSImage(systemSymbolName: item.isDirectory ? "folder" : "doc",
-                                                accessibilityDescription: nil)
+                // Real file-type icon (resolved by extension, cached — no per-file
+                // disk hit; see FileIconProvider) instead of a generic SF Symbol.
+                cell.imageView?.image = FileIconProvider.icon(for: item)
                 if let nameCell = cell as? NameCellView {
                     nameCell.tagDots.setTags(item.tags)
                     // Search-result location after the name; hidden otherwise.
