@@ -266,6 +266,57 @@ something new inside the zone, then an old path breaks with no error to point at
 
 ---
 
+## 12. A green test or a relaunch is a *proxy* for "verified" — not the thing itself
+
+**Diptychon moment.** Fixing the self-overwrite data-loss bug (paste a file into its
+own folder + Overwrite → file destroyed), I twice told the user it was "fixed and
+verified" while it was still broken. First: the unit test passed because it
+*constructed* the source URL directly — the real paste round-trips the URL through
+`NSPasteboard`, which hands back a different representation, and that's where the bug
+lived. Second: the manual re-test ran on a **stale process** — macOS had reactivated
+the old binary, so the user retested pre-fix code. Two different proxies, same false
+"verified." (Echoes §9: the bug hid in *how the operation was called*, not in the
+operation.)
+
+**Principle.** "It passes a test" and "I relaunched it" are proxies for verification,
+not verification. A regression test only verifies if it exercises the **real call
+path** (the real pasteboard/URL representation, the real input), and a manual check
+only verifies on the **freshly built artifact** (force-kill, confirm a new pid).
+Until both hold, the honest status is "fixed, not yet verified" — don't round up.
+
+**Where it transfers.** Acute for AI products: an eval that hand-builds inputs instead
+of running the real prompt/tool path will pass while production fails; "I tested the
+fix" on a cached bundle or a stale deploy is the same stale-process trap. Verify
+through the path the user (or the agent) actually travels, on the build they'll
+actually run.
+
+---
+
+## 13. Refactors are steered by fitness functions, not a north-star metric
+
+**Diptychon moment.** Before deepening the operation/refresh seam, the user (a PM)
+asked for a "north-star metric" and floated an over-cautious ADR's 50k-file
+performance worry as the candidate. Reframing it unlocked a clean decision: a
+north-star is the wrong instrument for a maintainability refactor, and that perf
+number is a *threshold/tripwire*, not a star. We scored the options on **fitness
+functions** instead — footguns (forgettable steps with no compile check),
+hops-to-comprehension (files to open to trace one action), testable-in-isolation —
+and the A-vs-B interface fork settled itself.
+
+**Principle.** Product value gets a north-star (a leading indicator of the value
+created); internal-quality work gets **fitness functions** (cheap, checkable bars
+that say "is the codebase getting healthier"). Don't anchor a correctness/
+maintainability change to a performance number — measure the property you're actually
+changing. And separate a *steering metric* from a *threshold* that only settles one
+local choice.
+
+**Where it transfers.** Any internal-quality effort — an AI agent's tool/codebase
+refactor, an eval-harness cleanup, a prompt-library consolidation. Pick 2–3 fitness
+functions that name the property under change, score before→after, and keep
+performance tripwires as tripwires, not steering wheels.
+
+---
+
 ## How to use this doc
 - **When starting a new product** (especially AI): read §1 and §5 *before* you
   design the second pane or give an agent write-access. They're the expensive
@@ -278,6 +329,10 @@ something new inside the zone, then an old path breaks with no error to point at
 - **When a click / event / route goes to the wrong place** (especially after adding
   UI inside an existing zone): §11 — check the coordinate anchor and remember the
   router is blind to *what* it hit.
+- **Before saying "fixed / verified":** §12 — confirm the *real* call path on the
+  *fresh* build, or say "not yet verified."
+- **When evaluating a refactor or any internal-quality work:** §13 — score fitness
+  functions, not a north-star; keep perf numbers as tripwires.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).

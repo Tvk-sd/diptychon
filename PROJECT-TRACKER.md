@@ -124,6 +124,8 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
+| — | **Architecture review** — refresh settle-hook (deepening #1) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed — user-verified; 4 candidates remain (see outcome below) |
+| 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -405,3 +407,35 @@ keys gated by `isActive`. `PanelView` no longer owns its model (parent owns).
 `URL.startDirectory` moved to WorkspaceView. Window widened to 1100x620.
 Verified interactively by user (Tab + click focus, independent nav, per-panel
 selection).
+
+### Architecture review (2026-06-26) — deepening candidates; #1 shipped (branch `improve-codebase-architecture`)
+
+`/improve-codebase-architecture` surfaced **5 deepening candidates** (the HTML
+report was temp-only; this is the durable record).
+
+**Shipped — candidate #1 (Strong): one settle hook for Panel refresh.** Collapsed 9
+per-call refresh closures into `OperationCoordinator.onOperationSettled` (wired once
+in `WorkspaceModel.init`; undo/redo inherit it); removed the dead `refresh:`
+parameter strand (`PendingWrite.refresh` + the param threaded through
+`write`/`runWrite`/`resolvePendingWrite`). New `OperationCoordinatorTests` — the
+refresh wiring had no test surface before. Commit `907d9c4`. ADR-0004 untouched.
+
+**Data-loss fix found during its QA.** Pasting a file into its own folder + Overwrite
+resolved `dest == src`; `CopyOperation` removed the source then failed to re-copy,
+destroying it (overwrites aren't undoable, ADR-0004). `MoveOperation` already guarded
+the same-dir no-op; `CopyOperation` didn't. Guard added; `.rename` (Duplicate)
+unaffected. `CopyOverwriteTests` covers the basic case, a symlink-resolved source,
+and the real `NSPasteboard` round-trip (the reported path). Commit `60a8a3f`,
+user-verified live. Learnings in `context/transferable-learnings.md` §12–§13.
+
+**Remaining candidates (report priority order):**
+2. *Worth exploring* — Separate command routing from UI-state in `WorkspaceModel`
+   (it's both the AppAction bus and an 8-flag sheet bag). Don't explode into many
+   tiny coordinators.
+3. *Worth exploring* — Make the Panel Source seam load-bearing: `PanelModel.reload()`
+   hard-constructs `LocalDirectorySource` (one-adapter hypothetical seam). Inject it
+   + a test fake. *Strengthens* ADR-0003.
+4. *Worth exploring* — Pull the SwiftUI↔AppKit selection echo-guard (4 ad-hoc fields
+   in `NSTableViewFileList.Coordinator`) behind one two-way-binding seam.
+5. *Speculative* — Extract the visible-items compiler (pure base→filter→tag→sort)
+   out of `PanelModel`. Low payoff: `PanelFilterTests` already covers it via the model.
