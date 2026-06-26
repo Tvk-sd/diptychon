@@ -72,8 +72,16 @@ final class PanelModel {
     private var watcher: DirectoryWatcher?
     private var watchedDirectory: URL?
 
-    init(directory: URL) {
+    /// Builds the `PanelSource` for a directory + hidden-files state. Injected so
+    /// tests can supply a fake source (no filesystem); defaults to the real local
+    /// directory source (ADR 0003). Rebuilt per load since directory/showHidden change.
+    private let makeSource: (URL, Bool) -> PanelSource
+
+    init(directory: URL,
+         makeSource: @escaping (URL, Bool) -> PanelSource =
+             { LocalDirectorySource(directory: $0, includeHidden: $1) }) {
         self.directory = directory
+        self.makeSource = makeSource
     }
 
     var title: String { directory.path }
@@ -193,7 +201,7 @@ final class PanelModel {
     private func reload(showLoading: Bool = true) {
         loadTask?.cancel()
         startWatching()
-        let source = LocalDirectorySource(directory: directory, includeHidden: showHidden)
+        let source = makeSource(directory, showHidden)
         if showLoading { state = .loading }
         loadTask = Task {
             do {
