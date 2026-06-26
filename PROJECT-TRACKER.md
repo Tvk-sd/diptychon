@@ -124,7 +124,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
-| — | **Architecture review** — refresh settle-hook (deepening #1) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed — user-verified; 4 candidates remain (see outcome below) |
+| — | **Architecture review** — deepening #1 (refresh settle-hook) + #3 (Panel Source inject) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture` — #2 examined & skipped (mirage), #4–#5 remain (see outcome below) |
 | 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
@@ -428,13 +428,25 @@ unaffected. `CopyOverwriteTests` covers the basic case, a symlink-resolved sourc
 and the real `NSPasteboard` round-trip (the reported path). Commit `60a8a3f`,
 user-verified live. Learnings in `context/transferable-learnings.md` §12–§13.
 
+**Shipped — candidate #3 (Worth exploring): inject the Panel Source factory.**
+`PanelModel.reload()` hard-constructed `LocalDirectorySource`, so the ADR-0003
+`PanelSource` protocol was a one-adapter hypothetical seam. Injected a
+`makeSource: (URL, Bool) -> PanelSource` factory (default builds the real source —
+every caller unchanged; a factory, not an instance, since the source rebuilds per
+load as directory/showHidden change). `FakeSource` in `PanelSourceInjectionTests`
+is the second adapter that makes the seam real: drives a whole `PanelModel` (load
+state machine, accessDenied, filter) with no filesystem. Commit `4b2fad5`. No
+behavior change. Scope: navigation stays URL-coupled, so true non-local sources
+(tag/search) still need a separate generalization.
+
+**Skipped — candidate #2 (command routing vs UI-state).** Examined and dropped: the
+naive "extract a ViewState bag" fails the deletion test (a state bag has no
+behavior → a *shallow* module, the anti-pattern). The only real cuts here are
+narrow (a `presentedSheet` enum to enforce one-modal-at-a-time; extract
+view-preferences persistence) — small payoff vs. candidate 3. Revisit only if the
+modal flags actually cause a two-sheet bug.
+
 **Remaining candidates (report priority order):**
-2. *Worth exploring* — Separate command routing from UI-state in `WorkspaceModel`
-   (it's both the AppAction bus and an 8-flag sheet bag). Don't explode into many
-   tiny coordinators.
-3. *Worth exploring* — Make the Panel Source seam load-bearing: `PanelModel.reload()`
-   hard-constructs `LocalDirectorySource` (one-adapter hypothetical seam). Inject it
-   + a test fake. *Strengthens* ADR-0003.
 4. *Worth exploring* — Pull the SwiftUI↔AppKit selection echo-guard (4 ad-hoc fields
    in `NSTableViewFileList.Coordinator`) behind one two-way-binding seam.
 5. *Speculative* — Extract the visible-items compiler (pure base→filter→tag→sort)
