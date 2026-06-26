@@ -64,6 +64,13 @@ final class CopyOperation: Operation {
                         progress(Double(index + 1) / Double(total))
                         continue
                     case .overwrite:
+                        // Pasting an item into the folder it already lives in resolves
+                        // dest == src. Removing then re-copying would destroy it (and an
+                        // overwrite is not undoable). Treat self-overwrite as a no-op.
+                        if dest.standardizedFileURL == src.standardizedFileURL {
+                            progress(Double(index + 1) / Double(total))
+                            continue
+                        }
                         try? fm.removeItem(at: dest)
                         self?.didOverwrite = true
                     case .rename:
