@@ -26,6 +26,10 @@ struct DiptychonApp: App {
         // Name/Size/Date columns (issue 17 narrow-panel work). Narrower windows
         // degrade gracefully: the Name column flexes and Size/Date drop off last.
         .defaultSize(width: 1280, height: 720)
+        // No system title text — the app name lives in the panel column's top bar
+        // (TopBarView). hiddenTitleBar also lets content rise full-height so the
+        // sidebar/panel seams run up through the title-bar band.
+        .windowStyle(.hiddenTitleBar)
         .commands {
             // App menu → standard Preferences slot (⌘,). FDA can't be requested
             // in code (ADR 0001); this just deep-links to the right Settings pane.
