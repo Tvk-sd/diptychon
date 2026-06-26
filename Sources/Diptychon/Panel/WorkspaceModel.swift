@@ -18,7 +18,6 @@ final class WorkspaceModel {
         let kind: Kind
         let sources: [URL]
         let destinationDirectory: URL
-        let refresh: PanelModel
         let collisionCount: Int
     }
 
@@ -75,6 +74,9 @@ final class WorkspaceModel {
     init() {
         left = PanelModel(directory: .startDirectory)
         right = PanelModel(directory: .startDirectory)
+        // One place decides when the UI re-lists: every Operation that settles
+        // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
+        coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
     }
 
     /// Full Disk Access onboarding (issue 10): called when the app reactivates
@@ -102,9 +104,9 @@ final class WorkspaceModel {
         case .copyToInactive:
             // No visible inactive target when the right panel is hidden.
             guard rightPanelVisible else { return }
-            write(.copy, sources: activeModel.selectionURLs, into: inactiveModel.directory, refresh: inactiveModel)
-        case .undo: coordinator.undo(onFinish: refreshBoth)
-        case .redo: coordinator.redo(onFinish: refreshBoth)
+            write(.copy, sources: activeModel.selectionURLs, into: inactiveModel.directory)
+        case .undo: coordinator.undo()
+        case .redo: coordinator.redo()
         case .goUp: activeModel.navigateUp()
         case .goBack: activeModel.goBack()
         case .goForward: activeModel.goForward()
@@ -116,8 +118,8 @@ final class WorkspaceModel {
                 active = (active == .left) ? .right : .left
             }
         case .clipboardCopy: clipboardCopy()
-        case .paste: write(.copy, sources: clipboardURLs(), into: activeModel.directory, refresh: activeModel)
-        case .pasteMove: write(.move, sources: clipboardURLs(), into: activeModel.directory, refresh: activeModel)
+        case .paste: write(.copy, sources: clipboardURLs(), into: activeModel.directory)
+        case .pasteMove: write(.move, sources: clipboardURLs(), into: activeModel.directory)
         case .trash: trashSelection()
         case .duplicate: duplicateSelection()
         case .newFolder: create(.folder)
@@ -230,7 +232,7 @@ final class WorkspaceModel {
             return (item.url, tags)
         }
         let op = SetTagsOperation(targets: targets)
-        coordinator.run(op) { [weak self] in self?.refreshBoth() }
+        coordinator.run(op)
     }
 
     // MARK: - Inline rename (issue 11)
@@ -251,7 +253,7 @@ final class WorkspaceModel {
             return false
         }
         let op = RenameOperation(renames: [(from: item.url, to: dest)])
-        coordinator.run(op) { [weak self] in self?.refreshBoth() }
+        coordinator.run(op)
         return true
     }
 
@@ -272,9 +274,7 @@ final class WorkspaceModel {
         renaming = nil
         guard !renames.isEmpty else { return }
         let op = RenameOperation(renames: renames)
-        // Refresh BOTH panels: when they show the same directory, the inactive
-        // one would otherwise keep a stale listing until the next ⌘Z/redo.
-        coordinator.run(op) { [weak self] in self?.refreshBoth() }
+        coordinator.run(op)
     }
 
     // MARK: - Drag & drop (routed through the same write Operations)
@@ -286,7 +286,7 @@ final class WorkspaceModel {
         let destination = targetFolder?.url ?? panel.directory
         // Ignore a no-op drop into the same directory the items already live in.
         let sources = urls.filter { $0.deletingLastPathComponent() != destination }
-        write(.copy, sources: sources, into: destination, refresh: panel)
+        write(.copy, sources: sources, into: destination)
     }
 
     // MARK: - Clipboard (real macOS pasteboard, file URLs)
@@ -307,36 +307,32 @@ final class WorkspaceModel {
 
     /// Run a copy/move into `directory`, detecting collisions first. With no
     /// collisions it runs immediately; otherwise it pauses for the dialog.
-    /// `refresh` is the Panel to re-list when the write finishes.
-    private func write(_ kind: PendingWrite.Kind, sources: [URL], into directory: URL, refresh: PanelModel) {
+    private func write(_ kind: PendingWrite.Kind, sources: [URL], into directory: URL) {
         guard !sources.isEmpty else { return }
         let collisions = detectCollisions(sources: sources, destinationDirectory: directory)
         if collisions.isEmpty {
-            runWrite(kind, sources: sources, into: directory, resolution: .rename, refresh: refresh)
+            runWrite(kind, sources: sources, into: directory, resolution: .rename)
         } else {
             pendingWrite = PendingWrite(kind: kind, sources: sources,
-                                        destinationDirectory: directory, refresh: refresh,
+                                        destinationDirectory: directory,
                                         collisionCount: collisions.count)
         }
     }
 
     func resolvePendingWrite(_ pending: PendingWrite, resolution: CollisionResolution) {
         runWrite(pending.kind, sources: pending.sources,
-                 into: pending.destinationDirectory, resolution: resolution, refresh: pending.refresh)
+                 into: pending.destinationDirectory, resolution: resolution)
         pendingWrite = nil
     }
 
     private func runWrite(_ kind: PendingWrite.Kind, sources: [URL],
-                          into directory: URL, resolution: CollisionResolution, refresh: PanelModel) {
+                          into directory: URL, resolution: CollisionResolution) {
         let op: Operation
         switch kind {
         case .copy: op = CopyOperation(sources: sources, destinationDirectory: directory, resolution: resolution)
         case .move: op = MoveOperation(sources: sources, destinationDirectory: directory, resolution: resolution)
         }
-        coordinator.run(op) { [weak self] in
-            refresh.refresh()
-            self?.refreshBoth()
-        }
+        coordinator.run(op)
     }
 
     // MARK: - Duplicate / Trash / Create
@@ -346,19 +342,19 @@ final class WorkspaceModel {
         let sources = activeModel.selectionURLs
         guard !sources.isEmpty else { return }
         let op = CopyOperation(sources: sources, destinationDirectory: activeModel.directory, resolution: .rename)
-        coordinator.run(op) { [weak self] in self?.refreshBoth() }
+        coordinator.run(op)
     }
 
     private func trashSelection() {
         let sources = activeModel.selectionURLs
         guard !sources.isEmpty else { return }
         let op = TrashOperation(sources: sources)
-        coordinator.run(op) { [weak self] in self?.refreshBoth() }
+        coordinator.run(op)
     }
 
     private func create(_ kind: CreateOperation.Kind) {
         let op = CreateOperation(directory: activeModel.directory, kind: kind)
-        coordinator.run(op) { [weak self] in self?.refreshBoth() }
+        coordinator.run(op)
     }
 
     private func refreshBoth() {
