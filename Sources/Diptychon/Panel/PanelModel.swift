@@ -200,6 +200,13 @@ final class PanelModel {
                 let items = try await source.load()
                 if Task.isCancelled { return }
                 loadedItems = items
+                // A refresh while searching (e.g. after trashing a result) must drop
+                // results whose file is now gone — the panel shows searchResults, not
+                // loadedItems, so reloading the directory alone wouldn't remove them.
+                if isSearching {
+                    let fm = FileManager.default
+                    searchResults = searchResults.filter { fm.fileExists(atPath: $0.url.path) }
+                }
                 recomputeVisible()
                 accessDenied = false
                 state = .loaded
