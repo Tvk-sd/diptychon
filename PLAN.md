@@ -2,10 +2,15 @@
 
 _No active task._
 
-Issue 21 (unified top bar — slices 1–3 + redesign + search) is **done** on branch
-`feat/21-unified-top-bar`, PR #21 open, user-verified. Outcome folded into
-`PROJECT-TRACKER.md` (issue-21 section) and `HANDOFF.md` (CURRENT STATE).
+Last session: architecture deepening via `/improve-codebase-architecture` on branch
+`improve-codebase-architecture` (off `main`), pushed. Shipped **#1** (Operation
+settle-hook refresh) + **#3** (Panel Source factory injection) + a **self-overwrite
+data-loss fix** found in QA. **#2** (command-routing / UI-state split) examined and
+skipped (shallow-bag mirage). Outcome folded into `PROJECT-TRACKER.md`
+(architecture-review section) and `HANDOFF.md` (CURRENT STATE); learnings in
+`context/transferable-learnings.md` §12–§13; bug filed as issue **#25** (double-click
+opens whole selection, needs-triage).
 
-Next up when picked: review/merge PR #21, then the needs-triage differentiation
-bets — 18 (time-travel undo), 19 (command palette ⌘K), 20 (virtual staging),
-22 (perf baseline). See `PROJECT-TRACKER.md`.
+Next when picked: open a PR for `improve-codebase-architecture`, or continue with
+deepening **#4** (selection echo-guard seam) / **#5** (visible-items compiler). Issue 21
+PR #21 also still open to merge. See `PROJECT-TRACKER.md`.

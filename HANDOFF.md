@@ -1,13 +1,44 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-25. 10-issue MVP complete; post-MVP issues 11–21 built.
-**Current: issue 21 (unified top bar) done on branch `feat/21-unified-top-bar`,
-PR #21 open, user-verified.** Full per-issue history in `PROJECT-TRACKER.md`._
+_Updated: 2026-06-26. 10-issue MVP complete; post-MVP issues 11–21 built.
+**Current: architecture deepening on branch `improve-codebase-architecture`
+(off `main`), pushed — #1 + #3 + a data-loss fix shipped. Issue 21 PR #21 also
+still open.** Full per-issue history in `PROJECT-TRACKER.md`._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit).
 
-## CURRENT STATE (2026-06-25) — issue 21, unified top bar
+## CURRENT STATE (2026-06-26) — architecture deepening (`improve-codebase-architecture`)
+Branch **`improve-codebase-architecture`** (off `main`), pushed, tree clean, **61
+tests green** (quit the running app before `test` — bundle-id collision; force-kill +
+confirm a new pid, see `transferable-learnings.md` §12). A `/improve-codebase-architecture`
+review found 5 deepening candidates; the HTML report was temp-only, so
+`PROJECT-TRACKER.md` (architecture-review section) is the durable record. Shipped on
+this branch:
+- **#1 — one settle hook for Panel refresh** (`OperationCoordinator.onOperationSettled`):
+  collapsed 9 per-call `refreshBoth` closures into one hook wired in
+  `WorkspaceModel.init`; undo/redo inherit it; removed the dead `refresh:` parameter
+  strand. `OperationCoordinatorTests` (refresh wiring had no test surface before).
+- **#3 — inject the Panel Source factory**: `PanelModel` takes
+  `makeSource: (URL, Bool) -> PanelSource` (default builds the real
+  `LocalDirectorySource`), turning ADR-0003's one-adapter hypothetical seam into a real
+  one. `FakeSource` + `PanelSourceInjectionTests` drive a whole Panel with no
+  filesystem. No behavior change.
+- **Data-loss fix** (found in QA): pasting a file into its own folder + Overwrite
+  destroyed it (`dest == src`); `CopyOperation` now treats self-overwrite as a no-op.
+  `CopyOverwriteTests` incl. the real `NSPasteboard` round-trip. User-verified live.
+
+**#2 skipped** (command-routing / UI-state split — a naive ViewState bag is shallow,
+fails the deletion test). **#4** (selection echo-guard seam) and **#5** (visible-items
+compiler) remain — see `PROJECT-TRACKER.md`. New learnings:
+`context/transferable-learnings.md` **§12** (verify through the real call path, not a
+synthetic test or stale process) and **§13** (steer refactors by fitness functions, not
+a north-star). New bug: **issue #25** (double-click opens the whole selection, needs-triage).
+
+**To resume:** open a PR for the branch, or pick up #4 / #5. Issue 21 PR #21 also still
+open to merge.
+
+## PRIOR STATE (2026-06-25) — issue 21, unified top bar
 Branch **`feat/21-unified-top-bar`** (off `main`), **PR #21 open**, pushed, tree
 clean, all tests green (quit the running app before `test` — bundle-id collision).
 Slices 1–3 + a redesign + fixes, all user-verified in the running app:
