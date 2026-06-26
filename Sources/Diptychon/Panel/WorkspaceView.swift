@@ -27,41 +27,6 @@ struct WorkspaceView: View {
         @Bindable var model = model
         content
         .background(WindowMinWidth(minWidth: minContentWidth))
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button {
-                    model.sidebarVisible.toggle()
-                } label: {
-                    Image(systemName: "sidebar.leading")
-                }
-                .help("Show/Hide Sidebar")
-                .accessibilityIdentifier("toggle-sidebar")
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    model.rightPanelVisible.toggle()
-                } label: {
-                    Image(systemName: "rectangle.split.2x1")
-                }
-                .help("Show/Hide Right Panel (⌥⌘S)")
-                .keyboardShortcut("s", modifiers: [.command, .option])
-                .accessibilityIdentifier("toggle-right-panel")
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    model.previewVisible.toggle()
-                } label: {
-                    Image(systemName: "sidebar.right")
-                }
-                .help("Show Preview (⇧⌘P)")
-                .keyboardShortcut("p", modifiers: [.command, .shift])
-                .accessibilityIdentifier("toggle-preview")
-            }
-        }
-        // Solid toolbar background so the vertical panel/section dividers don't
-        // show through the title-bar area — the divider should separate the panels
-        // only, not run up through the toolbar.
-        .toolbarBackground(.visible, for: .windowToolbar)
         .onAppear(perform: installMonitors)
         .onDisappear(perform: removeMonitors)
         // User may have just granted access in System Settings → if a panel was
@@ -102,38 +67,107 @@ struct WorkspaceView: View {
         .overlay { progressOverlay }
     }
 
-    /// The main content row: sidebar | (top bar + panels) | preview.
+    /// The window body: a full-width header band (app name + window/view icons),
+    /// then a horizontal seam, then the column row (sidebar | top bar + panels |
+    /// preview).
     ///
-    /// Issue 21: the unified top bar is scoped to the **panel column** — the sidebar
-    /// and preview rise to the title bar, only the panel tops get pushed down. So the
-    /// bar lives inside this VStack, not above the whole row.
+    /// The icons live in the full-width header — not inside a column — so the
+    /// sidebar toggle keeps one fixed spot instead of jumping sides when the
+    /// sidebar folds.
     @ViewBuilder
     private var content: some View {
         @Bindable var model = model
         VStack(spacing: 0) {
-            // Full-width marker separating the title-bar region from the content
-            // (sidebar + panels + preview) below it.
+            headerBar
             Divider()
+            columns
+        }
+        // Rise under the (hidden) title bar so the header sits at the very top.
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    /// Top band, same height as the search/breadcrumb row below it. Only the left
+    /// cell is a colored box — filled with the sidebar's material so it reads as
+    /// the sidebar's top — holding the traffic lights + sidebar toggle (right
+    /// edge). It keeps a fixed width regardless of fold state, so the toggle never
+    /// moves. The right cell (name + view-toggle icons) sits plain on the window.
+    private var headerBar: some View {
+        HStack(spacing: 0) {
             HStack(spacing: 0) {
-                // Issue 16: the left sidebar (places + pinned) sits outermost-left,
-                // fixed width. Collapsible via ⌃⌘S / toolbar.
-                if model.sidebarVisible {
-                    SidebarView(model: model)
-                        .frame(width: 200)
-                    Divider()
+                Spacer(minLength: 0)
+                headerIcon("sidebar.leading", help: "Show/Hide Sidebar") {
+                    model.sidebarVisible.toggle()
                 }
-                VStack(spacing: 0) {
-                    // Up + breadcrumb + back/forward on the Active Panel, directly
-                    // above the panels it acts on.
-                    TopBarView(model: model)
-                    Divider()
-                    panels
+                .accessibilityIdentifier("toggle-sidebar")
+            }
+            .padding(.leading, 70)   // clear the traffic lights
+            .padding(.trailing, 12)
+            .frame(width: 200)
+            .frame(maxHeight: .infinity)
+            .background(sidebarSurface)
+
+            Divider()
+
+            HStack(spacing: 12) {
+                Text("Diptychon").font(.headline)
+                Spacer(minLength: 8)
+                headerIcon("rectangle.split.2x1", help: "Show/Hide Right Panel (⌥⌘S)") {
+                    model.rightPanelVisible.toggle()
                 }
-                if model.previewVisible {
-                    Divider()
-                    PreviewPane(model: model)
-                        .frame(width: 300)
+                .keyboardShortcut("s", modifiers: [.command, .option])
+                .accessibilityIdentifier("toggle-right-panel")
+                headerIcon("sidebar.right", help: "Show Preview (⇧⌘P)") {
+                    model.previewVisible.toggle()
                 }
+                .keyboardShortcut("p", modifiers: [.command, .shift])
+                .accessibilityIdentifier("toggle-preview")
+            }
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity)
+        }
+        // Match the search/breadcrumb row height below.
+        .frame(height: 36)
+    }
+
+    /// The sidebar's tinted material, reused for the left header box so it reads
+    /// as a continuation of the sidebar surface.
+    private var sidebarSurface: some View {
+        Rectangle()
+            .fill(.regularMaterial)
+            .overlay(Color.primary.opacity(0.045))
+    }
+
+    /// A flat header icon button — borderless, no glass capsule (unlike `.toolbar`).
+    private func headerIcon(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { Image(systemName: symbol) }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help(help)
+    }
+
+    /// The column row below the header: sidebar | (nav bar + panels) | preview,
+    /// with full-height vertical seams between them.
+    @ViewBuilder
+    private var columns: some View {
+        @Bindable var model = model
+        HStack(spacing: 0) {
+            // Issue 16: the left sidebar (places + pinned) sits outermost-left,
+            // fixed width. Collapsible via the header toggle.
+            if model.sidebarVisible {
+                SidebarView(model: model)
+                    .frame(width: 200)
+                Divider()
+            }
+            VStack(spacing: 0) {
+                // Up/breadcrumb/back-forward on the Active Panel, above the panels.
+                TopBarView(model: model)
+                Divider()
+                panels
+            }
+            if model.previewVisible {
+                Divider()
+                PreviewPane(model: model)
+                    .frame(width: 300)
             }
         }
     }
@@ -216,7 +250,7 @@ struct WorkspaceView: View {
                     // NB: the content view is full-size (spans behind the title bar),
                     // so measure from `contentLayoutRect.maxY` — the top of the usable
                     // area BELOW the title bar — not `bounds.maxY` (the window top).
-                    let topBarBand: CGFloat = 38
+                    let topBarBand: CGFloat = 74
                     let contentTop = window.contentLayoutRect.maxY
                     let inTopBar = event.locationInWindow.y >= contentTop - topBarBand
                     // The panels occupy the space between the sidebar (left, issue 16)

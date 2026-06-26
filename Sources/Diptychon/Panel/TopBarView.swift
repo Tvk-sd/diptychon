@@ -7,6 +7,10 @@ import SwiftUI
 struct TopBarView: View {
     let model: WorkspaceModel
 
+    /// The Active Panel's navigation row: up / back / forward + clickable
+    /// breadcrumb + name filter. The app name and the window/view-toggle icons
+    /// live one row up in the full-width header (`WorkspaceView.headerBar`), so
+    /// the sidebar toggle keeps a fixed spot instead of jumping when folded.
     var body: some View {
         HStack(spacing: 8) {
             Button { model.activeModel.navigateUp() } label: {
