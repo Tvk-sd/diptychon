@@ -28,18 +28,44 @@ final class WorkspaceModel {
         let directory: URL
     }
 
+    /// The one modal that can be presented at a time. Collision shows as a
+    /// `confirmationDialog`; the rest as sheets.
+    enum Sheet: Identifiable {
+        case collision(PendingWrite)
+        case rename(RenameRequest)
+        case tags
+        case goToFolder
+        var id: String {
+            switch self {
+            case .collision: "collision"
+            case .rename: "rename"
+            case .tags: "tags"
+            case .goToFolder: "goToFolder"
+            }
+        }
+    }
+
     let left: PanelModel
     let right: PanelModel
     let coordinator = OperationCoordinator()
     private let quickLook = QuickLookController()
 
     var active: Side = .left
-    var pendingWrite: PendingWrite?
-    var renaming: RenameRequest?
-    /// Whether the tag picker is open for the Active Panel's selection.
-    var tagging = false
-    /// Whether the Go to Folder sheet is open (issue 15).
-    var goingToFolder = false
+    /// The single modal presented over the workspace, if any. One value ⇒ one modal
+    /// at a time — the four independent flags this replaced gave no such guarantee.
+    var presentedSheet: Sheet?
+
+    /// The collision dialog's data, when that's the presented modal (drives the
+    /// `confirmationDialog`).
+    var pendingCollision: PendingWrite? {
+        if case .collision(let pending) = presentedSheet { pending } else { nil }
+    }
+
+    /// The presented sheet, excluding the collision case (which is a dialog). Lets
+    /// one `.sheet(item:)` drive rename / tags / go-to-folder.
+    var sheetItem: Sheet? {
+        if case .collision = presentedSheet { nil } else { presentedSheet }
+    }
 
     /// Whether the inline preview pane is shown (issue 14). Persisted across
     /// launches so it stays where the user left it.
@@ -135,7 +161,7 @@ final class WorkspaceModel {
         case .showTags: beginTagging()
         case .openSelection: openSelection()
         case .preview: togglePreview()
-        case .goToFolder: goingToFolder = true
+        case .goToFolder: presentedSheet = .goToFolder
         }
     }
 
@@ -202,7 +228,7 @@ final class WorkspaceModel {
 
     private func beginTagging() {
         guard !activeModel.selectedItems.isEmpty else { return }
-        tagging = true
+        presentedSheet = .tags
     }
 
     /// Custom (non-built-in) tags already in use across either panel, so the
@@ -262,7 +288,7 @@ final class WorkspaceModel {
     private func beginRename() {
         let items = activeModel.selectedItems
         guard !items.isEmpty else { return }
-        renaming = RenameRequest(items: items, directory: activeModel.directory)
+        presentedSheet = .rename(RenameRequest(items: items, directory: activeModel.directory))
     }
 
     /// Apply the sheet's computed new names as one undoable `RenameOperation`.
@@ -271,7 +297,7 @@ final class WorkspaceModel {
             guard name != item.name, !name.isEmpty else { return nil } // skip unchanged
             return (from: item.url, to: request.directory.appendingPathComponent(name))
         }
-        renaming = nil
+        presentedSheet = nil
         guard !renames.isEmpty else { return }
         let op = RenameOperation(renames: renames)
         coordinator.run(op)
@@ -313,16 +339,16 @@ final class WorkspaceModel {
         if collisions.isEmpty {
             runWrite(kind, sources: sources, into: directory, resolution: .rename)
         } else {
-            pendingWrite = PendingWrite(kind: kind, sources: sources,
-                                        destinationDirectory: directory,
-                                        collisionCount: collisions.count)
+            presentedSheet = .collision(PendingWrite(kind: kind, sources: sources,
+                                                     destinationDirectory: directory,
+                                                     collisionCount: collisions.count))
         }
     }
 
     func resolvePendingWrite(_ pending: PendingWrite, resolution: CollisionResolution) {
         runWrite(pending.kind, sources: pending.sources,
                  into: pending.destinationDirectory, resolution: resolution)
-        pendingWrite = nil
+        presentedSheet = nil
     }
 
     private func runWrite(_ kind: PendingWrite.Kind, sources: [URL],

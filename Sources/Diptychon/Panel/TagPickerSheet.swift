@@ -38,7 +38,7 @@ struct TagPickerSheet: View {
 
             HStack {
                 Spacer()
-                Button("Done") { model.tagging = false }
+                Button("Done") { model.presentedSheet = nil }
                     .keyboardShortcut(.defaultAction)
             }
         }
