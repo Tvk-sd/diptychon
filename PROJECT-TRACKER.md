@@ -113,7 +113,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 09 | QuickLook / Open-with / FSEvents | ✅ done, PR #13 (all 3 ACs, user-verified) |
 | 10 | Full Disk Access onboarding | ✅ done, PR #14 (all ACs, user-verified) — **MVP complete** |
 | 11 | Inline single-file rename | ✅ done, PR pending — user-verified (⌘R / slow-click) |
-| 12 | Custom tag color registration (Finder sidebar) | ⬜ backlog (split from 08) |
+| 12 | Custom tag color registration (Finder sidebar) | 🚫 wontfix — ADR 0005 (forging Finder's private store too fragile; file xattr already works) |
 | 13 | Panel resize + collapse/expand right panel | ✅ done, PR #16 |
 | 14 | Inline preview / inspector pane | ✅ done, PR #15 (raised in 09) |
 | 15 | Path bar / Go to Folder | ✅ done, PR #17 |
@@ -492,3 +492,14 @@ end ("all work perfectly"). Spec: `.scratch/diptychon-mvp/issues/28-keyboard-com
   `project.pbxproj`. Verified the build/tests through the regenerated project.
 - Branch is stacked on `improve-codebase-architecture` (the feature depends on its
   `presentedSheet` / `SelectionEchoGuard` work — it does not apply to `main`).
+
+### Issue 12 decision (2026-06-27) — Custom tag color registration: wontfix (ADR 0005)
+Investigated read-only and **deliberately not built** — resolved via the issue's own
+AC3 fallback (documented rationale instead of a fragile write). The custom-tag→color
+mapping lives in an undocumented, Finder-owned, version-sensitive store
+(`SyncedPreferences` plist wasn't even present on the dev machine); forging it risks
+desyncing the user's real tags for a cosmetic, different-app gain. The file-level tag
+xattr already round-trips (name + color) and the 7 built-in colors are unaffected.
+No Finder mutation, no code. Decision + rationale: `docs/adr/0005-…md` and
+`.scratch/diptychon-mvp/issues/12-…md`. Lesson: transferable-learnings §4 (restraint).
+**Not an open thread.**
