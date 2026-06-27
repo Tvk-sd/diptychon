@@ -22,6 +22,16 @@ enum AppAction {
     case openSelection   // ↩   — open folders (navigate) / files (default app)
     case preview         // ␣   — QuickLook the selection
     case goToFolder      // ⇧⌘G — jump the Active Panel to a typed path
+    case toggleHidden    // ⌘⇧. — show/hide dotfiles in the Active Panel
+    case selectAll       // ⌘A  — select every visible row
+    case selectNone      // ⎋   — clear the selection (only when no modal is up)
+    case invertSelection // ⌘⇧I — flip selected ↔ unselected
+    case focusFilter     // ⌘F  — focus the Active Panel's Filter field
+    case revealInFinder  // ⇧⌘R — reveal the selection in Finder
+    case copyPaths       // ⌥⌘C — copy the selection's path(s) to the clipboard
+    case showInfo        // ⌘I  — Finder "Get Info" on the selection
+    case openWith        // ⌘↩  — choose an app to open the selection with
+    case moveToInactive  // ⇧⌥⌘→/← — move the selection into the Inactive Panel
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -56,6 +66,8 @@ private enum Key {
     static let `return`: UInt16 = 36
     static let space: UInt16 = 49
     static let delete: UInt16 = 51 // ⌫ (Backspace)
+    static let escape: UInt16 = 53
+    static let period: UInt16 = 47 // matched by code: ⌘⇧. yields a layout-dependent char (">", ":" …)
     static let leftArrow: UInt16 = 123
     static let rightArrow: UInt16 = 124
     static let upArrow: UInt16 = 126
@@ -88,6 +100,18 @@ enum Keymap {
         (KeyChord(.code(Key.return)), .openSelection),          // ↩ open folder/file
         (KeyChord(.code(Key.space)), .preview),                 // ␣ QuickLook
         (KeyChord(.character("g"), command: true, shift: true), .goToFolder),
+        // Issue 28 — Marta-informed keyboard expansion (all Mac-native).
+        (KeyChord(.code(Key.period), command: true, shift: true), .toggleHidden), // ⌘⇧. show hidden
+        (KeyChord(.character("a"), command: true), .selectAll),  // ⌘A select all
+        (KeyChord(.code(Key.escape)), .selectNone),             // ⎋ clear selection
+        (KeyChord(.character("i"), command: true, shift: true), .invertSelection), // ⌘⇧I invert
+        (KeyChord(.character("f"), command: true), .focusFilter), // ⌘F focus Filter
+        (KeyChord(.character("r"), command: true, shift: true), .revealInFinder),  // ⇧⌘R reveal
+        (KeyChord(.character("c"), command: true, option: true), .copyPaths),      // ⌥⌘C copy path
+        (KeyChord(.character("i"), command: true), .showInfo),   // ⌘I Get Info
+        (KeyChord(.code(Key.return), command: true), .openWith), // ⌘↩ Open With
+        (KeyChord(.code(Key.rightArrow), command: true, option: true, shift: true), .moveToInactive),
+        (KeyChord(.code(Key.leftArrow), command: true, option: true, shift: true), .moveToInactive),
     ]
 
     static func action(for event: NSEvent,
