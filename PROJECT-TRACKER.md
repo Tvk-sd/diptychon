@@ -124,7 +124,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
-| — | **Architecture review** — deepening #1 (refresh settle-hook) + #3 (Panel Source inject) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture` — #2 examined & skipped (mirage), #4–#5 remain (see outcome below) |
+| — | **Architecture review** — deepening #1 (refresh settle-hook) + #3 (Panel Source inject) + #4 (SelectionEchoGuard) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture` — #2 examined & skipped (mirage), #5 remains (see outcome below) |
 | 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
@@ -446,8 +446,16 @@ narrow (a `presentedSheet` enum to enforce one-modal-at-a-time; extract
 view-preferences persistence) — small payoff vs. candidate 3. Revisit only if the
 modal flags actually cause a two-sheet bug.
 
+**Shipped — candidate #4 (Worth exploring): extract `SelectionEchoGuard`.** The
+AppKit↔SwiftUI selection echo rule was two ad-hoc Coordinator fields
+(`isSyncingSelection`, `lastPublished`) + two guards ~120 lines apart — the logic
+behind selection thrash, untestable without a live `NSTableView`. Pulled into a pure
+`SelectionEchoGuard` (echo suppression + reentrancy); Coordinator keeps only the
+imperative table I/O. `SelectionEchoGuardTests` covers both directions. Commit
+`901b463`, user-verified live (multi-select hold, nav-clears). Note: report said "4
+fields" but only 2 were the echo-guard; a generic `TwoWayBinding` would be a
+one-adapter hypothetical seam, so it stays selection-specific.
+
 **Remaining candidates (report priority order):**
-4. *Worth exploring* — Pull the SwiftUI↔AppKit selection echo-guard (4 ad-hoc fields
-   in `NSTableViewFileList.Coordinator`) behind one two-way-binding seam.
 5. *Speculative* — Extract the visible-items compiler (pure base→filter→tag→sort)
    out of `PanelModel`. Low payoff: `PanelFilterTests` already covers it via the model.

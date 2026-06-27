@@ -2,8 +2,8 @@
 
 _Updated: 2026-06-26. 10-issue MVP complete; post-MVP issues 11–21 built.
 **Current: architecture deepening on branch `improve-codebase-architecture`
-(off `main`), pushed — #1 + #3 + a data-loss fix shipped. Issue 21 PR #21 also
-still open.** Full per-issue history in `PROJECT-TRACKER.md`._
+(off `main`), pushed — #1 + #3 + #4 + a data-loss fix shipped. Issue 21 PR #21
+also still open.** Full per-issue history in `PROJECT-TRACKER.md`._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit).
@@ -24,18 +24,23 @@ this branch:
   `LocalDirectorySource`), turning ADR-0003's one-adapter hypothetical seam into a real
   one. `FakeSource` + `PanelSourceInjectionTests` drive a whole Panel with no
   filesystem. No behavior change.
+- **#4 — extract `SelectionEchoGuard`**: the AppKit↔SwiftUI selection echo rule was
+  two ad-hoc Coordinator fields + two guards ~120 lines apart (the selection-thrash
+  logic, untestable). Pulled into a pure `SelectionEchoGuard` (echo suppression +
+  reentrancy); Coordinator keeps only the imperative table I/O. `SelectionEchoGuardTests`.
+  Behavior unchanged, user-verified live (multi-select hold, nav-clears).
 - **Data-loss fix** (found in QA): pasting a file into its own folder + Overwrite
   destroyed it (`dest == src`); `CopyOperation` now treats self-overwrite as a no-op.
   `CopyOverwriteTests` incl. the real `NSPasteboard` round-trip. User-verified live.
 
 **#2 skipped** (command-routing / UI-state split — a naive ViewState bag is shallow,
-fails the deletion test). **#4** (selection echo-guard seam) and **#5** (visible-items
-compiler) remain — see `PROJECT-TRACKER.md`. New learnings:
+fails the deletion test). **#5** (visible-items compiler) remains — see
+`PROJECT-TRACKER.md`. New learnings:
 `context/transferable-learnings.md` **§12** (verify through the real call path, not a
 synthetic test or stale process) and **§13** (steer refactors by fitness functions, not
 a north-star). New bug: **issue #25** (double-click opens the whole selection, needs-triage).
 
-**To resume:** open a PR for the branch, or pick up #4 / #5. Issue 21 PR #21 also still
+**To resume:** open a PR for the branch, or pick up #5. Issue 21 PR #21 also still
 open to merge.
 
 ## PRIOR STATE (2026-06-25) — issue 21, unified top bar
@@ -133,6 +138,11 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 - Build/run: `xcodegen generate` then `open Diptychon.xcodeproj`, or
   `xcodebuild -scheme Diptychon -destination 'platform=macOS' build|test`.
   (Regenerate the gitignored `.xcodeproj` after pulling or adding files.)
+- Local app build: `./reinstall.sh` builds the **combined** app
+  (`design-experiments` + `feat/file-type-icons` + `fix/23-uitest-panel-identifiers`)
+  into `/Applications` via a throwaway worktree. Re-run after changing any of those
+  branches. See issue 24 (`.scratch/diptychon-mvp/issues/`) for why they aren't merged
+  yet — `design-experiments` won't compile without `fix/23`.
 
 ## Progress
 | # | Title | State |
