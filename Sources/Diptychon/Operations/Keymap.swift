@@ -2,7 +2,9 @@ import AppKit
 
 /// Things the user can trigger by hotkey. Kept separate from the keys so a
 /// remapping UI can be added later (PRD: hotkeys are data-driven from day 1).
-enum AppAction {
+/// `Equatable`/`Hashable` so the command palette can reverse-look-up an action's
+/// chord in `Keymap.default` (issue 19).
+enum AppAction: Equatable, Hashable {
     case copyToInactive
     case undo
     case redo
@@ -32,6 +34,7 @@ enum AppAction {
     case showInfo        // ⌘I  — Finder "Get Info" on the selection
     case openWith        // ⌘↩  — choose an app to open the selection with
     case moveToInactive  // ⇧⌥⌘→/← — move the selection into the Inactive Panel
+    case openPalette     // ⌘K  — open the command palette (issue 19)
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -112,6 +115,7 @@ enum Keymap {
         (KeyChord(.code(Key.return), command: true), .openWith), // ⌘↩ Open With
         (KeyChord(.code(Key.rightArrow), command: true, option: true, shift: true), .moveToInactive),
         (KeyChord(.code(Key.leftArrow), command: true, option: true, shift: true), .moveToInactive),
+        (KeyChord(.character("k"), command: true), .openPalette), // ⌘K command palette (issue 19)
     ]
 
     static func action(for event: NSEvent,
