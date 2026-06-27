@@ -36,33 +36,37 @@ struct WorkspaceView: View {
         }
         .confirmationDialog(
             "Items already exist in the destination",
-            isPresented: Binding(get: { model.pendingWrite != nil },
-                                 set: { if !$0 { model.pendingWrite = nil } }),
-            presenting: model.pendingWrite
+            isPresented: Binding(get: { model.pendingCollision != nil },
+                                 set: { if !$0 { model.presentedSheet = nil } }),
+            presenting: model.pendingCollision
         ) { pending in
             Button("Overwrite (cannot be undone)", role: .destructive) {
                 model.resolvePendingWrite(pending, resolution: .overwrite)
             }
             Button("Keep Both") { model.resolvePendingWrite(pending, resolution: .rename) }
             Button("Skip") { model.resolvePendingWrite(pending, resolution: .skip) }
-            Button("Cancel", role: .cancel) { model.pendingWrite = nil }
+            Button("Cancel", role: .cancel) { model.presentedSheet = nil }
         } message: { pending in
             Text("\(pending.collisionCount) item(s) with the same name already exist. "
                  + "Overwriting destroys the originals and cannot be undone.")
         }
-        .sheet(item: $model.renaming) { request in
-            BatchRenameSheet(
-                items: request.items,
-                directory: request.directory,
-                onCommit: { newNames in model.commitRename(request, newNames: newNames) },
-                onCancel: { model.renaming = nil }
-            )
-        }
-        .sheet(isPresented: $model.tagging) {
-            TagPickerSheet(model: model)
-        }
-        .sheet(isPresented: $model.goingToFolder) {
-            GoToFolderSheet(model: model)
+        .sheet(item: Binding(get: { model.sheetItem },
+                             set: { if $0 == nil { model.presentedSheet = nil } })) { sheet in
+            switch sheet {
+            case .rename(let request):
+                BatchRenameSheet(
+                    items: request.items,
+                    directory: request.directory,
+                    onCommit: { newNames in model.commitRename(request, newNames: newNames) },
+                    onCancel: { model.presentedSheet = nil }
+                )
+            case .tags:
+                TagPickerSheet(model: model)
+            case .goToFolder:
+                GoToFolderSheet(model: model)
+            case .collision:
+                EmptyView() // never — collision is the dialog, filtered out by sheetItem
+            }
         }
         .overlay { progressOverlay }
     }
@@ -184,14 +188,14 @@ struct WorkspaceView: View {
             HSplitView {
                 PanelView(model: model.left, isActive: model.active == .left,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                          onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                          onGoToFolder: { model.active = .left; model.presentedSheet = .goToFolder },
                           onPin: { model.pin($0) },
                           onRename: { model.renameInline($0, to: $1) },
                           tableIdentifier: "panel-left")
                 .frame(minWidth: 180)
                 PanelView(model: model.right, isActive: model.active == .right,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
-                          onGoToFolder: { model.active = .right; model.goingToFolder = true },
+                          onGoToFolder: { model.active = .right; model.presentedSheet = .goToFolder },
                           onPin: { model.pin($0) },
                           onRename: { model.renameInline($0, to: $1) },
                           tableIdentifier: "panel-right")
@@ -200,7 +204,7 @@ struct WorkspaceView: View {
         } else {
             PanelView(model: model.left, isActive: true,
                       onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
-                      onGoToFolder: { model.active = .left; model.goingToFolder = true },
+                      onGoToFolder: { model.active = .left; model.presentedSheet = .goToFolder },
                       onPin: { model.pin($0) },
                       onRename: { model.renameInline($0, to: $1) },
                       tableIdentifier: "panel-left")

@@ -27,7 +27,7 @@ struct GoToFolderSheet: View {
 
             HStack {
                 Spacer()
-                Button("Cancel") { model.goingToFolder = false }
+                Button("Cancel") { model.presentedSheet = nil }
                     .keyboardShortcut(.cancelAction)
                 Button("Go", action: go)
                     .keyboardShortcut(.defaultAction)
@@ -40,7 +40,7 @@ struct GoToFolderSheet: View {
 
     private func go() {
         if model.navigateActive(toPath: path) {
-            model.goingToFolder = false
+            model.presentedSheet = nil
         } else {
             showError = true
         }

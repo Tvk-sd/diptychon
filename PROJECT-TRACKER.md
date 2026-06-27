@@ -124,6 +124,8 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
+| — | **Architecture review** — all 5 deepenings (#1 settle-hook, #2 presentedSheet, #3 Panel Source inject, #4 SelectionEchoGuard, #5 compileVisible) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed, user-verified — QA filed #25/#26/#27 (see outcome below) |
+| 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -405,3 +407,64 @@ keys gated by `isActive`. `PanelView` no longer owns its model (parent owns).
 `URL.startDirectory` moved to WorkspaceView. Window widened to 1100x620.
 Verified interactively by user (Tab + click focus, independent nav, per-panel
 selection).
+
+### Architecture review (2026-06-26) — deepening candidates; #1 shipped (branch `improve-codebase-architecture`)
+
+`/improve-codebase-architecture` surfaced **5 deepening candidates** (the HTML
+report was temp-only; this is the durable record).
+
+**Shipped — candidate #1 (Strong): one settle hook for Panel refresh.** Collapsed 9
+per-call refresh closures into `OperationCoordinator.onOperationSettled` (wired once
+in `WorkspaceModel.init`; undo/redo inherit it); removed the dead `refresh:`
+parameter strand (`PendingWrite.refresh` + the param threaded through
+`write`/`runWrite`/`resolvePendingWrite`). New `OperationCoordinatorTests` — the
+refresh wiring had no test surface before. Commit `907d9c4`. ADR-0004 untouched.
+
+**Data-loss fix found during its QA.** Pasting a file into its own folder + Overwrite
+resolved `dest == src`; `CopyOperation` removed the source then failed to re-copy,
+destroying it (overwrites aren't undoable, ADR-0004). `MoveOperation` already guarded
+the same-dir no-op; `CopyOperation` didn't. Guard added; `.rename` (Duplicate)
+unaffected. `CopyOverwriteTests` covers the basic case, a symlink-resolved source,
+and the real `NSPasteboard` round-trip (the reported path). Commit `60a8a3f`,
+user-verified live. Learnings in `context/transferable-learnings.md` §12–§13.
+
+**Shipped — candidate #3 (Worth exploring): inject the Panel Source factory.**
+`PanelModel.reload()` hard-constructed `LocalDirectorySource`, so the ADR-0003
+`PanelSource` protocol was a one-adapter hypothetical seam. Injected a
+`makeSource: (URL, Bool) -> PanelSource` factory (default builds the real source —
+every caller unchanged; a factory, not an instance, since the source rebuilds per
+load as directory/showHidden change). `FakeSource` in `PanelSourceInjectionTests`
+is the second adapter that makes the seam real: drives a whole `PanelModel` (load
+state machine, accessDenied, filter) with no filesystem. Commit `4b2fad5`. No
+behavior change. Scope: navigation stays URL-coupled, so true non-local sources
+(tag/search) still need a separate generalization.
+
+**Shipped — candidate #2 (command routing vs UI-state), narrow cut.** Initially
+skipped (the naive "extract a ViewState bag" fails the deletion test — a state bag
+has no behavior → a *shallow* module). Revisited and built the one defensible cut: the
+four independent modal flags (`pendingWrite`/`renaming`/`tagging`/`goingToFolder`)
+collapsed into one `presentedSheet: Sheet?` enum — one value ⇒ exactly one modal, the
+invariant now structural (previously nothing stopped two modals). Computed
+`pendingCollision`/`sheetItem` keep the collision `confirmationDialog` + a single
+`.sheet(item:)`. Commit `060baf5`, all four modals user-verified live. (The broader
+"router vs state" split stays a mirage — not done.)
+
+**Shipped — candidate #4 (Worth exploring): extract `SelectionEchoGuard`.** The
+AppKit↔SwiftUI selection echo rule was two ad-hoc Coordinator fields
+(`isSyncingSelection`, `lastPublished`) + two guards ~120 lines apart — the logic
+behind selection thrash, untestable without a live `NSTableView`. Pulled into a pure
+`SelectionEchoGuard` (echo suppression + reentrancy); Coordinator keeps only the
+imperative table I/O. `SelectionEchoGuardTests` covers both directions. Commit
+`901b463`, user-verified live (multi-select hold, nav-clears). Note: report said "4
+fields" but only 2 were the echo-guard; a generic `TwoWayBinding` would be a
+one-adapter hypothetical seam, so it stays selection-specific.
+
+**Shipped — candidate #5 (Speculative): extract pure `compileVisible`.** Lifted
+`PanelModel.recomputeVisible`'s base→filter→sort pipeline into a pure static
+`compileVisible(loaded:searchResults:isSearching:filter:tagName:sort:)`. `applyFilters`
+was already pure+tested (`PanelFilterTests`); this also pins base-set selection (search
+vs loaded) + sort. `VisibleItemsTests`. Commit `c3cc180`, no behavior change.
+
+**All 5 deepening candidates now addressed** (#1, #3, #4 shipped; #2 narrow cut
+shipped; #5 shipped). 70 tests green. Three bugs/features surfaced during QA: issue
+#25 (double-click selection), #26 (tag filter menu dot grey), #27 (tags column).

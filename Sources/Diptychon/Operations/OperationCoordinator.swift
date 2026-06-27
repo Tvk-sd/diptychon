@@ -17,13 +17,17 @@ final class OperationCoordinator {
 
     private var task: Task<Void, Never>?
 
+    /// Fired on the main actor after any Operation settles (run success, cancel,
+    /// or error; undo; redo) so the owner can re-list affected Panels in one place.
+    /// Set once by the owner; the early-return guards (busy, empty stack) do *not*
+    /// fire it, since nothing changed.
+    var onOperationSettled: () -> Void = {}
+
     var canUndo: Bool { !undoStack.isEmpty }
     var canRedo: Bool { !redoStack.isEmpty }
 
     /// Apply `op`; on success push it onto the undo stack and clear redo.
-    /// `onFinish` runs on the main actor after the work settles (success,
-    /// cancel, or error) so callers can refresh affected Panels.
-    func run(_ op: Operation, onFinish: @escaping () -> Void) {
+    func run(_ op: Operation) {
         guard running == nil else { return }
         running = Running(title: op.title, fraction: 0)
         task = Task {
@@ -39,26 +43,26 @@ final class OperationCoordinator {
                 // MVP: surface nothing beyond clearing state; later issues add error UI.
             }
             running = nil
-            onFinish()
+            onOperationSettled()
         }
     }
 
     func cancel() { task?.cancel() }
 
-    func undo(onFinish: @escaping () -> Void) {
+    func undo() {
         guard running == nil, let op = undoStack.last else { return }
         undoStack.removeLast()
-        guard op.isUndoable else { redoStack.append(op); onFinish(); return }
+        guard op.isUndoable else { redoStack.append(op); onOperationSettled(); return }
         running = Running(title: "Undo \(op.title)", fraction: 0)
         task = Task {
             try? await op.revert()
             redoStack.append(op)
             running = nil
-            onFinish()
+            onOperationSettled()
         }
     }
 
-    func redo(onFinish: @escaping () -> Void) {
+    func redo() {
         guard running == nil, let op = redoStack.last else { return }
         redoStack.removeLast()
         running = Running(title: "Redo \(op.title)", fraction: 0)
@@ -73,7 +77,7 @@ final class OperationCoordinator {
                 redoStack.append(op)
             }
             running = nil
-            onFinish()
+            onOperationSettled()
         }
     }
 }

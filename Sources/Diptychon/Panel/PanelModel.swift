@@ -72,8 +72,16 @@ final class PanelModel {
     private var watcher: DirectoryWatcher?
     private var watchedDirectory: URL?
 
-    init(directory: URL) {
+    /// Builds the `PanelSource` for a directory + hidden-files state. Injected so
+    /// tests can supply a fake source (no filesystem); defaults to the real local
+    /// directory source (ADR 0003). Rebuilt per load since directory/showHidden change.
+    private let makeSource: (URL, Bool) -> PanelSource
+
+    init(directory: URL,
+         makeSource: @escaping (URL, Bool) -> PanelSource =
+             { LocalDirectorySource(directory: $0, includeHidden: $1) }) {
         self.directory = directory
+        self.makeSource = makeSource
     }
 
     var title: String { directory.path }
@@ -193,7 +201,7 @@ final class PanelModel {
     private func reload(showLoading: Bool = true) {
         loadTask?.cancel()
         startWatching()
-        let source = LocalDirectorySource(directory: directory, includeHidden: showHidden)
+        let source = makeSource(directory, showHidden)
         if showLoading { state = .loading }
         loadTask = Task {
             do {
@@ -229,9 +237,19 @@ final class PanelModel {
     /// Apply the current filter + sort to the base rows, into the cache. The base
     /// set is the search results while searching, otherwise the loaded directory.
     private func recomputeVisible() {
-        let base = isSearching ? searchResults : loadedItems
-        visibleItems = Self.applyFilters(base, text: filter, tagName: tagFilter)
-            .sorted(using: sortOrder)
+        visibleItems = Self.compileVisible(
+            loaded: loadedItems, searchResults: searchResults, isSearching: isSearching,
+            filter: filter, tagName: tagFilter, sort: sortOrder)
+    }
+
+    /// Pure base→filter→sort pipeline that produces the rows a Panel shows. The base
+    /// set is the search results while searching, otherwise the loaded directory.
+    /// Pulled out whole so it's unit-testable without an async load or live model.
+    static func compileVisible(loaded: [FileItem], searchResults: [FileItem], isSearching: Bool,
+                               filter: String, tagName: String?,
+                               sort: [KeyPathComparator<FileItem>]) -> [FileItem] {
+        let base = isSearching ? searchResults : loaded
+        return applyFilters(base, text: filter, tagName: tagName).sorted(using: sort)
     }
 
     /// Pure filter step (type-ahead text + optional tag), factored out so it's

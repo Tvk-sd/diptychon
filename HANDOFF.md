@@ -1,13 +1,54 @@
 # HANDOFF — Diptychon
 
-_Updated: 2026-06-25. 10-issue MVP complete; post-MVP issues 11–21 built.
-**Current: issue 21 (unified top bar) done on branch `feat/21-unified-top-bar`,
-PR #21 open, user-verified.** Full per-issue history in `PROJECT-TRACKER.md`._
+_Updated: 2026-06-26. 10-issue MVP complete; post-MVP issues 11–21 built.
+**Current: architecture deepening on branch `improve-codebase-architecture`
+(off `main`), pushed — all 5 deepenings (#1–#5) + a data-loss fix shipped. Issue
+21 PR #21 also still open.** Full per-issue history in `PROJECT-TRACKER.md`._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit).
 
-## CURRENT STATE (2026-06-25) — issue 21, unified top bar
+## CURRENT STATE (2026-06-26) — architecture deepening (`improve-codebase-architecture`)
+Branch **`improve-codebase-architecture`** (off `main`), pushed, tree clean, **61
+tests green** (quit the running app before `test` — bundle-id collision; force-kill +
+confirm a new pid, see `transferable-learnings.md` §12). A `/improve-codebase-architecture`
+review found 5 deepening candidates; the HTML report was temp-only, so
+`PROJECT-TRACKER.md` (architecture-review section) is the durable record. Shipped on
+this branch:
+- **#1 — one settle hook for Panel refresh** (`OperationCoordinator.onOperationSettled`):
+  collapsed 9 per-call `refreshBoth` closures into one hook wired in
+  `WorkspaceModel.init`; undo/redo inherit it; removed the dead `refresh:` parameter
+  strand. `OperationCoordinatorTests` (refresh wiring had no test surface before).
+- **#3 — inject the Panel Source factory**: `PanelModel` takes
+  `makeSource: (URL, Bool) -> PanelSource` (default builds the real
+  `LocalDirectorySource`), turning ADR-0003's one-adapter hypothetical seam into a real
+  one. `FakeSource` + `PanelSourceInjectionTests` drive a whole Panel with no
+  filesystem. No behavior change.
+- **#4 — extract `SelectionEchoGuard`**: the AppKit↔SwiftUI selection echo rule was
+  two ad-hoc Coordinator fields + two guards ~120 lines apart (the selection-thrash
+  logic, untestable). Pulled into a pure `SelectionEchoGuard` (echo suppression +
+  reentrancy); Coordinator keeps only the imperative table I/O. `SelectionEchoGuardTests`.
+  Behavior unchanged, user-verified live (multi-select hold, nav-clears).
+- **Data-loss fix** (found in QA): pasting a file into its own folder + Overwrite
+  destroyed it (`dest == src`); `CopyOperation` now treats self-overwrite as a no-op.
+  `CopyOverwriteTests` incl. the real `NSPasteboard` round-trip. User-verified live.
+- **#2 — unify modal flags into `presentedSheet`**: four independent modal flags
+  collapsed into one `Sheet?` enum (`.collision`/`.rename`/`.tags`/`.goToFolder`) —
+  one value ⇒ exactly one modal, the invariant now structural. All four modals
+  user-verified live. (Narrow cut; the broader router/state split stays a mirage.)
+- **#5 — extract pure `compileVisible`**: lifted `PanelModel`'s base→filter→sort
+  pipeline into a pure static function. `VisibleItemsTests`. No behavior change.
+
+**All 5 deepening candidates done.** 70 tests green. New learnings:
+`context/transferable-learnings.md` **§12** (verify through the real call path, not a
+synthetic test or stale process) and **§13** (steer refactors by fitness functions, not
+a north-star). QA filed: **#25** (double-click opens whole selection), **#26** (tag
+filter menu dot grey), **#27** (tags column) — all needs-triage / ready-for-agent.
+
+**To resume:** open a PR for the branch (it's a full reviewable sweep). Issue 21 PR
+#21 also still open to merge.
+
+## PRIOR STATE (2026-06-25) — issue 21, unified top bar
 Branch **`feat/21-unified-top-bar`** (off `main`), **PR #21 open**, pushed, tree
 clean, all tests green (quit the running app before `test` — bundle-id collision).
 Slices 1–3 + a redesign + fixes, all user-verified in the running app:
@@ -102,6 +143,11 @@ So "the UI test can't click it" ≠ "users can't." Assert against on-disk state
 - Build/run: `xcodegen generate` then `open Diptychon.xcodeproj`, or
   `xcodebuild -scheme Diptychon -destination 'platform=macOS' build|test`.
   (Regenerate the gitignored `.xcodeproj` after pulling or adding files.)
+- Local app build: `./reinstall.sh` builds the **combined** app
+  (`design-experiments` + `feat/file-type-icons` + `fix/23-uitest-panel-identifiers`)
+  into `/Applications` via a throwaway worktree. Re-run after changing any of those
+  branches. See issue 24 (`.scratch/diptychon-mvp/issues/`) for why they aren't merged
+  yet — `design-experiments` won't compile without `fix/23`.
 
 ## Progress
 | # | Title | State |

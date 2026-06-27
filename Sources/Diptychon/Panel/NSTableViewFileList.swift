@@ -118,11 +118,10 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         private var displayedIDs: [FileItem.ID] = []
         /// Last inline-rename token handled, so a new request edits exactly once.
         private var lastRenameRequest: UUID?
-        private var isSyncingSelection = false
-        /// The selection we last pushed to the binding. Lets us tell a binding
-        /// change that *we* caused (echo) from one made externally (e.g. nav
-        /// clearing selection) — only the latter should override the table.
-        private var lastPublished = Set<FileItem.ID>()
+        /// Breaks the AppKit↔SwiftUI selection feedback loop (echo suppression +
+        /// reentrancy). The bug-prone rule lives in `SelectionEchoGuard`, tested in
+        /// isolation; the Coordinator keeps only the imperative table I/O.
+        private var echo = SelectionEchoGuard()
 
         private static let sizeFormatter: ByteCountFormatter = {
             let f = ByteCountFormatter(); f.countStyle = .file; return f
@@ -153,15 +152,14 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             // Only override when the binding changed externally (not an echo of
             // what the table just published) — otherwise we'd wipe in-progress
             // multi-selection on every unrelated re-render.
-            guard parent.selection != lastPublished else { return }
-            lastPublished = parent.selection
+            guard echo.shouldApply(parent.selection) else { return }
             let target = IndexSet(parent.items.enumerated()
                 .filter { parent.selection.contains($0.element.id) }
                 .map(\.offset))
             if table.selectedRowIndexes != target {
-                isSyncingSelection = true
+                echo.beginApply()
                 table.selectRowIndexes(target, byExtendingSelection: false)
-                isSyncingSelection = false
+                echo.endApply()
             }
         }
 
@@ -272,10 +270,11 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         // MARK: Selection
 
         func tableViewSelectionDidChange(_ notification: Notification) {
-            guard !isSyncingSelection, let table = notification.object as? NSTableView else { return }
+            guard let table = notification.object as? NSTableView else { return }
             let ids = Set(table.selectedRowIndexes.compactMap { $0 < parent.items.count ? parent.items[$0].id : nil })
-            lastPublished = ids
-            parent.selection = ids
+            // nil while we're applying a programmatic selection (our own echo).
+            guard let published = echo.captureFromTable(ids) else { return }
+            parent.selection = published
         }
 
         // MARK: Inline rename (issue 11)
