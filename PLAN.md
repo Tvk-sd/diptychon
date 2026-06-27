@@ -2,14 +2,18 @@
 
 _No active task._
 
-Last session: Marta-informed keyboard command expansion + customizable Open-With
-favorites (issue 28). Shipped on branch `feat/28-keyboard-commands` (off
-`improve-codebase-architecture`, which it depends on), commit `2bdad9d`, 76 tests
-green, user-verified ("all work perfectly"). Outcome folded into `PROJECT-TRACKER.md`
-(issue 28 section + Status row).
+Repo is clean as of 2026-06-27: **`main` only** (local + remote), **zero open PRs**,
+working tree clean, `main` builds + unit tests green. The stacked chain was landed via
+merge commits — PR #27 (`improve-codebase-architecture`) then PR #28
+(`feat/28-keyboard-commands`) — and all stale branches were pruned (local + remote):
+`design-experiments`, `feat/dim-hidden-files`, `feat/file-type-icons`,
+`fix/23-uitest-panel-identifiers`, `improve-codebase-architecture`,
+`backup/21-pre-history-cleanup`, and the obsolete `chore/local-app-build-script`
+(its `reinstall.sh` combined three now-merged branches).
 
-Next when picked: push `feat/28-keyboard-commands` + open a PR (targets
-`improve-codebase-architecture`, not `main` — the feature is stacked on it). Then the
-⌘K command palette (issue #19) is the natural follow-on — every new command would
-populate it automatically. Also still open: PR for `improve-codebase-architecture`
-itself, issue 21 PR #21, and QA issues #25/#26/#27.
+Ready to start the next issue from a clean `main`. Open candidates (see
+`PROJECT-TRACKER.md`): #19 command palette (⌘K — every new keyboard command would
+populate it), #25/#26/#27-tracker QA items, #12/#18/#20/#22 backlog.
+
+Reminder: the `.xcodeproj` is XcodeGen-generated and gitignored — run
+`xcodegen generate` after pulling before building.
