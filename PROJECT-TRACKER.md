@@ -120,7 +120,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 16 | Left sidebar (places + pinned folders) | ✅ done, PR pending — all 3 slices, user-verified |
 | 17 | File-list polish (data-driven display) | ✅ done, PR pending — Size right-aligned + scan-friendly dates |
 | 18 | Operation history / time-travel undo | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
-| 19 | Command palette (⌘K) | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
+| 19 | Command palette (⌘K) | ✅ done on branch `feat/19-command-palette` — user-verified; + file-row hover |
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
@@ -469,6 +469,26 @@ vs loaded) + sort. `VisibleItemsTests`. Commit `c3cc180`, no behavior change.
 **All 5 deepening candidates now addressed** (#1, #3, #4 shipped; #2 narrow cut
 shipped; #5 shipped). 70 tests green. Three bugs/features surfaced during QA: issue
 #25 (double-click selection), #26 (tag filter menu dot grey), #27 (tags column).
+
+### Issue 19 outcome (2026-06-27) — Command palette (⌘K) + file-row hover (branch `feat/19-command-palette`, off `main`)
+Linear/Raycast-style palette, user-verified, plus a row-hover highlight in the panels.
+- **Palette** drives off the data-driven `Keymap` (`CommandCatalog` of `PaletteCommand`):
+  each command runs via the same `perform(action)` / model mutation as its chord/toolbar
+  (one implementation, three entry points), and chord glyphs are reverse-looked-up from
+  `Keymap` so labels can't drift. Pure fuzzy filter + glyph formatting are unit-tested (7).
+- `.openPalette` (⌘K) is special-cased in the key monitor *before* the text-field guard,
+  so it opens even while the Filter is focused; `Sheet.palette` + `togglePalette` /
+  `runPaletteCommand` (dismiss-then-run so a command's own sheet presents cleanly).
+- **Mouse + keyboard share one highlight.** Rows are plain `Button`s (no system hover
+  tint, so hover matches keyboard exactly). Hover never scrolls; scrolling is keyboard-only,
+  and a 0.3s post-keypress window stops the scroll-induced `.onHover` from hijacking arrow
+  nav (the "stuck in 4 rows" bug).
+- **File-row hover** (`NSTableViewFileList`): a local `.mouseMoved` monitor → `row(at:)` →
+  a `HoverRowView` overlay subview. Hard-won: NSTableView strips foreign subviews on row
+  reuse, so the overlay is re-attached each update; `drawBackground`/layer color get
+  overwritten by the table's own drawing, so an overlay subview is the reliable path.
+  `enumerateAvailableRowViews` keeps exactly one row lit. (Debugging lesson: separate
+  "is the state set?" from "is it drawn?" — a forced-on-launch render test isolated the two.)
 
 ### Issue 28 outcome (2026-06-27) — Keyboard command expansion + Open-With favorites (branch `feat/28-keyboard-commands`, off `improve-codebase-architecture`)
 Marta-informed keyboard pass + a customizable Open-With menu, user-verified end to
