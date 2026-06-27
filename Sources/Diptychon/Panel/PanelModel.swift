@@ -237,9 +237,19 @@ final class PanelModel {
     /// Apply the current filter + sort to the base rows, into the cache. The base
     /// set is the search results while searching, otherwise the loaded directory.
     private func recomputeVisible() {
-        let base = isSearching ? searchResults : loadedItems
-        visibleItems = Self.applyFilters(base, text: filter, tagName: tagFilter)
-            .sorted(using: sortOrder)
+        visibleItems = Self.compileVisible(
+            loaded: loadedItems, searchResults: searchResults, isSearching: isSearching,
+            filter: filter, tagName: tagFilter, sort: sortOrder)
+    }
+
+    /// Pure base→filter→sort pipeline that produces the rows a Panel shows. The base
+    /// set is the search results while searching, otherwise the loaded directory.
+    /// Pulled out whole so it's unit-testable without an async load or live model.
+    static func compileVisible(loaded: [FileItem], searchResults: [FileItem], isSearching: Bool,
+                               filter: String, tagName: String?,
+                               sort: [KeyPathComparator<FileItem>]) -> [FileItem] {
+        let base = isSearching ? searchResults : loaded
+        return applyFilters(base, text: filter, tagName: tagName).sorted(using: sort)
     }
 
     /// Pure filter step (type-ahead text + optional tag), factored out so it's
