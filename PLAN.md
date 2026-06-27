@@ -3,14 +3,14 @@
 _No active task._
 
 Last session: architecture deepening via `/improve-codebase-architecture` on branch
-`improve-codebase-architecture` (off `main`), pushed. Shipped **#1** (Operation
-settle-hook refresh) + **#3** (Panel Source factory injection) + **#4**
-(`SelectionEchoGuard`) + a **self-overwrite data-loss fix** found in QA. **#2**
-(command-routing / UI-state split) examined and skipped (shallow-bag mirage). Outcome
-folded into `PROJECT-TRACKER.md` (architecture-review section) and `HANDOFF.md`
-(CURRENT STATE); learnings in `context/transferable-learnings.md` §12–§13; bug filed as
-issue **#25** (double-click opens whole selection, needs-triage).
+`improve-codebase-architecture` (off `main`), pushed. **All 5 deepenings shipped** —
+#1 (settle-hook refresh), #2 (`presentedSheet` modal enum, narrow cut), #3 (Panel
+Source factory injection), #4 (`SelectionEchoGuard`), #5 (pure `compileVisible`) —
+plus a **self-overwrite data-loss fix** found in QA. Outcome folded into
+`PROJECT-TRACKER.md` (architecture-review section) and `HANDOFF.md` (CURRENT STATE);
+learnings in `context/transferable-learnings.md` §12–§13. QA filed issues **#25**
+(double-click selection), **#26** (tag menu dot grey), **#27** (tags column).
 
-Next when picked: open a PR for `improve-codebase-architecture`, or continue with
-deepening **#5** (visible-items compiler — speculative). Issue 21 PR #21 also still open
-to merge. See `PROJECT-TRACKER.md`.
+Next when picked: open a PR for `improve-codebase-architecture` (full reviewable
+sweep), or grab #25/#26/#27. Issue 21 PR #21 also still open to merge. See
+`PROJECT-TRACKER.md`.

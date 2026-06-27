@@ -2,8 +2,8 @@
 
 _Updated: 2026-06-26. 10-issue MVP complete; post-MVP issues 11–21 built.
 **Current: architecture deepening on branch `improve-codebase-architecture`
-(off `main`), pushed — #1 + #3 + #4 + a data-loss fix shipped. Issue 21 PR #21
-also still open.** Full per-issue history in `PROJECT-TRACKER.md`._
+(off `main`), pushed — all 5 deepenings (#1–#5) + a data-loss fix shipped. Issue
+21 PR #21 also still open.** Full per-issue history in `PROJECT-TRACKER.md`._
 
 Dual-panel, keyboard-first macOS file manager (Finder alternative, Nimble
 Commander spirit).
@@ -32,16 +32,21 @@ this branch:
 - **Data-loss fix** (found in QA): pasting a file into its own folder + Overwrite
   destroyed it (`dest == src`); `CopyOperation` now treats self-overwrite as a no-op.
   `CopyOverwriteTests` incl. the real `NSPasteboard` round-trip. User-verified live.
+- **#2 — unify modal flags into `presentedSheet`**: four independent modal flags
+  collapsed into one `Sheet?` enum (`.collision`/`.rename`/`.tags`/`.goToFolder`) —
+  one value ⇒ exactly one modal, the invariant now structural. All four modals
+  user-verified live. (Narrow cut; the broader router/state split stays a mirage.)
+- **#5 — extract pure `compileVisible`**: lifted `PanelModel`'s base→filter→sort
+  pipeline into a pure static function. `VisibleItemsTests`. No behavior change.
 
-**#2 skipped** (command-routing / UI-state split — a naive ViewState bag is shallow,
-fails the deletion test). **#5** (visible-items compiler) remains — see
-`PROJECT-TRACKER.md`. New learnings:
+**All 5 deepening candidates done.** 70 tests green. New learnings:
 `context/transferable-learnings.md` **§12** (verify through the real call path, not a
 synthetic test or stale process) and **§13** (steer refactors by fitness functions, not
-a north-star). New bug: **issue #25** (double-click opens the whole selection, needs-triage).
+a north-star). QA filed: **#25** (double-click opens whole selection), **#26** (tag
+filter menu dot grey), **#27** (tags column) — all needs-triage / ready-for-agent.
 
-**To resume:** open a PR for the branch, or pick up #5. Issue 21 PR #21 also still
-open to merge.
+**To resume:** open a PR for the branch (it's a full reviewable sweep). Issue 21 PR
+#21 also still open to merge.
 
 ## PRIOR STATE (2026-06-25) — issue 21, unified top bar
 Branch **`feat/21-unified-top-bar`** (off `main`), **PR #21 open**, pushed, tree

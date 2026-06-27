@@ -124,7 +124,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
-| — | **Architecture review** — deepening #1 (refresh settle-hook) + #3 (Panel Source inject) + #4 (SelectionEchoGuard) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture` — #2 examined & skipped (mirage), #5 remains (see outcome below) |
+| — | **Architecture review** — all 5 deepenings (#1 settle-hook, #2 presentedSheet, #3 Panel Source inject, #4 SelectionEchoGuard, #5 compileVisible) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed, user-verified — QA filed #25/#26/#27 (see outcome below) |
 | 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
@@ -439,12 +439,15 @@ state machine, accessDenied, filter) with no filesystem. Commit `4b2fad5`. No
 behavior change. Scope: navigation stays URL-coupled, so true non-local sources
 (tag/search) still need a separate generalization.
 
-**Skipped — candidate #2 (command routing vs UI-state).** Examined and dropped: the
-naive "extract a ViewState bag" fails the deletion test (a state bag has no
-behavior → a *shallow* module, the anti-pattern). The only real cuts here are
-narrow (a `presentedSheet` enum to enforce one-modal-at-a-time; extract
-view-preferences persistence) — small payoff vs. candidate 3. Revisit only if the
-modal flags actually cause a two-sheet bug.
+**Shipped — candidate #2 (command routing vs UI-state), narrow cut.** Initially
+skipped (the naive "extract a ViewState bag" fails the deletion test — a state bag
+has no behavior → a *shallow* module). Revisited and built the one defensible cut: the
+four independent modal flags (`pendingWrite`/`renaming`/`tagging`/`goingToFolder`)
+collapsed into one `presentedSheet: Sheet?` enum — one value ⇒ exactly one modal, the
+invariant now structural (previously nothing stopped two modals). Computed
+`pendingCollision`/`sheetItem` keep the collision `confirmationDialog` + a single
+`.sheet(item:)`. Commit `060baf5`, all four modals user-verified live. (The broader
+"router vs state" split stays a mirage — not done.)
 
 **Shipped — candidate #4 (Worth exploring): extract `SelectionEchoGuard`.** The
 AppKit↔SwiftUI selection echo rule was two ad-hoc Coordinator fields
@@ -456,6 +459,12 @@ imperative table I/O. `SelectionEchoGuardTests` covers both directions. Commit
 fields" but only 2 were the echo-guard; a generic `TwoWayBinding` would be a
 one-adapter hypothetical seam, so it stays selection-specific.
 
-**Remaining candidates (report priority order):**
-5. *Speculative* — Extract the visible-items compiler (pure base→filter→tag→sort)
-   out of `PanelModel`. Low payoff: `PanelFilterTests` already covers it via the model.
+**Shipped — candidate #5 (Speculative): extract pure `compileVisible`.** Lifted
+`PanelModel.recomputeVisible`'s base→filter→sort pipeline into a pure static
+`compileVisible(loaded:searchResults:isSearching:filter:tagName:sort:)`. `applyFilters`
+was already pure+tested (`PanelFilterTests`); this also pins base-set selection (search
+vs loaded) + sort. `VisibleItemsTests`. Commit `c3cc180`, no behavior change.
+
+**All 5 deepening candidates now addressed** (#1, #3, #4 shipped; #2 narrow cut
+shipped; #5 shipped). 70 tests green. Three bugs/features surfaced during QA: issue
+#25 (double-click selection), #26 (tag filter menu dot grey), #27 (tags column).
