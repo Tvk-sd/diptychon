@@ -49,11 +49,18 @@ final class WorkspaceModel {
     let right: PanelModel
     let coordinator = OperationCoordinator()
     private let quickLook = QuickLookController()
+    private let openWith = OpenWithController()
 
     var active: Side = .left
     /// The single modal presented over the workspace, if any. One value ⇒ one modal
     /// at a time — the four independent flags this replaced gave no such guarantee.
     var presentedSheet: Sheet?
+
+    /// Bumped by ⌘F to ask the Filter field to take focus (issue 28). `TopBarView`
+    /// watches it and drives its `@FocusState` — the key monitor can't set SwiftUI
+    /// focus directly.
+    private(set) var filterFocusRequest = UUID()
+    func focusFilter() { filterFocusRequest = UUID() }
 
     /// The collision dialog's data, when that's the presented modal (drives the
     /// `confirmationDialog`).
@@ -85,6 +92,14 @@ final class WorkspaceModel {
         UserDefaults.standard.stringArray(forKey: "pinnedFolders") ?? []
     ) {
         didSet { UserDefaults.standard.set(PinnedFolders.encode(pinnedFolders), forKey: "pinnedFolders") }
+    }
+
+    /// Apps the user pinned to the Open-With menu (⌘↩, issue 28). Backed by a
+    /// `[String]` of app paths in `UserDefaults`; deduped on add via `FavoriteApps`.
+    var favoriteApps: [URL] = FavoriteApps.decode(
+        UserDefaults.standard.stringArray(forKey: "openWithFavorites") ?? []
+    ) {
+        didSet { UserDefaults.standard.set(FavoriteApps.encode(favoriteApps), forKey: "openWithFavorites") }
     }
 
     /// Whether the right file panel is shown (issue 13). Defaults to true (a
@@ -121,6 +136,9 @@ final class WorkspaceModel {
     /// Handle a raw key event (from the local monitor). Returns true if consumed.
     func handleKeyDown(_ event: NSEvent) -> Bool {
         guard let action = Keymap.action(for: event) else { return false }
+        // ⎋ clears the selection, but only when nothing modal is up — otherwise leave
+        // Esc for the open sheet/dialog to consume (close on Esc). Don't swallow it.
+        if case .selectNone = action, presentedSheet != nil { return false }
         perform(action)
         return true
     }
@@ -162,7 +180,66 @@ final class WorkspaceModel {
         case .openSelection: openSelection()
         case .preview: togglePreview()
         case .goToFolder: presentedSheet = .goToFolder
+        case .toggleHidden: activeModel.showHidden.toggle()
+        case .selectAll: activeModel.selectAll()
+        case .selectNone: activeModel.selectNone()
+        case .invertSelection: activeModel.invertSelection()
+        case .focusFilter: focusFilter()
+        case .revealInFinder: revealInFinder()
+        case .copyPaths: copyPaths()
+        case .showInfo: showFinderInfo()
+        case .openWith:
+            let urls = activeModel.selectionURLs
+            guard !urls.isEmpty else { return }
+            openWith.present(for: urls, favorites: favoriteApps,
+                             onAddFavorite: { [weak self] in self?.addFavoriteApp($0) },
+                             onRemoveFavorite: { [weak self] in self?.removeFavoriteApp($0) })
+        case .moveToInactive:
+            // No visible inactive target when the right panel is hidden.
+            guard rightPanelVisible else { return }
+            write(.move, sources: activeModel.selectionURLs, into: inactiveModel.directory)
         }
+    }
+
+    // MARK: - Reveal / Copy paths / Get Info (issue 28)
+
+    private func revealInFinder() {
+        let urls = activeModel.selectionURLs
+        guard !urls.isEmpty else { return }
+        NSWorkspace.shared.activateFileViewerSelecting(urls)
+    }
+
+    /// Copy the selection's absolute path(s) as plain text, one per line.
+    private func copyPaths() {
+        let urls = activeModel.selectionURLs
+        guard !urls.isEmpty else { return }
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(urls.map(\.path).joined(separator: "\n"), forType: .string)
+    }
+
+    /// Open Finder's "Get Info" window(s) for the selection. There is no public
+    /// Get-Info API, so drive Finder via AppleScript. Sandbox is off (ADR 0001) so
+    /// no entitlement is needed; the first call shows a one-time automation-consent
+    /// prompt for controlling Finder.
+    private func showFinderInfo() {
+        let urls = activeModel.selectionURLs
+        guard !urls.isEmpty else { return }
+        let lines = urls.map { url -> String in
+            let escaped = url.path
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "\"", with: "\\\"")
+            return "    open information window of (POSIX file \"\(escaped)\" as alias)"
+        }.joined(separator: "\n")
+        let source = """
+        tell application "Finder"
+            activate
+        \(lines)
+        end tell
+        """
+        var error: NSDictionary?
+        NSAppleScript(source: source)?.executeAndReturnError(&error)
+        if let error { NSLog("Get Info via Finder failed: \(error)") }
     }
 
     // MARK: - Go to Folder / path navigation (issue 15)
@@ -186,6 +263,11 @@ final class WorkspaceModel {
 
     func pin(_ url: URL) { pinnedFolders = PinnedFolders.adding(url, to: pinnedFolders) }
     func unpin(_ url: URL) { pinnedFolders = PinnedFolders.removing(url, from: pinnedFolders) }
+
+    // MARK: - Favorite apps (Open-With menu, issue 28)
+
+    func addFavoriteApp(_ app: URL) { favoriteApps = FavoriteApps.adding(app, to: favoriteApps) }
+    func removeFavoriteApp(_ app: URL) { favoriteApps = FavoriteApps.removing(app, from: favoriteApps) }
 
 
     // MARK: - QuickLook

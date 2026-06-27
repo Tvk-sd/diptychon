@@ -126,6 +126,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
 | — | **Architecture review** — all 5 deepenings (#1 settle-hook, #2 presentedSheet, #3 Panel Source inject, #4 SelectionEchoGuard, #5 compileVisible) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed, user-verified — QA filed #25/#26/#27 (see outcome below) |
 | 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
+| 28 | Keyboard command expansion (Marta-informed) + Open-With favorites | ✅ done on branch `feat/28-keyboard-commands` (off `improve-codebase-architecture`), user-verified — commit `2bdad9d` |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -468,3 +469,26 @@ vs loaded) + sort. `VisibleItemsTests`. Commit `c3cc180`, no behavior change.
 **All 5 deepening candidates now addressed** (#1, #3, #4 shipped; #2 narrow cut
 shipped; #5 shipped). 70 tests green. Three bugs/features surfaced during QA: issue
 #25 (double-click selection), #26 (tag filter menu dot grey), #27 (tags column).
+
+### Issue 28 outcome (2026-06-27) — Keyboard command expansion + Open-With favorites (branch `feat/28-keyboard-commands`, off `improve-codebase-architecture`)
+Marta-informed keyboard pass + a customizable Open-With menu, user-verified end to
+end ("all work perfectly"). Spec: `.scratch/diptychon-mvp/issues/28-keyboard-command-expansion.md`.
+- **10 new Mac-native commands**, each one `Keymap.default` row + one `perform()` case
+  (the data-driven `Keymap` from issue 04 paid off): ⌘⇧. show hidden · ⌘A / ⎋ / ⌘⇧I
+  select all/none/invert · ⌘F focus Filter · ⇧⌘R reveal in Finder · ⌥⌘C copy path(s) ·
+  ⌘I Get Info (Finder AppleScript; one-time automation consent) · ⌘↩ Open With ·
+  ⇧⌥⌘→/← move selection into the inactive panel (undoable).
+- **Mac-native over Marta's F-keys** (deliberate — keeps the app's existing identity).
+  Two boundary-crossers needed real plumbing: ⌘F focus goes through an observed token
+  (`filterFocusRequest`) since the `NSEvent` monitor can't set SwiftUI focus; ⌘↩ uses a
+  standalone `OpenWithController` because the table's row-context menu can't be reached
+  from a global chord. ⎋ yields to an open sheet/dialog (`handleKeyDown` guard) rather
+  than swallowing it.
+- **Open-With favorites:** favorite apps pin to the top of the ⌘↩ menu, managed in-menu
+  (Add to Favorites… / Remove submenu), persisted to UserDefaults `openWithFavorites`.
+  Pure `FavoriteApps` helper (mirrors `PinnedFolders`) + 6 unit tests. **76 tests green.**
+- **Process note (reinforces issue-21):** new `.swift` files are auto-globbed by
+  XcodeGen from `project.yml` — `xcodegen generate`, never hand-edit the gitignored
+  `project.pbxproj`. Verified the build/tests through the regenerated project.
+- Branch is stacked on `improve-codebase-architecture` (the feature depends on its
+  `presentedSheet` / `SelectionEchoGuard` work — it does not apply to `main`).

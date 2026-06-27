@@ -59,6 +59,17 @@ final class PanelModel {
     /// Ask the file list to start editing the single selected row's name in place.
     func requestInlineRename() { inlineRenameRequest = UUID() }
 
+    // MARK: - Selection commands (issue 28)
+    // Mutate `selection` directly; the list echoes it to the `NSTableView` via the
+    // SelectionEchoGuard, so the cursor never moves (Marta-style: selection is not
+    // tied to the cursor).
+
+    func selectAll() { selection = Set(visibleItems.map(\.id)) }
+    func selectNone() { selection = [] }
+    func invertSelection() {
+        selection = Set(visibleItems.map(\.id)).subtracting(selection)
+    }
+
     /// Per-panel browser-style navigation history (issue 21 slice 2). Every dir
     /// change pushes the prior directory onto `backStack` and clears `forwardStack`;
     /// goBack/goForward shuttle between them without recording new history.

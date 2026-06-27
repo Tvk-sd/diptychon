@@ -2,15 +2,14 @@
 
 _No active task._
 
-Last session: architecture deepening via `/improve-codebase-architecture` on branch
-`improve-codebase-architecture` (off `main`), pushed. **All 5 deepenings shipped** —
-#1 (settle-hook refresh), #2 (`presentedSheet` modal enum, narrow cut), #3 (Panel
-Source factory injection), #4 (`SelectionEchoGuard`), #5 (pure `compileVisible`) —
-plus a **self-overwrite data-loss fix** found in QA. Outcome folded into
-`PROJECT-TRACKER.md` (architecture-review section) and `HANDOFF.md` (CURRENT STATE);
-learnings in `context/transferable-learnings.md` §12–§13. QA filed issues **#25**
-(double-click selection), **#26** (tag menu dot grey), **#27** (tags column).
+Last session: Marta-informed keyboard command expansion + customizable Open-With
+favorites (issue 28). Shipped on branch `feat/28-keyboard-commands` (off
+`improve-codebase-architecture`, which it depends on), commit `2bdad9d`, 76 tests
+green, user-verified ("all work perfectly"). Outcome folded into `PROJECT-TRACKER.md`
+(issue 28 section + Status row).
 
-Next when picked: open a PR for `improve-codebase-architecture` (full reviewable
-sweep), or grab #25/#26/#27. Issue 21 PR #21 also still open to merge. See
-`PROJECT-TRACKER.md`.
+Next when picked: push `feat/28-keyboard-commands` + open a PR (targets
+`improve-codebase-architecture`, not `main` — the feature is stacked on it). Then the
+⌘K command palette (issue #19) is the natural follow-on — every new command would
+populate it automatically. Also still open: PR for `improve-codebase-architecture`
+itself, issue 21 PR #21, and QA issues #25/#26/#27.
