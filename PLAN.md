@@ -1,19 +1,25 @@
-# PLAN
+# PLAN — Issue 26 follow-up: right-align row tag dots
 
-_No active task._
+Branch: `fix/26-tag-filter-menu-dot-grey` (off `main`).
 
-Repo is clean as of 2026-06-27: **`main` only** (local + remote), **zero open PRs**,
-working tree clean, `main` builds + unit tests green. The stacked chain was landed via
-merge commits — PR #27 (`improve-codebase-architecture`) then PR #28
-(`feat/28-keyboard-commands`) — and all stale branches were pruned (local + remote):
-`design-experiments`, `feat/dim-hidden-files`, `feat/file-type-icons`,
-`fix/23-uitest-panel-identifiers`, `improve-codebase-architecture`,
-`backup/21-pre-history-cleanup`, and the obsolete `chore/local-app-build-script`
-(its `reinstall.sh` combined three now-merged branches).
+## Done this session
+Issue 26 (tag-filter menu dot grey) — **fixed + committed + user-verified.** Render
+fix (`FinderTagColor.menuSwatch`, non-template NSImage) + data fix
+(`FinderTag.distinctByName`). 82 unit tests green. Recovered from two stashes (one
+mislabeled "issue-29"); both dropped after the commit.
 
-Ready to start the next issue from a clean `main`. Open candidates (see
-`PROJECT-TRACKER.md`): #19 command palette (⌘K — every new keyboard command would
-populate it), #25/#26/#27-tracker QA items, #12/#18/#20/#22 backlog.
+## Active task — dot positioning (user request 2026-06-30)
+Right now the **row** tag dots trail the filename, so they sit at different x-positions
+per row (see user screenshot, blue line). Want: all dots **right-aligned into one
+vertical column** at the right edge of the Name column — under the Name sort arrow —
+with clear space from the names, stacked in a clean line.
 
-Reminder: the `.xcodeproj` is XcodeGen-generated and gitignored — run
-`xcodegen generate` after pulling before building.
+- Lives in `FinderTagDotsView` placement within the Name cell, `NSTableViewFileList.swift`.
+- Likely approach: pin the dots stack to the **trailing** edge of the name cell (fixed
+  right inset) instead of flowing right after the text; verify with the 3-file repro
+  in `/private/tmp/diptychon-issue26-repro` (recreate via scratchpad script — Desktop
+  normalizes tag colors, use /tmp).
+- Open question: behavior when the name is long enough to reach the dot column
+  (truncate the name before the dots so they stay aligned).
+- Decide: fold into issue 26's branch as a polish commit, or a new issue (relates to
+  issue 17 file-list polish). Lean: same branch, separate commit.

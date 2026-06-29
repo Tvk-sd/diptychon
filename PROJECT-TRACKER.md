@@ -492,3 +492,21 @@ end ("all work perfectly"). Spec: `.scratch/diptychon-mvp/issues/28-keyboard-com
   `project.pbxproj`. Verified the build/tests through the regenerated project.
 - Branch is stacked on `improve-codebase-architecture` (the feature depends on its
   `presentedSheet` / `SelectionEchoGuard` work — it does not apply to `main`).
+
+### Issue 26 outcome (2026-06-30) — Tag-filter menu dot showed grey, not the tag color (branch `fix/26-tag-filter-menu-dot-grey`, off `main`)
+Two real causes, both fixed; user-verified in a live build:
+- **Render (the visible bug):** SwiftUI strips `.foregroundStyle` from SF-Symbol icons
+  inside a native `Menu` (`NSMenu`), so every filter-menu dot rendered grey. Fix: a
+  non-template `NSImage` swatch (`FinderTagColor.menuSwatch`) drawn with the same
+  `nsColor` source of truth as the row dots; the active filter shows a checkmark.
+- **Data (latent):** `PanelModel.availableTags` deduped by name keeping first-seen, so
+  a same-named `.none` tag could shadow the real colored one. Fix:
+  `FinderTag.distinctByName` prefers a colored instance over a same-named `.none`,
+  first-seen order preserved. 6 unit tests (`FinderTagDistinctTests`), **82 green.**
+- **Lessons (this slice):** (1) a clean `xcodebuild test` + relaunch can still pass over
+  a *bad repro* — custom tag color indices are **normalized by `mdworker` on
+  Spotlight-indexed volumes** (Desktop rewrote `Green\n2`→`Green\n1`); fabricate tag
+  test data in non-indexed `/tmp`. (2) The work was recovered from two stashes, one
+  **mislabeled** "issue-29" — verify stash *contents*, not labels.
+- Follow-up (separate): right-align the **row** tag dots into one vertical column under
+  the Name sort arrow (currently they trail the filename at varying x).

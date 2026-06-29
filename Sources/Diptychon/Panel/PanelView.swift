@@ -147,8 +147,14 @@ struct PanelView: View {
                         Label {
                             Text(tag.name)
                         } icon: {
-                            Image(systemName: model.tagFilter == tag.name ? "checkmark.circle.fill" : "circle.fill")
-                                .foregroundStyle(Color(nsColor: tag.color.nsColor ?? .secondaryLabelColor))
+                            // A non-template NSImage swatch keeps its color in the
+                            // menu (SwiftUI strips icon tint there — issue 26); the
+                            // active filter shows a checkmark instead, like "All Tags".
+                            if model.tagFilter == tag.name {
+                                Image(systemName: "checkmark")
+                            } else {
+                                Image(nsImage: tag.color.menuSwatch())
+                            }
                         }
                     }
                 }

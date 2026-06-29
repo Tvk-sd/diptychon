@@ -603,4 +603,21 @@ extension FinderTagColor {
         case .orange: return .systemOrange
         }
     }
+
+    /// A filled-circle swatch as a **non-template** image so it keeps its color
+    /// inside an `NSMenu`. SwiftUI strips `.foregroundStyle` from menu-item SF
+    /// Symbols, which is why the tag-filter dots rendered grey (issue 26); a
+    /// non-template `NSImage` survives the bridge. `.none` draws a hollow ring to
+    /// match the row dot. Shares `nsColor` as the single color source of truth.
+    func menuSwatch(diameter: CGFloat = 10) -> NSImage {
+        NSImage(size: NSSize(width: diameter, height: diameter), flipped: false) { rect in
+            let path = NSBezierPath(ovalIn: rect.insetBy(dx: 0.5, dy: 0.5))
+            if let fill = self.nsColor {
+                fill.setFill(); path.fill()
+            } else {
+                NSColor.tertiaryLabelColor.setStroke(); path.lineWidth = 1; path.stroke()
+            }
+            return true
+        }
+    }
 }
