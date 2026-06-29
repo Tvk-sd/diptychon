@@ -120,9 +120,9 @@ struct SidebarView: View {
             }
         }
         .padding(.horizontal, 12)
-        // Match TopBarView's 36pt height so this field's bottom divider lines up
+        // Match TopBarView's 32pt height so this field's bottom divider lines up
         // with the top bar's divider across the sidebar/panel seam (issue 21).
-        .frame(height: 36)
+        .frame(height: 32)
     }
 
     /// A pinned-folder row. If the folder no longer exists it's greyed and
