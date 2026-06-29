@@ -64,6 +64,8 @@ struct WorkspaceView: View {
                 TagPickerSheet(model: model)
             case .goToFolder:
                 GoToFolderSheet(model: model)
+            case .palette:
+                CommandPaletteSheet(model: model)
             case .collision:
                 EmptyView() // never — collision is the dialog, filtered out by sheetItem
             }
@@ -232,6 +234,13 @@ struct WorkspaceView: View {
     private func installMonitors() {
         if keyMonitor == nil {
             keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+                // ⌘K is the universal entry point — it opens/closes the command
+                // palette even while a text field is focused (issue 19), unlike the
+                // other chords. Checked before the text-field guard below.
+                if case .openPalette? = Keymap.action(for: event) {
+                    model.perform(.openPalette)
+                    return nil
+                }
                 // Don't steal keys while editing a text field (Filter, rename, new
                 // tag): plain keys like ␣/↩/⇥ must reach the field editor.
                 if event.window?.firstResponder is NSText { return event }
