@@ -508,5 +508,9 @@ Two real causes, both fixed; user-verified in a live build:
   Spotlight-indexed volumes** (Desktop rewrote `Green\n2`→`Green\n1`); fabricate tag
   test data in non-indexed `/tmp`. (2) The work was recovered from two stashes, one
   **mislabeled** "issue-29" — verify stash *contents*, not labels.
-- Follow-up (separate): right-align the **row** tag dots into one vertical column under
-  the Name sort arrow (currently they trail the filename at varying x).
+- Follow-up (done, same branch): **row** tag dots now sit in one right-aligned vertical
+  column centered under the Name sort arrow (was: trailing each filename at varying x).
+  Fix in `NameCellView` constraints — dots stack is content-sized + pinned trailing-only
+  (so the single dot hugs the edge, not the left of a stretched frame), name/location
+  bounded by the dots' leading (`<=`) so a long name truncates; trailing inset +2 to
+  center under the header's sort indicator (tuned live with the user).
