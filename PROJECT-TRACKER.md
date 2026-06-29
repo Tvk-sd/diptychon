@@ -127,6 +127,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | — | **Architecture review** — all 5 deepenings (#1 settle-hook, #2 presentedSheet, #3 Panel Source inject, #4 SelectionEchoGuard, #5 compileVisible) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed, user-verified — QA filed #25/#26/#27 (see outcome below) |
 | 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
 | 28 | Keyboard command expansion (Marta-informed) + Open-With favorites | ✅ done on branch `feat/28-keyboard-commands` (off `improve-codebase-architecture`), user-verified — commit `2bdad9d` |
+| — | **Chrome redesign** — toggles → bottom bar; top bar decoupled from sidebar tint; 32pt bands; fold-to-corner | ✅ done on branch `feat/chrome-toggles-bottom-bar`, pushed (`3c5301f`), user-verified |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -512,3 +513,25 @@ end ("all work perfectly"). Spec: `.scratch/diptychon-mvp/issues/28-keyboard-com
   `project.pbxproj`. Verified the build/tests through the regenerated project.
 - Branch is stacked on `improve-codebase-architecture` (the feature depends on its
   `presentedSheet` / `SelectionEchoGuard` work — it does not apply to `main`).
+
+### Chrome redesign (2026-06-30) — toggles to bottom bar + decoupled top bar (branch `feat/chrome-toggles-bottom-bar`, off `main`, pushed `3c5301f`)
+Design pass on the window chrome, user-verified ("perfect") through a build →
+screenshot iteration loop.
+- **View-toggles relocated** (sidebar / split / preview) from the top header into a
+  new full-width **bottom bar**, flat icon style preserved. The whole bar carries
+  one even `sidebarSurface` tint with the vertical seam drawn on top (stacking two
+  materials would darken the overlap — one material, divider above).
+- **Top bar decoupled from the sidebar tint** — now plain black (window background):
+  a traffic-light divider (gap right of the dots mirrors the gap to the window edge)
+  caps the dots into their own cell, then the `Diptychon` name, then the name-divider
+  on the 200px sidebar edge; the remaining width is free space for future displays.
+- **Fold-to-corner:** when the sidebar hides, the bottom toggle + its divider collapse
+  to the left corner (left box 200→44px, toggle un-spaced to the left). The even bar
+  tint means nothing is orphaned, and the decoupled top bar stays fixed — so folding
+  only moves the one toggle, reading as intentional.
+- **Chrome bands unified to 32pt** (from 36): header, nav (`TopBarView`), bottom bar,
+  and the sidebar search field — kept in lockstep so their seams line up across the
+  sidebar/panel boundary.
+- Files: `WorkspaceView.swift` (header + bottom bar), `TopBarView.swift`,
+  `SidebarView.swift` (search-field height). No new `.swift` files → no
+  `xcodegen generate` needed.

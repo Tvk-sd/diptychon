@@ -87,35 +87,69 @@ struct WorkspaceView: View {
             headerBar
             Divider()
             columns
+            Divider()
+            bottomBar
         }
         // Rise under the (hidden) title bar so the header sits at the very top.
         .ignoresSafeArea(.container, edges: .top)
     }
 
-    /// Top band, same height as the search/breadcrumb row below it. Only the left
-    /// cell is a colored box — filled with the sidebar's material so it reads as
-    /// the sidebar's top — holding the traffic lights + sidebar toggle (right
-    /// edge). It keeps a fixed width regardless of fold state, so the toggle never
-    /// moves. The right cell (name + view-toggle icons) sits plain on the window.
+    /// Top band, same height as the search/breadcrumb row below it. Plain on the
+    /// window (same black as the rest), decoupled from the sidebar tint: a
+    /// traffic-light divider caps the dots into their own cell, then the app name,
+    /// then the seam that closes the name cell (aligned with the sidebar edge when
+    /// shown). The remaining width is free space, open for future displays.
     private var headerBar: some View {
         HStack(spacing: 0) {
             HStack(spacing: 0) {
+                // Traffic-light zone: the dots plus a gap on the right mirroring
+                // the gap to the window edge on their left, capped by a divider.
+                Color.clear.frame(width: 84)
+                Divider()
+                Text("Diptychon").font(.headline).offset(y: 0)
+                    .padding(.leading, 12)
                 Spacer(minLength: 0)
+            }
+            .frame(width: 200)
+            .frame(maxHeight: .infinity)
+
+            // Seam closing the name cell (sits on the sidebar edge when shown).
+            Divider()
+
+            // Free black space on the window — open for future displays.
+            Color.clear
+                .frame(maxWidth: .infinity)
+        }
+        // Match the search/breadcrumb row height below.
+        .frame(height: 32)
+    }
+
+    /// Bottom band mirroring `headerBar`: a tinted 200px left box (the sidebar's
+    /// material, reading as the sidebar's bottom) holding the sidebar toggle at
+    /// its right edge, the vertical seam continuing down from the sidebar, and
+    /// the two view-toggle icons pushed to the right. Same flat icon style as the
+    /// header — the toggles keep their exact x-positions, just moved to the floor.
+    private var bottomBar: some View {
+        // Sidebar shown: toggle sits at the 200px sidebar edge. Sidebar hidden:
+        // there's no edge to align to, so the toggle + its seam collapse to the
+        // left corner. The bar's one even tint means nothing is orphaned.
+        let folded = !model.sidebarVisible
+        return HStack(spacing: 0) {
+            HStack(spacing: 0) {
+                if !folded { Spacer(minLength: 0) }
                 headerIcon("sidebar.leading", help: "Show/Hide Sidebar") {
                     model.sidebarVisible.toggle()
                 }
                 .accessibilityIdentifier("toggle-sidebar")
             }
-            .padding(.leading, 70)   // clear the traffic lights
+            .padding(.leading, folded ? 12 : 70)
             .padding(.trailing, 12)
-            .frame(width: 200)
+            .frame(width: folded ? 44 : 200)
             .frame(maxHeight: .infinity)
-            .background(sidebarSurface)
 
             Divider()
 
             HStack(spacing: 12) {
-                Text("Diptychon").font(.headline)
                 Spacer(minLength: 8)
                 headerIcon("rectangle.split.2x1", help: "Show/Hide Right Panel (⌥⌘S)") {
                     model.rightPanelVisible.toggle()
@@ -131,8 +165,10 @@ struct WorkspaceView: View {
             .padding(.horizontal, 12)
             .frame(maxWidth: .infinity)
         }
-        // Match the search/breadcrumb row height below.
-        .frame(height: 36)
+        // Match the header band height and the nav row above the panels.
+        .frame(height: 32)
+        // Whole bar reads as the sidebar's floor — one even material, divider on top.
+        .background(sidebarSurface)
     }
 
     /// The sidebar's tinted material, reused for the left header box so it reads
