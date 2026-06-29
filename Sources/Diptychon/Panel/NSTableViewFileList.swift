@@ -167,6 +167,11 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
 
         func numberOfRows(in tableView: NSTableView) -> Int { parent.items.count }
 
+        /// Custom row view so the table can paint a hover background under the pointer.
+        func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+            HoverRowView()
+        }
+
         func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
             guard row < parent.items.count, let columnID = tableColumn?.identifier.rawValue else { return nil }
             let item = parent.items[row]
@@ -507,6 +512,96 @@ final class FileTableView: NSTableView {
         let work = DispatchWorkItem { [weak self] in self?.beginEdit?(clickedRow) }
         pendingEdit = work
         DispatchQueue.main.asyncAfter(deadline: .now() + NSEvent.doubleClickInterval + 0.05, execute: work)
+    }
+
+    // MARK: Hover highlight
+    // A local `.mouseMoved` monitor (with `acceptsMouseMovedEvents`) is the reliable
+    // path: per-row tracking areas don't hand off cleanly, and a table-level tracking
+    // area is shadowed by the row/cell subviews. The monitor sees every move.
+
+    private var hoveredRow = -1
+    private var moveMonitor: Any?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if let window {
+            window.acceptsMouseMovedEvents = true
+            if moveMonitor == nil {
+                moveMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
+                    self?.updateHover(event)
+                    return event
+                }
+            }
+        } else if let monitor = moveMonitor {
+            NSEvent.removeMonitor(monitor)
+            moveMonitor = nil
+        }
+    }
+
+    private func updateHover(_ event: NSEvent) {
+        guard event.window === window else { setHoveredRow(-1); return }
+        let point = convert(event.locationInWindow, from: nil)
+        setHoveredRow(visibleRect.contains(point) ? row(at: point) : -1)
+    }
+
+    /// Apply hover to the visible rows: the matched row on, every other off. Using
+    /// `enumerateAvailableRowViews` (not per-row tracking of a previous index) keeps
+    /// it correct across row reuse and the two panels' shared mouse monitor.
+    private func setHoveredRow(_ newRow: Int) {
+        guard newRow != hoveredRow else { return }
+        hoveredRow = newRow
+        enumerateAvailableRowViews { rowView, index in
+            (rowView as? HoverRowView)?.isHovered = (index == newRow)
+        }
+    }
+
+    deinit {
+        if let moveMonitor { NSEvent.removeMonitor(moveMonitor) }
+    }
+}
+
+/// Row view that shows a subtle background when the owning table marks it hovered,
+/// suppressed while selected so the two states never fight. Uses a dedicated overlay
+/// subview (inserted below the cells) rather than `drawBackground` / the row's own
+/// layer — NSTableView manages those itself (alternating-row colors) and overwrites
+/// them, but it leaves a foreign subview alone.
+final class HoverRowView: NSTableRowView {
+    private let overlay: NSView = {
+        let view = NSView()
+        view.wantsLayer = true
+        view.layer?.cornerRadius = 5
+        view.layer?.backgroundColor = NSColor.secondaryLabelColor.withAlphaComponent(0.16).cgColor
+        view.isHidden = true
+        return view
+    }()
+
+    var isHovered = false {
+        didSet { if isHovered != oldValue { updateOverlay() } }
+    }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        addSubview(overlay, positioned: .below, relativeTo: nil)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) not used") }
+
+    override var isSelected: Bool {
+        didSet { if isSelected != oldValue { updateOverlay() } }
+    }
+
+    override func layout() {
+        super.layout()
+        overlay.frame = bounds.insetBy(dx: 2, dy: 1)
+    }
+
+    private func updateOverlay() {
+        // Re-attach + re-frame defensively: NSTableView reuses row views and can strip
+        // foreign subviews, so an overlay added only in init may be gone by hover time.
+        if overlay.superview !== self {
+            addSubview(overlay, positioned: .below, relativeTo: nil)
+        }
+        overlay.frame = bounds.insetBy(dx: 2, dy: 1)
+        overlay.isHidden = !(isHovered && !isSelected)
     }
 }
 
