@@ -15,6 +15,8 @@ struct PanelView: View {
     /// Commit an inline rename (issue 11) — owned by the workspace. Returns false
     /// if rejected (collision / empty / unchanged) so the cell reverts.
     var onRename: (_ item: FileItem, _ newName: String) -> Bool = { _, _ in false }
+    /// Add files to the virtual staging set (issue 20) — owned by the workspace.
+    var onAddToStaging: (_ urls: [URL]) -> Void = { _ in }
     /// Stable a11y id for this panel's file-list table (`panel-left`/`panel-right`),
     /// so UI tests can target it by id instead of a fragile positional index (issue 23).
     var tableIdentifier: String = ""
@@ -26,14 +28,7 @@ struct PanelView: View {
             // (issue 21); each panel keeps a minimal current-folder label so both
             // panels' locations stay visible.
             HStack(spacing: 6) {
-                if model.showingStaging {
-                    // Showing the virtual staging set (issue 20), not a folder.
-                    Label("Staging", systemImage: "tray.full")
-                        .font(.headline)
-                        .lineLimit(1)
-                        .foregroundStyle(isActive ? .primary : .secondary)
-                        .layoutPriority(-1)
-                } else if model.isSearching {
+                if model.isSearching {
                     // While searching, the label reports progress / the result set
                     // instead of the folder name (issue 21 slice 3).
                     Label(model.isSearchRunning
@@ -81,18 +76,13 @@ struct PanelView: View {
                 ProgressView("Loading…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded:
-                if model.showingStaging && model.visibleItems.isEmpty {
-                    ContentUnavailableView {
-                        Label("Staging is empty", systemImage: "tray")
-                    } description: {
-                        Text("Drag files here, or press ⌘⇧S to add the selection.")
-                    }
-                } else if model.isSearching && model.visibleItems.isEmpty {
+                if model.isSearching && model.visibleItems.isEmpty {
                     if model.isSearchRunning {
                         ProgressView("Searching…")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         ContentUnavailableView.search(text: model.searchQuery)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 } else {
                     PanelFileList(
@@ -101,6 +91,7 @@ struct PanelView: View {
                         sortOrder: $model.sortOrder,
                         onDrop: onDrop,
                         onPin: onPin,
+                        onAddToStaging: onAddToStaging,
                         renameRequest: model.inlineRenameRequest,
                         onRename: onRename,
                         accessibilityID: tableIdentifier
@@ -129,6 +120,7 @@ struct PanelView: View {
                         systemImage: "exclamationmark.triangle",
                         description: Text(message)
                     )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
         }

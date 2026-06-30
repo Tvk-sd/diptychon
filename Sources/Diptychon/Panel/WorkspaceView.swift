@@ -19,8 +19,8 @@ struct WorkspaceView: View {
     private var minContentWidth: CGFloat {
         let sidebar: CGFloat = model.sidebarVisible ? 201 : 0          // 200 + divider
         let panels: CGFloat = model.rightPanelVisible ? 180 + 180 + 1 : 320
-        let preview: CGFloat = model.previewVisible ? 301 : 0          // 300 + divider
-        return sidebar + panels + preview
+        let aux: CGFloat = model.rightPane != .none ? 301 : 0          // preview/staging: 300 + divider
+        return sidebar + panels + aux
     }
 
     var body: some View {
@@ -157,10 +157,19 @@ struct WorkspaceView: View {
                 .keyboardShortcut("s", modifiers: [.command, .option])
                 .accessibilityIdentifier("toggle-right-panel")
                 headerIcon("sidebar.right", help: "Show Preview (⇧⌘P)") {
-                    model.previewVisible.toggle()
+                    model.togglePreviewPane()
                 }
+                .foregroundStyle(model.rightPane == .preview ? Color.accentColor : .secondary)
                 .keyboardShortcut("p", modifiers: [.command, .shift])
                 .accessibilityIdentifier("toggle-preview")
+
+                // Staging toggle, set apart by a full-height seam (issue 20).
+                Divider()
+                headerIcon("tray.full", help: "Show Staging (⌘⇧B)") {
+                    model.toggleStaging()
+                }
+                .foregroundStyle(model.rightPane == .staging ? Color.accentColor : .secondary)
+                .accessibilityIdentifier("toggle-staging")
             }
             .padding(.horizontal, 12)
             .frame(maxWidth: .infinity)
@@ -206,9 +215,17 @@ struct WorkspaceView: View {
                 Divider()
                 panels
             }
-            if model.previewVisible {
+            switch model.rightPane {
+            case .none:
+                EmptyView()
+            case .preview:
                 Divider()
                 PreviewPane(model: model)
+                    .frame(width: 300)
+            case .staging:
+                Divider()
+                StagingPaneView(model: model.stagingPanel,
+                                onDrop: { model.addToStaging($0) })
                     .frame(width: 300)
             }
         }
@@ -229,6 +246,7 @@ struct WorkspaceView: View {
                           onGoToFolder: { model.active = .left; model.presentedSheet = .goToFolder },
                           onPin: { model.pin($0) },
                           onRename: { model.renameInline($0, to: $1) },
+                          onAddToStaging: { model.addToStaging($0) },
                           tableIdentifier: "panel-left")
                 .frame(minWidth: 180)
                 PanelView(model: model.right, isActive: model.active == .right,
@@ -236,6 +254,7 @@ struct WorkspaceView: View {
                           onGoToFolder: { model.active = .right; model.presentedSheet = .goToFolder },
                           onPin: { model.pin($0) },
                           onRename: { model.renameInline($0, to: $1) },
+                          onAddToStaging: { model.addToStaging($0) },
                           tableIdentifier: "panel-right")
                 .frame(minWidth: 180)
             }
@@ -245,6 +264,7 @@ struct WorkspaceView: View {
                       onGoToFolder: { model.active = .left; model.presentedSheet = .goToFolder },
                       onPin: { model.pin($0) },
                       onRename: { model.renameInline($0, to: $1) },
+                      onAddToStaging: { model.addToStaging($0) },
                       tableIdentifier: "panel-left")
                 .frame(minWidth: 320)
         }
@@ -306,7 +326,7 @@ struct WorkspaceView: View {
                     // and the preview pane (right, issue 14). When the right panel is
                     // hidden the left panel spans that whole area.
                     let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX      // 200 + divider
-                    let rightEdge = model.previewVisible ? bounds.maxX - 301.0 : bounds.maxX
+                    let rightEdge = model.rightPane != .none ? bounds.maxX - 301.0 : bounds.maxX
                     // Only clicks inside the panels re-activate a panel. Clicks in the
                     // sidebar or preview must NOT — else clicking the sidebar with the
                     // right panel active would flip to left and navigate the wrong side.

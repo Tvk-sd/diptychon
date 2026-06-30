@@ -11,6 +11,11 @@ import Observation
 final class WorkspaceModel {
     enum Side { case left, right }
 
+    /// What occupies the right auxiliary pane (issue 20). Preview and Staging are
+    /// mutually exclusive — they share the one slot. Modelled as an enum so the two
+    /// can never both be "on".
+    enum RightPane { case none, preview, staging }
+
     /// A copy-or-move write paused on the collision-resolution step.
     struct PendingWrite: Identifiable {
         enum Kind { case copy, move }
@@ -50,8 +55,12 @@ final class WorkspaceModel {
     let left: PanelModel
     let right: PanelModel
     /// The shared virtual staging set (issue 20): files gathered from many folders,
-    /// shown when a panel is toggled into staging mode. Session-only.
+    /// shown in the right auxiliary pane. Session-only.
     let staging: StagingStore
+    /// The panel that renders the staging set in the right pane. A real `PanelModel`
+    /// whose `PanelSource` is the staging set, so it reuses the file list's selection
+    /// / sort / drag / context-menu (which the operate-on-set slice needs).
+    let stagingPanel: PanelModel
     let coordinator = OperationCoordinator()
     private let quickLook = QuickLookController()
     private let openWith = OpenWithController()
@@ -79,11 +88,23 @@ final class WorkspaceModel {
         if case .collision = presentedSheet { nil } else { presentedSheet }
     }
 
-    /// Whether the inline preview pane is shown (issue 14). Persisted across
-    /// launches so it stays where the user left it.
-    var previewVisible = UserDefaults.standard.bool(forKey: "previewVisible") {
-        didSet { UserDefaults.standard.set(previewVisible, forKey: "previewVisible") }
+    /// What the right auxiliary pane shows: nothing, the file Preview (issue 14), or
+    /// the virtual Staging set (issue 20). Only the preview choice is persisted —
+    /// staging starts hidden each launch (the set is session-only, empty at launch).
+    var rightPane: RightPane = UserDefaults.standard.bool(forKey: "previewVisible") ? .preview : .none {
+        didSet {
+            // Persist only whether preview was the chosen pane; entering staging must
+            // not clear a remembered preview preference.
+            if rightPane != .staging {
+                UserDefaults.standard.set(rightPane == .preview, forKey: "previewVisible")
+            }
+        }
     }
+
+    /// Toggle the file preview in the right pane (⇧⌘P / bottom-bar). Off-swaps staging.
+    func togglePreviewPane() { rightPane = (rightPane == .preview) ? .none : .preview }
+    /// Toggle the staging set in the right pane (⌘⇧B / bottom-bar). Off-swaps preview.
+    func toggleStaging() { rightPane = (rightPane == .staging) ? .none : .staging }
 
     /// Whether the left sidebar (places + pinned folders) is shown (issue 16).
     /// Defaults to true (a registered default in `DiptychonApp`). Persisted.
@@ -120,9 +141,12 @@ final class WorkspaceModel {
     init() {
         let staging = StagingStore()
         self.staging = staging
-        // Panels pull the staged set when toggled into staging mode (issue 20).
-        left = PanelModel(directory: .startDirectory, stagedURLs: { staging.urls })
-        right = PanelModel(directory: .startDirectory, stagedURLs: { staging.urls })
+        left = PanelModel(directory: .startDirectory)
+        right = PanelModel(directory: .startDirectory)
+        // The staging pane is a panel whose source is the staging set (ADR 0003) —
+        // `StagingSource` reads the current URLs on each load.
+        stagingPanel = PanelModel(directory: .startDirectory,
+                                  makeSource: { _, _ in StagingSource(urls: staging.urls) })
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
         coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
@@ -208,25 +232,25 @@ final class WorkspaceModel {
             write(.move, sources: activeModel.selectionURLs, into: inactiveModel.directory)
         case .openPalette: togglePalette()
         case .addToStaging: addSelectionToStaging()
-        case .toggleStaging: activeModel.showingStaging.toggle()
+        case .toggleStaging: toggleStaging()
         }
     }
 
     // MARK: - Virtual staging (issue 20)
 
     /// Add the Active Panel's selection (from whatever folder) to the shared staging
-    /// set, then re-list any panel currently showing staging so the additions appear.
+    /// set — the ⌘⇧S path.
     private func addSelectionToStaging() {
-        let urls = activeModel.selectionURLs
-        guard !urls.isEmpty else { return }
-        staging.add(urls)
-        refreshStagingPanels()
+        addToStaging(activeModel.selectionURLs)
     }
 
-    /// Refresh whichever panel(s) are showing the staging set (its contents changed).
-    private func refreshStagingPanels() {
-        if left.showingStaging { left.refresh() }
-        if right.showingStaging { right.refresh() }
+    /// Add specific files to the shared staging set (context menu / drag-to-stage),
+    /// re-list the staging pane, and reveal it so the user sees where they landed.
+    func addToStaging(_ urls: [URL]) {
+        guard !urls.isEmpty else { return }
+        staging.add(urls)
+        stagingPanel.refresh()
+        if rightPane != .staging { rightPane = .staging }
     }
 
     // MARK: - Command palette (issue 19)

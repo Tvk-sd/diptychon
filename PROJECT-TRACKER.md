@@ -599,3 +599,24 @@ First staging slice, user-verified in the running app (stage across folders → 
 - Tests: **92 green** (3 new `StagingSourceTests`: cross-folder load, missing-flag, store dedup/order).
 - Scope deferred: header button / context-menu / drag-to-stage (#31), operate-on-set (#32),
   remove/clear + missing-item greying (#33).
+
+### Issue 31 staging add-surface + surfacing pivot to the auxiliary pane (2026-06-30, branch `feat/31-staging-add-surface`)
+User-verified ("looks very well"). Live testing of #30's in-place swap reversed the
+**Option A** decision → **A′**: Staging renders in the **right auxiliary pane** (where the
+file Preview sits), mutually exclusive with Preview, toggled from the **bottom bar** (tray
+icon + full-height divider). Both file panels stay real directories — preserves the diptych
+without a third *file* pane. The swap felt wrong because it sacrificed a directory view; the
+staging workflow wants source + destination + set visible at once.
+- **Kept (data layer):** `StagingStore`, `StagingSource` unchanged. Add surfaces: ⌘⇧S
+  (`addToStaging`), context-menu "Add to Staging" (new `onAddToStaging` through the
+  `FileListView` seam), drag-onto-pane. All auto-reveal the pane.
+- **New surfacing:** `WorkspaceModel.RightPane` enum {none, preview, staging} (preview XOR
+  staging, persists only preview); a dedicated `stagingPanel: PanelModel` whose source is a
+  `StagingSource` (reuses `PanelFileList` → selection/sort/drag/menu for #32); `StagingPaneView`
+  (header + list + drop-target empty state). Bottom-bar `tray.full` toggle (⌘⇧B) + palette command.
+- **Removed:** `PanelModel.showingStaging` / `stagedURLs` / the in-place reload branch and the
+  per-panel tray header button (the #30 swap mechanism) — replaced by the pane.
+- **Bug fixed:** empty-state `ContentUnavailableView`s now `.frame(maxHeight: .infinity)` — they
+  were collapsing the panel column and dropping the path bar (visible on empty folder/search/staging).
+- Tests: **95 green** (`WorkspaceStagingTests` rewritten: add reveals pane + dedup, empty add no-op,
+  preview/staging mutual exclusion). Exclusivity constraint dropped from #32 (both panels stay dirs).

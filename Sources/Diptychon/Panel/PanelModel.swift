@@ -48,11 +48,6 @@ final class PanelModel {
     /// True while a search walk is in flight — drives the "Searching…" state so the
     /// panel never shows the stale directory listing under a search header.
     private(set) var isSearchRunning = false
-    /// When true, the panel shows the shared **staging set** (issue 20) instead of
-    /// its `directory` — a temporary source swap (ADR 0003), kept so the panel still
-    /// holds its `directory` and toggling back is instant. Clears search/filter like
-    /// a navigation, since those are directory-scoped.
-    var showingStaging = false { didSet { afterStagingToggle() } }
     /// Column sort order, driven by the `Table` header.
     var sortOrder = [KeyPathComparator(\FileItem.name)] { didSet { recomputeVisible() } }
     /// Current row selection (lifted here so the Commander gesture can act on it).
@@ -93,18 +88,11 @@ final class PanelModel {
     /// directory source (ADR 0003). Rebuilt per load since directory/showHidden change.
     private let makeSource: (URL, Bool) -> PanelSource
 
-    /// Reads the current staged URLs when the panel is showing the staging set
-    /// (issue 20). Injected so the model stays decoupled from where the set lives
-    /// (the `WorkspaceModel`); defaults to empty for plain directory panels/tests.
-    private let stagedURLs: () -> [URL]
-
     init(directory: URL,
          makeSource: @escaping (URL, Bool) -> PanelSource =
-             { LocalDirectorySource(directory: $0, includeHidden: $1) },
-         stagedURLs: @escaping () -> [URL] = { [] }) {
+             { LocalDirectorySource(directory: $0, includeHidden: $1) }) {
         self.directory = directory
         self.makeSource = makeSource
-        self.stagedURLs = stagedURLs
     }
 
     var title: String { directory.path }
@@ -182,17 +170,6 @@ final class PanelModel {
         reload()
     }
 
-    /// Swapping between the directory and the staging set is like a navigation: the
-    /// directory-scoped search/filter no longer apply, and the prior selection (URLs
-    /// from a different listing) is meaningless against the new rows.
-    private func afterStagingToggle() {
-        searchQuery = ""
-        filter = ""
-        tagFilter = nil
-        selection = []
-        reload()
-    }
-
     /// Debounced recursive search of the current subtree. Cancels any in-flight
     /// walk first (so each keystroke supersedes the last); an empty query clears
     /// results and returns to the normal directory listing.
@@ -228,12 +205,7 @@ final class PanelModel {
     private func reload(showLoading: Bool = true) {
         loadTask?.cancel()
         startWatching()
-        // The staging set is a source swap (issue 20): build a `StagingSource` from
-        // the shared set instead of listing `directory`. The panel keeps `directory`
-        // so toggling back needs no reload of state.
-        let source: PanelSource = showingStaging
-            ? StagingSource(urls: stagedURLs())
-            : makeSource(directory, showHidden)
+        let source = makeSource(directory, showHidden)
         if showLoading { state = .loading }
         loadTask = Task {
             do {
