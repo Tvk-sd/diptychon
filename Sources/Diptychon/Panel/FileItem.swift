@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 
 /// One row in a Panel: a single entry from whatever the Panel's `PanelSource`
 /// lists. In the MVP that is always a file or folder on disk, but the type is
@@ -20,6 +21,10 @@ struct FileItem: Identifiable, Hashable {
     /// Apple Finder tags read from the file's xattr (issue 08). Part of equality
     /// so a tag change marks the row as changed on reload.
     var tags: [FinderTag] = []
+    /// Finder-style "Kind" (issue 29): "Folder", "PNG image", "PDF document", …
+    /// Derived from the file's `UTType` at list time. Part of equality so a type
+    /// change marks the row changed on reload, like `size`/`tags`.
+    var kind: String = ""
     /// Containing folder shown under search (issue 21 slice 3): the match's parent
     /// path **relative to the search root**. `nil` outside search and for direct
     /// children of the root (no location to disambiguate).
@@ -35,4 +40,14 @@ struct FileItem: Identifiable, Hashable {
     // `KeyPathComparator` needs concrete keypaths. Missing values sort lowest.
     var sizeForSort: Int64 { size ?? -1 }
     var dateForSort: Date { modificationDate ?? .distantPast }
+
+    /// Short "Type" string (issue 29): the uppercased file extension — "PDF", "PNG",
+    /// "TXT". Folders are "Folder". Extension-less files fall back to the content
+    /// type's canonical extension, then a dash (never blank noise).
+    static func kind(for url: URL, isDirectory: Bool, contentType: UTType?) -> String {
+        if isDirectory { return "Folder" }
+        let ext = url.pathExtension
+        if !ext.isEmpty { return ext.uppercased() }
+        return contentType?.preferredFilenameExtension?.uppercased() ?? "—"
+    }
 }

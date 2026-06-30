@@ -24,6 +24,7 @@ struct StagingSource: PanelSource {
         .isDirectoryKey,
         .isHiddenKey,
         .tagNamesKey,
+        .contentTypeKey,
     ]
 
     func load() async throws -> [FileItem] {
@@ -54,7 +55,8 @@ struct StagingSource: PanelSource {
                     modificationDate: values?.contentModificationDate,
                     isDirectory: isDir,
                     isHidden: values?.isHidden ?? false,
-                    tags: tags
+                    tags: tags,
+                    kind: FileItem.kind(for: url, isDirectory: isDir, contentType: values?.contentType)
                 )
             }
         }.value

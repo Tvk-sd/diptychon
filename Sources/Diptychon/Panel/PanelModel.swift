@@ -48,8 +48,9 @@ final class PanelModel {
     /// True while a search walk is in flight — drives the "Searching…" state so the
     /// panel never shows the stale directory listing under a search header.
     private(set) var isSearchRunning = false
-    /// Column sort order, driven by the `Table` header.
-    var sortOrder = [KeyPathComparator(\FileItem.name)] { didSet { recomputeVisible() } }
+    /// Column sort order, driven by the `Table` header. Default: most recently
+    /// modified first (newest at top), the standard file-manager view (issue 29).
+    var sortOrder = [KeyPathComparator(\FileItem.dateForSort, order: .reverse)] { didSet { recomputeVisible() } }
     /// Current row selection (lifted here so the Commander gesture can act on it).
     var selection = Set<FileItem.ID>()
     /// Bumped to ask the list to begin an inline rename on the selected row (issue
