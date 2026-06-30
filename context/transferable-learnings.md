@@ -371,6 +371,78 @@ sink the feature, and refuse to polish the safe part first.
 
 ---
 
+## 15. JTBD is a *framing* instrument — it moves the question from feature to job, and scope + value + the right test all fall out
+
+**Diptychon moment.** Issue 18 (operation history) was triaged and half-planned as a
+full scrubbable timeline — until the PM stopped it cold: *"is this git with extra
+steps, just for files? who's the user?"* Re-stating the **job** — *the bulk
+reorganiser in the "wait, did I just break my folder structure?" moment* — did three
+things at once. (a) It separated the part already solved (the reversible spine, blind
+⌘Z) from the part actually being added (*legibility* + jump-to-a-point). (b) It exposed
+that the triggering moment is *occasional* — so the risk was **demand** ("will anyone
+reach for this?"), not feasibility. (c) It handed us the smallest evidence test for
+*that* risk: ship **Tier 1**, a one-file undo *toast* ("Undone — Moved 12 items"), and
+watch whether people start wishing they could see further back. We explicitly refused
+the git-graph — heavy, and *wrong*, since the undo is linear (LIFO), not branching.
+
+**Principle.** JTBD isn't documentation you write after — it's a **framing lens that
+moves the unit of analysis from the *artifact* (the feature) to the *motivation* (the
+job)**. It sits *upstream* of both scoping and value, which is why naming it a "scoping
+instrument" or a "value instrument" undersells it — those are *effects*, not the thing.
+Once you measure against the job, three things become decidable that weren't: **scope**
+(cut whatever the job doesn't need), **value** (it lives in the job, not the feature —
+so "does this serve the job?" replaces "is this cool?"), and **the right test** (the job
+says whether the risk is *wanting it* or *building it*). Concretely, saying the job out
+loud (i) splits "already solved" from "what I'm really adding," (ii) classifies the risk
+as *demand* vs *feasibility*, and (iii) yields the cheapest probe that retires it. For
+demand risk, ship the **thinnest real thing that makes the job legible** and let appetite
+pull the heavy version. (It also decouples *problem* from *solution* — the stable job
+from the disposable feature — which is what lets you see an oversized solution for what
+it is. §14 generalised from feasibility to **value/demand** risk; pairs with §4.)
+
+**Where it transfers.** This is the single most efficient way to **steer an AI builder**.
+An AI will happily build whatever you point it at — so "what's cool to build" quietly
+wins unless something forces "what job earns the build." A one-sentence JTBD is that
+forcing function: it keeps the agent scoped to value, and AI features are *demand-risk
+machines* — every capability feels valuable, demos beautifully, and sits unused. Before
+building the agent / panel / automation, write the job, ask *"is the hard part wanting
+it or building it?"*, and aim the probe at that axis: a fake-door or a legibility toast
+for demand, a working spike for feasibility. The "value check / Eignungscheck" before
+the build is what separates a product from a pile of capabilities.
+
+---
+
+## 16. A thin *real* slice is the cheapest way to discover the design is wrong — if the core is separable from the surface
+
+**Diptychon moment.** The staging panel (#20). We deliberately chose **Option A** —
+a file panel *swaps its source* to show the staging set — and built it as the #30/#31
+slices, tests and all. Thirty seconds of using it live exposed what the plan couldn't:
+swapping a panel *sacrifices a whole directory view*, but staging's job needs **source
+panel + destination panel + the set visible at once**. We reversed to **Option A′**:
+staging lives in the right auxiliary pane, both file panels stay directories. The
+reversal was *cheap* — because #30 had split the **data layer** (`StagingStore` /
+`StagingSource`, surfacing-agnostic) from the **surfacing**, the pivot threw away only
+UI, never the model. The same separation then made the operate-on-set slice (#32) easy,
+since the staging pane was already a real `PanelModel` with selection.
+
+**Principle.** Some design errors are only visible *in the hand*, never in the plan. A
+thin **working** slice — not a mockup — is the cheapest instrument to find them, **on
+one condition**: you've separated the durable core from the disposable surface, so being
+wrong about presentation costs only the presentation. Plan to be wrong about surfacing;
+architect so that being wrong is cheap. (Distinct from §14: that's a *throwaway* probe
+for feasibility; this is a *shippable* slice for UX/design discovery. Pairs with §6's
+one-well-placed-seam.)
+
+**Where it transfers.** AI products where the *interaction shape* is the real unknown —
+chat vs canvas vs inline vs ambient/background. Build the capability behind a seam and
+try the cheapest surfacing first, **expecting to move it**. The teams that re-shape an
+AI interaction model cheaply are the ones who kept the model/tool layer independent of
+how it's presented; the ones who fused capability to a chat transcript pay for it on
+every pivot. Ship a real slice early — its job is to make the wrong surfacing *obvious
+while it's still cheap to change*.
+
+---
+
 ## How to use this doc
 - **When starting a new product** (especially AI): read §1 and §5 *before* you
   design the second pane or give an agent write-access. They're the expensive
@@ -390,6 +462,12 @@ sink the feature, and refuse to polish the safe part first.
 - **When deciding how to prototype a feature:** §14 — aim the prototype at your
   riskiest assumption, not at product-likeness; run real code on real input over a
   pretty mockup of the safe part.
+- **When scoping a new feature / bet (or steering an AI to build one):** §15 — state
+  the JTBD first; it splits solved-from-new, names demand-vs-feasibility risk, and
+  hands you the smallest test. Ship the thinnest legible version before the heavy one.
+- **When the interaction shape is the real unknown:** §16 — ship a thin *working*
+  slice to find the wrong surfacing in the hand, with the core split from the surface
+  so the pivot is cheap.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).
