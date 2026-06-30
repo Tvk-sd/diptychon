@@ -32,7 +32,7 @@ struct WorkspaceView: View {
         // User may have just granted access in System Settings → if a panel was
         // blocked and access is now there, re-list it (no restart, AC3).
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            model.recheckFullDiskAccess()
+            model.windowDidBecomeActive()
         }
         .confirmationDialog(
             "Items already exist in the destination",
@@ -225,7 +225,9 @@ struct WorkspaceView: View {
             case .staging:
                 Divider()
                 StagingPaneView(model: model.stagingPanel,
-                                onDrop: { model.addToStaging($0) })
+                                onDrop: { model.addToStaging($0) },
+                                onRemove: { model.removeFromStaging($0) },
+                                onClear: { model.clearStaging() })
                     .frame(width: 300)
             }
         }

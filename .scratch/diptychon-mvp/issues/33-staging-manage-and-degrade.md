@@ -22,13 +22,12 @@ End-to-end behavior:
 
 ## Acceptance criteria
 
-- [~] Items can be removed from the staging set individually and via clear-all.
-      (Per-item remove via ⌫ landed in #32 — `StagingStore.remove`; remaining: clear-all
-      + a context-menu/hover affordance for mouse users.)
-- [x] Remove and clear-all never touch the underlying files on disk. (⌫ is non-destructive.)
-- [ ] Staged items that no longer exist are greyed and excluded from operation sources.
-      (`FileItem.isMissing` is set by `StagingSource`; still needs the grey rendering +
-      exclusion from operation sources.)
+- [x] Items can be removed from the staging set individually and via clear-all.
+      (⌫ unstages; right-click "Remove from Staging" for mouse; ✕ header button clears all.)
+- [x] Remove and clear-all never touch the underlying files on disk.
+- [x] Staged items that no longer exist are greyed and excluded from operation sources.
+      (`FileItem.isMissing` → dimmed row + filtered out of `operationSourceURLs`. Re-validated
+      on app reactivation, since the scattered staged files carry no FSEvents watch.)
 
 ## Blocked by
 

@@ -11,6 +11,10 @@ struct StagingPaneView: View {
     let model: PanelModel
     /// Add dropped files to the staging set (drag-to-stage) — owned by the workspace.
     let onDrop: (_ urls: [URL]) -> Void
+    /// Remove files from the staging set (context menu) — owned by the workspace.
+    var onRemove: (_ urls: [URL]) -> Void = { _ in }
+    /// Empty the staging set (clear-all) — owned by the workspace.
+    var onClear: () -> Void = {}
 
     var body: some View {
         @Bindable var model = model
@@ -20,6 +24,18 @@ struct StagingPaneView: View {
                     .font(.headline)
                     .lineLimit(1)
                 Spacer(minLength: 4)
+
+                // Clear-all (issue 33). Only when there's something to clear;
+                // non-destructive (files stay on disk).
+                if !model.visibleItems.isEmpty {
+                    Button(action: onClear) {
+                        Image(systemName: "xmark.circle")
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                    .help("Clear staging (does not delete files)")
+                    .fixedSize()
+                }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -47,6 +63,7 @@ struct StagingPaneView: View {
                         sortOrder: $model.sortOrder,
                         onDrop: { urls, _ in onDrop(urls) },
                         onPin: { _ in },
+                        onRemoveFromStaging: onRemove,
                         renameRequest: nil,
                         onRename: { _, _ in false },
                         accessibilityID: "panel-staging"

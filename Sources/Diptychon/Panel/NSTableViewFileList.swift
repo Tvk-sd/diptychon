@@ -15,6 +15,9 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     let onPin: (_ folder: URL) -> Void
     /// Add the given files to the virtual staging set (issue 20) — context menu.
     let onAddToStaging: (_ urls: [URL]) -> Void
+    /// Remove files from the staging set (issue 33). Non-nil only for the Staging
+    /// pane's list — its presence swaps "Add to Staging" for "Remove from Staging".
+    let onRemoveFromStaging: ((_ urls: [URL]) -> Void)?
     let renameRequest: UUID?
     let onRename: (_ item: FileItem, _ newName: String) -> Bool
     /// Stable accessibility identifier for the table (e.g. `panel-left`), so UI
@@ -30,6 +33,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
         onPin: @escaping (_ folder: URL) -> Void,
         onAddToStaging: @escaping (_ urls: [URL]) -> Void = { _ in },
+        onRemoveFromStaging: ((_ urls: [URL]) -> Void)? = nil,
         renameRequest: UUID?,
         onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
         accessibilityID: String = ""
@@ -40,6 +44,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         self.onDrop = onDrop
         self.onPin = onPin
         self.onAddToStaging = onAddToStaging
+        self.onRemoveFromStaging = onRemoveFromStaging
         self.renameRequest = renameRequest
         self.onRename = onRename
         self.accessibilityID = accessibilityID
@@ -184,7 +189,8 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
 
             // Dim hidden files (only ever present when "show hidden" is on) so they
             // read as secondary. Reset every time — cells are reused across rows.
-            cell.alphaValue = item.isHidden ? 0.45 : 1.0
+            // Dim hidden files and staged items whose file is gone (issue 20/33).
+            cell.alphaValue = (item.isHidden || item.isMissing) ? 0.45 : 1.0
 
             switch columnID {
             case Column.name:
@@ -430,13 +436,22 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             openWith.submenu = sub
             menu.addItem(openWith)
 
-            // "Add to Staging" — gather these files into the virtual staging set
+            // In the Staging pane: "Remove from Staging" (unstage, no disk delete).
+            // Everywhere else: "Add to Staging" — gather these files into the set
             // (issue 20), regardless of which folder they live in.
             menu.addItem(.separator())
-            let stage = NSMenuItem(title: "Add to Staging", action: #selector(addToStagingClicked(_:)), keyEquivalent: "")
-            stage.target = self
-            stage.representedObject = urls
-            menu.addItem(stage)
+            if parent.onRemoveFromStaging != nil {
+                let unstage = NSMenuItem(title: "Remove from Staging",
+                                         action: #selector(removeFromStagingClicked(_:)), keyEquivalent: "")
+                unstage.target = self
+                unstage.representedObject = urls
+                menu.addItem(unstage)
+            } else {
+                let stage = NSMenuItem(title: "Add to Staging", action: #selector(addToStagingClicked(_:)), keyEquivalent: "")
+                stage.target = self
+                stage.representedObject = urls
+                menu.addItem(stage)
+            }
 
             // "Add to Sidebar" for a single folder (issue 16, slice 2). Finder
             // pins one folder at a time, so this only appears for a lone folder.
@@ -475,6 +490,11 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         @objc private func addToStagingClicked(_ sender: NSMenuItem) {
             guard let urls = sender.representedObject as? [URL] else { return }
             parent.onAddToStaging(urls)
+        }
+
+        @objc private func removeFromStagingClicked(_ sender: NSMenuItem) {
+            guard let urls = sender.representedObject as? [URL] else { return }
+            parent.onRemoveFromStaging?(urls)
         }
 
         @objc private func openClicked(_ sender: NSMenuItem) {

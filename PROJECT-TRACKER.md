@@ -635,3 +635,18 @@ User-verified. The Staging pane is now a usable operation **source**; no new ope
 - `refreshBoth()` now also re-lists `stagingPanel` after any settled op.
 - Tests: **98 green** (focus→source routing, ⌫ unstage, ⌫ no-op when unfocused).
 - Deferred to #33: clear-all + mouse unstage affordance; missing-item greying + operation-source exclusion.
+
+### Issue 33 staging — manage & degrade (final slice) (2026-06-30, branch `feat/33-staging-manage-degrade`)
+User-verified. Completes the virtual staging feature (#30→#33).
+- **Missing items:** `FileItem.isMissing` rows dim (NSTableView `alphaValue`, shared with hidden
+  files) and are filtered out of a new `operationSourceURLs` (copy/move/trash/tag skip ghosts; tag
+  picker too). Re-validated on app reactivation via `windowDidBecomeActive` (extends the existing
+  Full-Disk-Access recheck) — the scattered staged files carry no FSEvents watch by design, so
+  returning to the app is the refresh trigger for external Finder deletes.
+- **Manage:** ⌫ unstages (from #32); right-click **"Remove from Staging"** (a new optional
+  `onRemoveFromStaging` on the list seam — its presence swaps the "Add to Staging" item); a ✕
+  header button **clears all**. `StagingStore.remove`/`clear`; `WorkspaceModel.removeFromStaging`/
+  `clearStaging`. All non-destructive (files stay on disk).
+- Tests: **100 green** (remove/clear non-destructive; missing-item exclusion integration test with a
+  real temp file + a phantom URL).
+- **Feature complete.** Stack `feat/30…`→`feat/33…` local, unpushed; parent issue #20.

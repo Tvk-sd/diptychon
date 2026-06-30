@@ -31,4 +31,7 @@ final class StagingStore {
         let drop = Set(urls)
         self.urls.removeAll { drop.contains($0) }
     }
+
+    /// Empty the set (clear-all). Non-destructive — files stay on disk.
+    func clear() { urls.removeAll() }
 }

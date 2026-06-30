@@ -68,6 +68,36 @@ final class WorkspaceStagingTests: XCTestCase {
         XCTAssertEqual(model.staging.urls, [a, b], "no unstage unless staging holds focus")
     }
 
+    func testRemoveFromStagingAndClearAreNonDestructiveToTheSet() {
+        let model = makeModel()
+        model.addToStaging([a, b])
+        model.removeFromStaging([a])
+        XCTAssertEqual(model.staging.urls, [b], "remove drops just the named item")
+        model.clearStaging()
+        XCTAssertTrue(model.staging.isEmpty, "clear empties the set")
+    }
+
+    func testMissingStagedItemsAreExcludedFromOperationSources() async throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("stg-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let present = dir.appendingPathComponent("here.txt")
+        try Data("x".utf8).write(to: present)
+        let gone = dir.appendingPathComponent("gone.txt")   // never created → missing
+
+        let model = makeModel()
+        model.addToStaging([present, gone])   // reveals + focuses staging
+        // Wait for the staging pane to list both rows.
+        let deadline = Date().addingTimeInterval(2)
+        while model.stagingPanel.visibleItems.count < 2, Date() < deadline {
+            try? await Task.sleep(nanoseconds: 5_000_000)
+        }
+        model.stagingPanel.selection = [present, gone]
+        XCTAssertEqual(model.operationSourceURLs, [present],
+                       "a missing staged item is not a copy/move/trash/tag source")
+    }
+
     func testPreviewAndStagingShareTheRightPaneExclusively() {
         let model = makeModel()
         model.togglePreviewPane()
