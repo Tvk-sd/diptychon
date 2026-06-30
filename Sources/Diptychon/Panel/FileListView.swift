@@ -17,6 +17,7 @@ protocol FileListView: View {
         onPin: @escaping (_ folder: URL) -> Void,
         onAddToStaging: @escaping (_ urls: [URL]) -> Void,
         onRemoveFromStaging: ((_ urls: [URL]) -> Void)?,
+        onActivate: ((_ item: FileItem) -> Void)?,
         renameRequest: UUID?,
         onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
         accessibilityID: String
@@ -40,6 +41,7 @@ struct TableFileListView: FileListView {
     let onPin: (_ folder: URL) -> Void
     let onAddToStaging: (_ urls: [URL]) -> Void
     let onRemoveFromStaging: ((_ urls: [URL]) -> Void)?
+    let onActivate: ((_ item: FileItem) -> Void)?
     let renameRequest: UUID?
     let onRename: (_ item: FileItem, _ newName: String) -> Bool
     let accessibilityID: String
@@ -52,6 +54,7 @@ struct TableFileListView: FileListView {
         onPin: @escaping (_ folder: URL) -> Void,
         onAddToStaging: @escaping (_ urls: [URL]) -> Void = { _ in },
         onRemoveFromStaging: ((_ urls: [URL]) -> Void)? = nil,
+        onActivate: ((_ item: FileItem) -> Void)? = nil,
         renameRequest: UUID?,
         onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
         accessibilityID: String = ""
@@ -63,6 +66,7 @@ struct TableFileListView: FileListView {
         self.onPin = onPin
         self.onAddToStaging = onAddToStaging
         self.onRemoveFromStaging = onRemoveFromStaging
+        self.onActivate = onActivate
         self.renameRequest = renameRequest
         self.onRename = onRename
         self.accessibilityID = accessibilityID

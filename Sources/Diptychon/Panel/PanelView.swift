@@ -17,6 +17,9 @@ struct PanelView: View {
     var onRename: (_ item: FileItem, _ newName: String) -> Bool = { _, _ in false }
     /// Add files to the virtual staging set (issue 20) — owned by the workspace.
     var onAddToStaging: (_ urls: [URL]) -> Void = { _ in }
+    /// Activate the clicked row on double-click (issue 25): open a file / navigate a
+    /// folder. Acts on the clicked row only, never the selection.
+    var onActivate: (_ item: FileItem) -> Void = { _ in }
     /// Stable a11y id for this panel's file-list table (`panel-left`/`panel-right`),
     /// so UI tests can target it by id instead of a fragile positional index (issue 23).
     var tableIdentifier: String = ""
@@ -92,6 +95,7 @@ struct PanelView: View {
                         onDrop: onDrop,
                         onPin: onPin,
                         onAddToStaging: onAddToStaging,
+                        onActivate: onActivate,
                         renameRequest: model.inlineRenameRequest,
                         onRename: onRename,
                         accessibilityID: tableIdentifier

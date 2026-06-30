@@ -18,6 +18,10 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     /// Remove files from the staging set (issue 33). Non-nil only for the Staging
     /// pane's list — its presence swaps "Add to Staging" for "Remove from Staging".
     let onRemoveFromStaging: ((_ urls: [URL]) -> Void)?
+    /// Activate (open file / navigate folder) a single **clicked** row on double-click
+    /// (issue 25). Sourced from the clicked row, not the selection. Non-nil only where
+    /// double-click should act (the file panels).
+    let onActivate: ((_ item: FileItem) -> Void)?
     let renameRequest: UUID?
     let onRename: (_ item: FileItem, _ newName: String) -> Bool
     /// Stable accessibility identifier for the table (e.g. `panel-left`), so UI
@@ -34,6 +38,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         onPin: @escaping (_ folder: URL) -> Void,
         onAddToStaging: @escaping (_ urls: [URL]) -> Void = { _ in },
         onRemoveFromStaging: ((_ urls: [URL]) -> Void)? = nil,
+        onActivate: ((_ item: FileItem) -> Void)? = nil,
         renameRequest: UUID?,
         onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
         accessibilityID: String = ""
@@ -45,6 +50,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         self.onPin = onPin
         self.onAddToStaging = onAddToStaging
         self.onRemoveFromStaging = onRemoveFromStaging
+        self.onActivate = onActivate
         self.renameRequest = renameRequest
         self.onRename = onRename
         self.accessibilityID = accessibilityID
@@ -61,6 +67,10 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         table.dataSource = context.coordinator
         table.delegate = context.coordinator
         table.target = context.coordinator
+        // Double-click opens/navigates the CLICKED row only (issue 25). AppKit's
+        // doubleAction reports `clickedRow`, so the target is the row under the
+        // cursor — never the lingering multi-selection.
+        table.doubleAction = #selector(Coordinator.tableDoubleClicked(_:))
         table.rowHeight = 24
         // Right-click "Open / Open With…" menu, built for the clicked row.
         table.menuProvider = { [weak coordinator = context.coordinator] row in
@@ -495,6 +505,15 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         @objc private func removeFromStagingClicked(_ sender: NSMenuItem) {
             guard let urls = sender.representedObject as? [URL] else { return }
             parent.onRemoveFromStaging?(urls)
+        }
+
+        /// Double-click: open/navigate the clicked row only (issue 25). `clickedRow`
+        /// is the row under the cursor, independent of the current selection. A
+        /// double-click on empty space (`clickedRow < 0`) is ignored.
+        @objc func tableDoubleClicked(_ sender: NSTableView) {
+            let row = sender.clickedRow
+            guard row >= 0, row < parent.items.count else { return }
+            parent.onActivate?(parent.items[row])
         }
 
         @objc private func openClicked(_ sender: NSMenuItem) {

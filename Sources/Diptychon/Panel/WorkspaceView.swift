@@ -249,6 +249,7 @@ struct WorkspaceView: View {
                           onPin: { model.pin($0) },
                           onRename: { model.renameInline($0, to: $1) },
                           onAddToStaging: { model.addToStaging($0) },
+                          onActivate: { model.activate($0, in: model.left) },
                           tableIdentifier: "panel-left")
                 .frame(minWidth: 180)
                 PanelView(model: model.right, isActive: model.active == .right,
@@ -257,6 +258,7 @@ struct WorkspaceView: View {
                           onPin: { model.pin($0) },
                           onRename: { model.renameInline($0, to: $1) },
                           onAddToStaging: { model.addToStaging($0) },
+                          onActivate: { model.activate($0, in: model.right) },
                           tableIdentifier: "panel-right")
                 .frame(minWidth: 180)
             }
@@ -267,6 +269,7 @@ struct WorkspaceView: View {
                       onPin: { model.pin($0) },
                       onRename: { model.renameInline($0, to: $1) },
                       onAddToStaging: { model.addToStaging($0) },
+                      onActivate: { model.activate($0, in: model.left) },
                       tableIdentifier: "panel-left")
                 .frame(minWidth: 320)
         }
@@ -338,13 +341,9 @@ struct WorkspaceView: View {
                         model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
                         // A file-panel click takes operation focus back from Staging.
                         model.stagingFocused = false
-
-                        // Double-click opens the selected row (first click already
-                        // selected it). Handled here so the Table keeps native
-                        // single-click select.
-                        if event.clickCount == 2 {
-                            DispatchQueue.main.async { model.openSelection() }
-                        }
+                        // Double-click open is handled by the table's doubleAction on
+                        // the clicked row (issue 25) — not here, so it can never act on
+                        // a lingering multi-selection.
                     } else if !inTopBar && model.rightPane == .staging && x > rightEdge {
                         // Click in the Staging pane → it becomes the operation source.
                         model.stagingFocused = true
