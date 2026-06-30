@@ -129,6 +129,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 26 | Tag-filter menu dot grey + row dots aligned | ✅ done, PR #31 — menu swatch color fix + dedup + row dots right-aligned under Name arrow |
 | 27 | ~~Tags column / Sort by tag~~ | 🚫 wontfix (2026-06-30) — superseded: 26 gave dots a visual home, tag filter covers focus; sort-by-tag redundant with filter, names column fights lightweight identity |
 | 28 | Keyboard command expansion (Marta-informed) + Open-With favorites | ✅ done on branch `feat/28-keyboard-commands` (off `improve-codebase-architecture`), user-verified — commit `2bdad9d` |
+| 29 | Type column in the file list | ✅ done (branch `feat/29-kind-column`), user-verified — Name·Type·Date·Size; short Type (uppercased ext); Name flexes; default sort Date-desc |
 | — | **Chrome redesign** — toggles → bottom bar; top bar decoupled from sidebar tint; 32pt bands; fold-to-corner | ✅ done on branch `feat/chrome-toggles-bottom-bar`, pushed (`3c5301f`), user-verified |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10

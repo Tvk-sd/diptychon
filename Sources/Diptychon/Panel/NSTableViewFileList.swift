@@ -80,15 +80,19 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             coordinator?.beginEditing(row: row)
         }
 
-        addColumn(table, id: Column.name, title: "Name", width: 210, sortKey: "name")
-        addColumn(table, id: Column.size, title: "Size", width: 90, sortKey: "size", alignment: .right)
-        addColumn(table, id: Column.date, title: "Date Modified", width: 160, sortKey: "date")
+        // Order: Name (flexes) · Kind · Modified · Size. Compact widths; all
+        // user-resizable (issue 29).
+        addColumn(table, id: Column.name, title: "Name", width: 180, sortKey: "name")
+        addColumn(table, id: Column.kind, title: "Type", width: 100, sortKey: "kind")
+        addColumn(table, id: Column.date, title: "Date", width: 140, sortKey: "date")
+        addColumn(table, id: Column.size, title: "Size", width: 70, sortKey: "size", alignment: .right)
 
-        // Issue 17: Name starts at a compact width and the user's drag-resize sticks
-        // (only the last column auto-resizes on window changes, so Name is left
-        // alone). Date takes up any slack on wide windows → no trailing gap; narrow
-        // panels scroll to reach Size/Date. Name truncates with “…” (name in tooltip).
-        table.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
+        // Name is the flexible column: it absorbs window-resize slack while Kind /
+        // Modified / Size keep their set widths, so they stay grouped right after Name
+        // with no trailing gap (issue 29). On a narrow window Name shrinks to its
+        // minWidth and the panel scrolls to reach them. Name truncates with “…”
+        // (full name in the tooltip).
+        table.columnAutoresizingStyle = .firstColumnOnlyAutoresizingStyle
         if let nameCol = table.tableColumn(withIdentifier: .init(Column.name)) {
             nameCol.minWidth = 120
             nameCol.maxWidth = .greatestFiniteMagnitude
@@ -127,7 +131,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         table.addTableColumn(col)
     }
 
-    enum Column { static let name = "name", size = "size", date = "date" }
+    enum Column { static let name = "name", size = "size", date = "date", kind = "kind" }
 
     // MARK: - Coordinator
 
@@ -220,6 +224,8 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
                 cell.textField?.stringValue = item.size.map { Self.sizeFormatter.string(fromByteCount: $0) } ?? "—"
             case Column.date:
                 cell.textField?.stringValue = item.modificationDate.map { FileDateFormatter.string(for: $0) } ?? "—"
+            case Column.kind:
+                cell.textField?.stringValue = item.kind
             default: break
             }
             return cell
@@ -365,6 +371,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             switch key {
             case Column.size: parent.sortOrder = [KeyPathComparator(\FileItem.sizeForSort, order: order)]
             case Column.date: parent.sortOrder = [KeyPathComparator(\FileItem.dateForSort, order: order)]
+            case Column.kind: parent.sortOrder = [KeyPathComparator(\FileItem.kind, order: order)]
             default: parent.sortOrder = [KeyPathComparator(\FileItem.name, order: order)]
             }
         }
@@ -375,6 +382,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             switch comparator.keyPath {
             case \FileItem.sizeForSort: key = Column.size
             case \FileItem.dateForSort: key = Column.date
+            case \FileItem.kind: key = Column.kind
             default: key = Column.name
             }
             return NSSortDescriptor(key: key, ascending: ascending)

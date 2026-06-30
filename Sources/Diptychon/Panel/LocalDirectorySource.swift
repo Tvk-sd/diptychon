@@ -19,6 +19,7 @@ struct LocalDirectorySource: PanelSource {
         .isDirectoryKey,
         .isHiddenKey, // batched; lets the list dim hidden rows when they're shown.
         .tagNamesKey, // cheap, batched; signals which files need the xattr color read.
+        .contentTypeKey, // batched UTType → the Kind column (issue 29).
     ]
 
     func load() async throws -> [FileItem] {
@@ -47,7 +48,8 @@ struct LocalDirectorySource: PanelSource {
                     modificationDate: values?.contentModificationDate,
                     isDirectory: isDir,
                     isHidden: values?.isHidden ?? false,
-                    tags: tags
+                    tags: tags,
+                    kind: FileItem.kind(for: url, isDirectory: isDir, contentType: values?.contentType)
                 )
             }
         }.value

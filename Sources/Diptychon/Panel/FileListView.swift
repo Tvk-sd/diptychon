@@ -102,15 +102,19 @@ struct TableFileListView: FileListView {
                 // Folder rows accept drops (drop INTO the folder) + highlight.
                 .modifier(FolderDropModifier(item: item, onDrop: onDrop))
             }
+            TableColumn("Type", value: \.kind) { item in
+                Text(item.kind)
+                    .foregroundStyle(.secondary)
+            }
+            TableColumn("Date", value: \.dateForSort) { item in
+                Text(item.modificationDate.map(Self.dateFormatter.string(from:)) ?? "—")
+                    .foregroundStyle(.secondary)
+            }
             TableColumn("Size", value: \.sizeForSort) { item in
                 // Product default: folders show no size (see PLAN.md).
                 Text(item.size.map { Self.sizeFormatter.string(fromByteCount: $0) } ?? "—")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
-            }
-            TableColumn("Date Modified", value: \.dateForSort) { item in
-                Text(item.modificationDate.map(Self.dateFormatter.string(from:)) ?? "—")
-                    .foregroundStyle(.secondary)
             }
         }
         // Drops on the list background target the Panel's current directory.

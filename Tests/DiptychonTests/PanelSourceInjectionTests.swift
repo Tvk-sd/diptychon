@@ -45,7 +45,8 @@ final class PanelSourceInjectionTests: XCTestCase {
         await waitUntilNotLoading(panel)
 
         guard case .loaded = panel.state else { return XCTFail("expected .loaded, got \(panel.state)") }
-        XCTAssertEqual(panel.visibleItems.map(\.name), ["a.txt", "b.txt"], "default sort is name ascending")
+        panel.sortOrder = [KeyPathComparator(\FileItem.name)]   // explicit: assert load + sort, not the default
+        XCTAssertEqual(panel.visibleItems.map(\.name), ["a.txt", "b.txt"], "rows sort by name ascending")
     }
 
     func testPermissionErrorSetsAccessDenied() async {
