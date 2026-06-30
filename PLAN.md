@@ -2,11 +2,12 @@
 
 _No active task._
 
-Last session: command palette (⌘K, issue 19) + file-row hover highlight. Shipped on
-branch `feat/19-command-palette` (off `main`), 83 unit tests green, user-verified
-(palette, fuzzy search, mouse+keyboard shared highlight, file-row hover). Outcome
-folded into `PROJECT-TRACKER.md` (issue 19 section + Status row).
+Last task: **issue 26 (tag-filter menu dot grey) + row-dot alignment follow-up** —
+done, user-verified, on `fix/26-tag-filter-menu-dot-grey` (being merged to `main`).
+Render fix (`FinderTagColor.menuSwatch`) + data fix (`FinderTag.distinctByName`, 82
+tests green) + row tag dots right-aligned into one column under the Name sort arrow
+(`NameCellView` constraints, trailing inset +2, tuned live).
 
-Next when picked: push `feat/19-command-palette` + open a PR against `main`. Then the
-backlog (see `PROJECT-TRACKER.md`): #12 custom tag colors, #18 time-travel undo,
-#20 virtual staging, #22 perf baseline, and QA items #25/#26/#27.
+Open candidates (see `PROJECT-TRACKER.md`): #27 tags column in file list (shares the
+tag-color source of truth — good next), the new #29 Kind/Type column (issue file
+exists, no code yet), and the #18/#20/#22 backlog.

@@ -54,6 +54,27 @@ extension FinderTag {
         FinderTag(name: "Purple", color: .purple),
         FinderTag(name: "Gray", color: .gray),
     ]
+
+    /// Distinct tags by name, first-seen order, for the header's filter menu.
+    /// When a name appears with different colors across files, prefer a colored
+    /// instance over a same-named `.none` one — so the menu swatch matches the row
+    /// dot instead of falling back to grey (issue 26). A name that is only ever
+    /// `.none` stays `.none` (its grey dot is correct).
+    static func distinctByName(in tagLists: [[FinderTag]]) -> [FinderTag] {
+        var byName: [String: FinderTag] = [:]
+        var order: [String] = []
+        for list in tagLists {
+            for tag in list {
+                if let existing = byName[tag.name] {
+                    if existing.color == .none, tag.color != .none { byName[tag.name] = tag }
+                } else {
+                    byName[tag.name] = tag
+                    order.append(tag.name)
+                }
+            }
+        }
+        return order.map { byName[$0]! }
+    }
 }
 
 extension URL {

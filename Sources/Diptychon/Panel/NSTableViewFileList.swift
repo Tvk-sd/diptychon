@@ -252,12 +252,20 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
                     image.heightAnchor.constraint(equalToConstant: 16),
                     text.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 6),
                     text.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
-                    // Name → location (search) → tag dots, all on one line; name
-                    // truncates before the location, location before nothing.
+                    // Tag dots sit in a fixed right-aligned column pinned to the
+                    // cell's trailing edge (under the Name sort arrow), so they line
+                    // up across rows instead of trailing each name. The dots stack is
+                    // content-sized (required hugging) and pinned by *trailing only*,
+                    // so the dot hugs the right edge rather than floating at the left
+                    // of a stretched frame. The name/location are bounded by the dots'
+                    // leading (`<=`) so a long name truncates before the dot column.
                     location.leadingAnchor.constraint(equalTo: text.trailingAnchor, constant: 8),
                     location.firstBaselineAnchor.constraint(equalTo: text.firstBaselineAnchor),
-                    dots.leadingAnchor.constraint(equalTo: location.trailingAnchor, constant: 6),
-                    dots.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -4),
+                    location.trailingAnchor.constraint(lessThanOrEqualTo: dots.leadingAnchor, constant: -8),
+                    // +2 nudges the dot just past the content edge so it centers under
+                    // the header's sort arrow (which sits in the indicator zone beyond
+                    // the cell's content trailing).
+                    dots.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: 2),
                     dots.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
                 ])
                 dots.setContentHuggingPriority(.required, for: .horizontal)
@@ -696,6 +704,23 @@ extension FinderTagColor {
         case .yellow: return .systemYellow
         case .red: return .systemRed
         case .orange: return .systemOrange
+        }
+    }
+
+    /// A filled-circle swatch as a **non-template** image so it keeps its color
+    /// inside an `NSMenu`. SwiftUI strips `.foregroundStyle` from menu-item SF
+    /// Symbols, which is why the tag-filter dots rendered grey (issue 26); a
+    /// non-template `NSImage` survives the bridge. `.none` draws a hollow ring to
+    /// match the row dot. Shares `nsColor` as the single color source of truth.
+    func menuSwatch(diameter: CGFloat = 10) -> NSImage {
+        NSImage(size: NSSize(width: diameter, height: diameter), flipped: false) { rect in
+            let path = NSBezierPath(ovalIn: rect.insetBy(dx: 0.5, dy: 0.5))
+            if let fill = self.nsColor {
+                fill.setFill(); path.fill()
+            } else {
+                NSColor.tertiaryLabelColor.setStroke(); path.lineWidth = 1; path.stroke()
+            }
+            return true
         }
     }
 }

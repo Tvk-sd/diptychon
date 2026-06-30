@@ -514,6 +514,28 @@ end ("all work perfectly"). Spec: `.scratch/diptychon-mvp/issues/28-keyboard-com
 - Branch is stacked on `improve-codebase-architecture` (the feature depends on its
   `presentedSheet` / `SelectionEchoGuard` work — it does not apply to `main`).
 
+### Issue 26 outcome (2026-06-30) — Tag-filter menu dot showed grey, not the tag color (branch `fix/26-tag-filter-menu-dot-grey`, off `main`)
+Two real causes, both fixed; user-verified in a live build:
+- **Render (the visible bug):** SwiftUI strips `.foregroundStyle` from SF-Symbol icons
+  inside a native `Menu` (`NSMenu`), so every filter-menu dot rendered grey. Fix: a
+  non-template `NSImage` swatch (`FinderTagColor.menuSwatch`) drawn with the same
+  `nsColor` source of truth as the row dots; the active filter shows a checkmark.
+- **Data (latent):** `PanelModel.availableTags` deduped by name keeping first-seen, so
+  a same-named `.none` tag could shadow the real colored one. Fix:
+  `FinderTag.distinctByName` prefers a colored instance over a same-named `.none`,
+  first-seen order preserved. 6 unit tests (`FinderTagDistinctTests`), **82 green.**
+- **Lessons (this slice):** (1) a clean `xcodebuild test` + relaunch can still pass over
+  a *bad repro* — custom tag color indices are **normalized by `mdworker` on
+  Spotlight-indexed volumes** (Desktop rewrote `Green\n2`→`Green\n1`); fabricate tag
+  test data in non-indexed `/tmp`. (2) The work was recovered from two stashes, one
+  **mislabeled** "issue-29" — verify stash *contents*, not labels.
+- Follow-up (done, same branch): **row** tag dots now sit in one right-aligned vertical
+  column centered under the Name sort arrow (was: trailing each filename at varying x).
+  Fix in `NameCellView` constraints — dots stack is content-sized + pinned trailing-only
+  (so the single dot hugs the edge, not the left of a stretched frame), name/location
+  bounded by the dots' leading (`<=`) so a long name truncates; trailing inset +2 to
+  center under the header's sort indicator (tuned live with the user).
+
 ### Chrome redesign (2026-06-30) — toggles to bottom bar + decoupled top bar (branch `feat/chrome-toggles-bottom-bar`, off `main`, pushed `3c5301f`)
 Design pass on the window chrome, user-verified ("perfect") through a build →
 screenshot iteration loop.
