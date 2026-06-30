@@ -126,6 +126,8 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
 | — | **Architecture review** — all 5 deepenings (#1 settle-hook, #2 presentedSheet, #3 Panel Source inject, #4 SelectionEchoGuard, #5 compileVisible) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed, user-verified — QA filed #25/#26/#27 (see outcome below) |
 | 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
+| 26 | Tag-filter menu dot grey + row dots aligned | ✅ done, PR #31 — menu swatch color fix + dedup + row dots right-aligned under Name arrow |
+| 27 | ~~Tags column / Sort by tag~~ | 🚫 wontfix (2026-06-30) — superseded: 26 gave dots a visual home, tag filter covers focus; sort-by-tag redundant with filter, names column fights lightweight identity |
 | 28 | Keyboard command expansion (Marta-informed) + Open-With favorites | ✅ done on branch `feat/28-keyboard-commands` (off `improve-codebase-architecture`), user-verified — commit `2bdad9d` |
 | — | **Chrome redesign** — toggles → bottom bar; top bar decoupled from sidebar tint; 32pt bands; fold-to-corner | ✅ done on branch `feat/chrome-toggles-bottom-bar`, pushed (`3c5301f`), user-verified |
 
