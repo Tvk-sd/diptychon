@@ -1,6 +1,32 @@
 # 18 — Operation history / time-travel undo
 
-Status: needs-triage
+Status: Tier 1 (undo toast) ✅ done + user-verified 2026-06-30; Tier 2 (scrubbable
+timeline) deferred — build only if the toast shows appetite for seeing further back.
+
+## Decision (2026-06-30): test appetite with a lightweight tier first
+
+PM challenged the feature ("is this git with extra steps, just for files? who's the
+user?"). Conclusion: the **reversible spine already shipped** (multi-level ⌘Z); this
+issue only adds *legibility* + *jump-to-a-point*. The job it serves is narrow but real:
+
+> **The bulk reorganiser, in the "wait — did I just break my folder structure?" moment.**
+> JTBD: when I've done a burst of file changes and doubt one, let me see what I did and
+> get back to a known-good point without guessing how many times to hit ⌘Z.
+
+That moment is occasional, so we right-sized it into tiers and shipped the cheap one:
+
+- **Tier 1 — undo/redo toast (DONE):** a transient HUD on every ⌘Z/⇧⌘Z — "Undone —
+  Moved 12 items". Closes the one real gap in blind ⌘Z (*what did I just undo?*) for
+  ~15% of the build. Overwrites toast "Can't undo … — files were overwritten" (honest,
+  per ADR 0004). Forward ops don't toast (the user did them on purpose).
+- **Tier 2 — scrubbable timeline + "undo to here" (DEFERRED):** see below. Build only
+  if users start wishing they could see further back and jump. **Not a git graph** — our
+  undo is strictly linear (LIFO), so a branch/merge diagram is both heavy and wrong; the
+  right shape is a flat, newest-first list.
+
+---
+
+## Original scope notes (Tier 2)
 
 ## Parent
 
@@ -43,13 +69,19 @@ line: **"the file manager you can't mess up."** See
 
 ## Acceptance criteria
 
+**Tier 1 — undo toast (done):**
+- [x] Every ⌘Z/⇧⌘Z flashes a transient toast naming what was reversed (description +
+      affected count, reusing `Operation.title`), then auto-dismisses.
+- [x] Forward operations do not toast.
+- [x] Overwrites toast that they *can't* be undone (per ADR 0004) — never a false "Undone".
+
+**Tier 2 — scrubbable timeline (deferred, build on demand signal):**
 - [ ] A visible history lists completed operations this session (kind, time,
-      description, affected count), newest first.
-- [ ] Choosing an entry undoes back to that point (everything above it), leaving
-      state consistent; ⌘Z/⇧⌘Z still work alongside it.
+      description, affected count), newest first — a **flat list, not a git graph**.
+- [ ] Choosing an entry undoes back to that point (everything above it; chosen entry
+      stays applied), leaving state consistent; ⌘Z/⇧⌘Z still work alongside it.
 - [ ] The history surface is toggleable (toolbar + optional chord), not permanent.
-- [ ] Overwrites remain correctly marked non-undoable (per ADR 0004) and are shown
-      as such, never offering a misleading undo.
+- [ ] Overwrites shown as non-undoable in the list, never offering a misleading undo.
 
 ## Out of scope
 

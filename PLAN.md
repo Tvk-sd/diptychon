@@ -2,14 +2,16 @@
 
 _No active task._
 
-Last task: **issue 29 (Type column in the file list)** — done, user-verified, on branch
-`feat/29-kind-column` (not pushed). Refined live with the PM beyond the original brief:
-- Column **Name · Type · Date · Size**; "Date Modified" → "Date"; narrower widths.
-- **Type** shows the short form (uppercased file extension: PDF/PNG/TXT), not the full
-  UTType description; Folder → "Folder"; extension-less → "—".
-- **Name flexes** (`.firstColumnOnlyAutoresizingStyle`); metadata columns fixed/grouped.
-- **Default sort = Date, newest first.** `FileItem.kind` populated by both Local and
-  Staging sources. 104 unit tests green.
+Last task: **issue 18 (operation history) — Tier 1 undo toast** — done, user-verified,
+on branch `feat/18-operation-history` (not pushed). PM challenged the feature's value;
+reframed around the JTBD ("did I just break my folders?"), right-sized into tiers,
+shipped the cheap one.
+- Transient HUD on every ⌘Z/⇧⌘Z — "Undone — Moved 12 items". `OperationCoordinator`
+  emits `onUndoRedoToast` (no stack refactor); `WorkspaceModel` shows a self-dismissing
+  toast; `WorkspaceView` floats a capsule over the bottom bar. Overwrites stay honest.
+- **Tier 2 (scrubbable timeline + undo-to-here) deferred** — build on a demand signal;
+  explicitly a flat list, NOT a git graph (undo is linear). Recorded in issue 18.
+- 105 unit tests green.
 
-Open issues remaining: **#18** operation history / time-travel undo (large, differentiation
-bet) and **#22** performance baseline measurements (evidence, no UI). See tracker Status table.
+Backlog remaining: **#22** performance baseline measurements (evidence, no UI), and
+**#18 Tier 2** if appetite shows. See tracker Status table.

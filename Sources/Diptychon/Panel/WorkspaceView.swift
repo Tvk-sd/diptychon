@@ -71,6 +71,28 @@ struct WorkspaceView: View {
             }
         }
         .overlay { progressOverlay }
+        .overlay(alignment: .bottom) { activityToastView }
+        .animation(.spring(duration: 0.32), value: model.activityToast)
+    }
+
+    /// Transient "Undone — …" / "Redone — …" HUD (issue 18, Tier 1): floats above the
+    /// bottom bar, fades itself out. Makes the otherwise-invisible undo legible.
+    @ViewBuilder
+    private var activityToastView: some View {
+        if let toast = model.activityToast {
+            HStack(spacing: 8) {
+                Image(systemName: toast.systemImage)
+                Text(toast.text)
+            }
+            .font(.callout)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 9)
+            .background(.regularMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08)))
+            .shadow(radius: 10, y: 3)
+            .padding(.bottom, 48)   // clear the 32pt bottom bar
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
     }
 
     /// The window body: a full-width header band (app name + window/view icons),

@@ -119,7 +119,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 15 | Path bar / Go to Folder | ✅ done, PR #17 |
 | 16 | Left sidebar (places + pinned folders) | ✅ done, PR pending — all 3 slices, user-verified |
 | 17 | File-list polish (data-driven display) | ✅ done, PR pending — Size right-aligned + scan-friendly dates |
-| 18 | Operation history / time-travel undo | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
+| 18 | Operation history / time-travel undo | 🟡 Tier 1 (undo toast) ✅ done, user-verified — Tier 2 (scrubbable timeline) deferred until demand; branch `feat/18-operation-history` |
 | 19 | Command palette (⌘K) | ✅ done on branch `feat/19-command-palette` — user-verified; + file-row hover |
 | 20 | Virtual staging panel | ✅ done, PR #33 (merged) — 4 slices #30–#33, user-verified; Option A→A′ auxiliary-pane pivot; 100 tests green |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
@@ -651,3 +651,15 @@ User-verified. Completes the virtual staging feature (#30→#33).
 - Tests: **100 green** (remove/clear non-destructive; missing-item exclusion integration test with a
   real temp file + a phantom URL).
 - **Feature complete.** Stack `feat/30…`→`feat/33…` local, unpushed; parent issue #20.
+
+### Issue 18 operation history — Tier 1 undo toast (2026-06-30, branch `feat/18-operation-history`)
+PM challenged the feature ("git with extra steps? who's the user?"). Reframed: the reversible
+spine already shipped; #18 only adds *legibility*. Right-sized into tiers; shipped the cheap one.
+- **Tier 1 (done):** transient HUD on every ⌘Z/⇧⌘Z — "Undone — Moved 12 items" — making the
+  invisible undo legible. `OperationCoordinator.onUndoRedoToast(text, systemImage)` emitted from
+  undo()/redo() (no stack refactor — reads `op.title` at reversal time). `WorkspaceModel` presents
+  a self-dismissing `ActivityToast` (~2.2s); `WorkspaceView` floats a capsule over the bottom bar.
+  Forward ops don't toast; overwrites toast "Can't undo … — files were overwritten" (ADR 0004).
+- **Tier 2 (deferred):** scrubbable timeline + "undo to here" — build only on a demand signal.
+  Explicitly **not a git graph** (undo is linear/LIFO → a flat newest-first list). Recorded in the issue.
+- Tests: **105 green** (coordinator emits undo/redo toasts; non-undoable path toasts "can't undo").

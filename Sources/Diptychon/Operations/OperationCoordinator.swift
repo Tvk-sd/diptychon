@@ -23,6 +23,12 @@ final class OperationCoordinator {
     /// fire it, since nothing changed.
     var onOperationSettled: () -> Void = {}
 
+    /// Fired after an undo/redo settles, with a human message + SF Symbol, so the UI
+    /// can flash a transient toast ("Undone — Moved 12 items") — making the otherwise
+    /// invisible undo legible (issue 18, Tier 1). Forward operations don't toast: the
+    /// user just did them on purpose; it's the *reversal* that needs surfacing.
+    var onUndoRedoToast: (_ text: String, _ systemImage: String) -> Void = { _, _ in }
+
     var canUndo: Bool { !undoStack.isEmpty }
     var canRedo: Bool { !redoStack.isEmpty }
 
@@ -52,12 +58,19 @@ final class OperationCoordinator {
     func undo() {
         guard running == nil, let op = undoStack.last else { return }
         undoStack.removeLast()
-        guard op.isUndoable else { redoStack.append(op); onOperationSettled(); return }
+        guard op.isUndoable else {
+            // Overwrites destroyed the original — honest toast, no false "undone".
+            redoStack.append(op)
+            onUndoRedoToast("Can’t undo \(op.title) — files were overwritten", "exclamationmark.triangle")
+            onOperationSettled()
+            return
+        }
         running = Running(title: "Undo \(op.title)", fraction: 0)
         task = Task {
             try? await op.revert()
             redoStack.append(op)
             running = nil
+            onUndoRedoToast("Undone — \(op.title)", "arrow.uturn.backward")
             onOperationSettled()
         }
     }
@@ -72,6 +85,7 @@ final class OperationCoordinator {
                     Task { @MainActor in self.running?.fraction = fraction }
                 }
                 undoStack.append(op)
+                onUndoRedoToast("Redone — \(op.title)", "arrow.uturn.forward")
             } catch {
                 // re-push so the redo isn't silently lost.
                 redoStack.append(op)

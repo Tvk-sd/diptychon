@@ -70,6 +70,29 @@ final class WorkspaceModel {
     /// at a time — the four independent flags this replaced gave no such guarantee.
     var presentedSheet: Sheet?
 
+    /// A transient "Undone — …" / "Redone — …" toast (issue 18, Tier 1). Set when an
+    /// undo/redo settles; auto-clears after a couple of seconds.
+    struct ActivityToast: Identifiable, Equatable {
+        let id = UUID()
+        let text: String
+        let systemImage: String
+    }
+    private(set) var activityToast: ActivityToast?
+    private var toastDismissTask: Task<Void, Never>?
+
+    /// Flash a toast and schedule its dismissal. A newer toast supersedes the timer
+    /// (each toast clears only itself).
+    private func showActivityToast(_ text: String, systemImage: String) {
+        let toast = ActivityToast(text: text, systemImage: systemImage)
+        activityToast = toast
+        toastDismissTask?.cancel()
+        toastDismissTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2.2))
+            guard !Task.isCancelled else { return }
+            if self?.activityToast?.id == toast.id { self?.activityToast = nil }
+        }
+    }
+
     /// Bumped by ⌘F to ask the Filter field to take focus (issue 28). `TopBarView`
     /// watches it and drives its `@FocusState` — the key monitor can't set SwiftUI
     /// focus directly.
@@ -170,6 +193,10 @@ final class WorkspaceModel {
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
         coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
+        // Make undo/redo legible with a transient toast (issue 18, Tier 1).
+        coordinator.onUndoRedoToast = { [weak self] text, image in
+            self?.showActivityToast(text, systemImage: image)
+        }
     }
 
     /// Full Disk Access onboarding (issue 10): called when the app reactivates

@@ -54,6 +54,45 @@ final class OperationCoordinatorTests: XCTestCase {
         XCTAssertTrue(coordinator.canUndo, "redo restores it to the undo stack")
     }
 
+    func testUndoAndRedoEmitLegibleToasts() async {
+        let coordinator = OperationCoordinator()
+        var toasts: [String] = []
+        coordinator.onUndoRedoToast = { text, _ in toasts.append(text) }
+
+        let ran = expectation(description: "run")
+        coordinator.onOperationSettled = { ran.fulfill() }
+        coordinator.run(FakeOperation())
+        await fulfillment(of: [ran], timeout: 1)
+        XCTAssertTrue(toasts.isEmpty, "a forward op does not toast")
+
+        let undone = expectation(description: "undo")
+        coordinator.onOperationSettled = { undone.fulfill() }
+        coordinator.undo()
+        await fulfillment(of: [undone], timeout: 1)
+        XCTAssertEqual(toasts.count, 1)
+        XCTAssertTrue(toasts[0].contains("Undone") && toasts[0].contains("Fake"))
+
+        let redone = expectation(description: "redo")
+        coordinator.onOperationSettled = { redone.fulfill() }
+        coordinator.redo()
+        await fulfillment(of: [redone], timeout: 1)
+        XCTAssertTrue(toasts.last!.contains("Redone") && toasts.last!.contains("Fake"))
+    }
+
+    func testNonUndoableUndoToastsThatItCannotBeUndone() async {
+        let coordinator = OperationCoordinator()
+        let ran = expectation(description: "run")
+        coordinator.onOperationSettled = { ran.fulfill() }
+        coordinator.run(FakeOperation(isUndoable: false))
+        await fulfillment(of: [ran], timeout: 1)
+
+        var toast: String?
+        coordinator.onUndoRedoToast = { text, _ in toast = text }
+        coordinator.undo()   // non-undoable path is synchronous
+        XCTAssertTrue(toast?.contains("Can’t undo") == true,
+                      "an overwrite never claims it was undone")
+    }
+
     func testEmptyUndoDoesNotFire() {
         let coordinator = OperationCoordinator()
         var count = 0
