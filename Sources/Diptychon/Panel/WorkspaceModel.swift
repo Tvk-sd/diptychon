@@ -425,9 +425,21 @@ final class WorkspaceModel {
 
     // MARK: - Open (default app / navigate)
 
-    /// Activate the Active Panel's selection (Return / double-click): a single
-    /// folder navigates into it; files open in their default app (Finder
-    /// behavior). A mixed selection opens the files and ignores folders.
+    /// Activate one clicked row (double-click, issue 25): a folder navigates the
+    /// panel it was clicked in; a file opens in its default app. Acts on the clicked
+    /// row only — never the selection — so a lingering multi-selection can't open
+    /// unintended files. `Return` (`openSelection`) remains the open-all gesture.
+    func activate(_ item: FileItem, in panel: PanelModel) {
+        if item.isDirectory {
+            panel.navigate(into: item)
+        } else {
+            NSWorkspace.shared.open(item.url)
+        }
+    }
+
+    /// Activate the Active Panel's selection (Return): a single folder navigates into
+    /// it; files open in their default app (Finder behavior). A mixed selection opens
+    /// the files and ignores folders.
     func openSelection() {
         let items = activeModel.selectedItems
         guard !items.isEmpty else { return }
