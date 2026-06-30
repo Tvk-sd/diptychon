@@ -26,7 +26,14 @@ struct PanelView: View {
             // (issue 21); each panel keeps a minimal current-folder label so both
             // panels' locations stay visible.
             HStack(spacing: 6) {
-                if model.isSearching {
+                if model.showingStaging {
+                    // Showing the virtual staging set (issue 20), not a folder.
+                    Label("Staging", systemImage: "tray.full")
+                        .font(.headline)
+                        .lineLimit(1)
+                        .foregroundStyle(isActive ? .primary : .secondary)
+                        .layoutPriority(-1)
+                } else if model.isSearching {
                     // While searching, the label reports progress / the result set
                     // instead of the folder name (issue 21 slice 3).
                     Label(model.isSearchRunning
@@ -74,7 +81,13 @@ struct PanelView: View {
                 ProgressView("Loading…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .loaded:
-                if model.isSearching && model.visibleItems.isEmpty {
+                if model.showingStaging && model.visibleItems.isEmpty {
+                    ContentUnavailableView {
+                        Label("Staging is empty", systemImage: "tray")
+                    } description: {
+                        Text("Drag files here, or press ⌘⇧S to add the selection.")
+                    }
+                } else if model.isSearching && model.visibleItems.isEmpty {
                     if model.isSearchRunning {
                         ProgressView("Searching…")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)

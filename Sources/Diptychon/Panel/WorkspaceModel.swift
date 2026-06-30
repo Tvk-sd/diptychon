@@ -49,6 +49,9 @@ final class WorkspaceModel {
 
     let left: PanelModel
     let right: PanelModel
+    /// The shared virtual staging set (issue 20): files gathered from many folders,
+    /// shown when a panel is toggled into staging mode. Session-only.
+    let staging: StagingStore
     let coordinator = OperationCoordinator()
     private let quickLook = QuickLookController()
     private let openWith = OpenWithController()
@@ -115,8 +118,11 @@ final class WorkspaceModel {
     }
 
     init() {
-        left = PanelModel(directory: .startDirectory)
-        right = PanelModel(directory: .startDirectory)
+        let staging = StagingStore()
+        self.staging = staging
+        // Panels pull the staged set when toggled into staging mode (issue 20).
+        left = PanelModel(directory: .startDirectory, stagedURLs: { staging.urls })
+        right = PanelModel(directory: .startDirectory, stagedURLs: { staging.urls })
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
         coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
@@ -201,7 +207,26 @@ final class WorkspaceModel {
             guard rightPanelVisible else { return }
             write(.move, sources: activeModel.selectionURLs, into: inactiveModel.directory)
         case .openPalette: togglePalette()
+        case .addToStaging: addSelectionToStaging()
+        case .toggleStaging: activeModel.showingStaging.toggle()
         }
+    }
+
+    // MARK: - Virtual staging (issue 20)
+
+    /// Add the Active Panel's selection (from whatever folder) to the shared staging
+    /// set, then re-list any panel currently showing staging so the additions appear.
+    private func addSelectionToStaging() {
+        let urls = activeModel.selectionURLs
+        guard !urls.isEmpty else { return }
+        staging.add(urls)
+        refreshStagingPanels()
+    }
+
+    /// Refresh whichever panel(s) are showing the staging set (its contents changed).
+    private func refreshStagingPanels() {
+        if left.showingStaging { left.refresh() }
+        if right.showingStaging { right.refresh() }
     }
 
     // MARK: - Command palette (issue 19)

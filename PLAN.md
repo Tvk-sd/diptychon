@@ -2,12 +2,11 @@
 
 _No active task._
 
-Last task: **issue 26 (tag-filter menu dot grey) + row-dot alignment follow-up** —
-done, user-verified, on `fix/26-tag-filter-menu-dot-grey` (being merged to `main`).
-Render fix (`FinderTagColor.menuSwatch`) + data fix (`FinderTag.distinctByName`, 82
-tests green) + row tag dots right-aligned into one column under the Name sort arrow
-(`NameCellView` constraints, trailing inset +2, tuned live).
+Last task: **issue 30 (staging panel — stage & view, the tracer slice)** — done,
+user-verified in the running app, on branch `feat/30-stage-and-view-files` (not pushed).
+`StagingStore` + `StagingSource` + `FileItem.isMissing` + `PanelModel.showingStaging`
+(source swap) + ⌘⇧S add / ⌘⇧B toggle + empty placeholder. 92 unit tests green (3 new).
 
-Open candidates (see `PROJECT-TRACKER.md`): #27 tags column in file list (shares the
-tag-color source of truth — good next), the new #29 Kind/Type column (issue file
-exists, no code yet), and the #18/#20/#22 backlog.
+Grab next (issue 20 backlog): **#31** add-surface + header toggle button and **#32**
+operate-on-set are both parallelizable off #30; **#33** manage+degrade last. Missing-item
+greying/exclusion (the `isMissing` flag already ships) lands in #33.

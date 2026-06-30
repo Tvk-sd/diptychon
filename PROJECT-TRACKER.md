@@ -570,3 +570,32 @@ screenshot iteration loop.
 - Files: `WorkspaceView.swift` (header + bottom bar), `TopBarView.swift`,
   `SidebarView.swift` (search-field height). No new `.swift` files → no
   `xcodegen generate` needed.
+
+### Issue 20 virtual staging panel — planned & sliced into issues (2026-06-30)
+Planning only, no code. Resolved the design (Option A "temporary source swap", **not**
+a third pane — keeps the diptych identity) and broke it into 4 AFK tracer-bullet issues.
+- **Key finding:** Operations already take `sources: [URL]` + `destinationDirectory: URL`
+  through the reversible spine (ADR 0004), so staged-set-as-source needs **no new
+  operation type**. New code is just `StagingStore` + `StagingSource` (mirrors
+  `LocalDirectorySource`, ADR 0003) + a `showingStaging` branch in `PanelModel` + wiring.
+- **Decisions:** exclusive single-panel staging (the other panel is always a real-dir
+  destination); add via chord + context-menu + drag; toggle via header button + chord
+  (`⌘⇧S` add / `⌘⇧B` toggle — pending keymap-collision check); session-only; missing
+  items greyed + excluded.
+- **Issues:** `30-stage-and-view-files` (tracer) → `31` add-surface+toggle-button /
+  `32` operate-on-set (parallel) → `33` manage+degrade. All `ready-for-agent`, parent #20.
+
+### Issue 30 staging panel — stage & view (tracer slice) (2026-06-30, branch `feat/30-stage-and-view-files`)
+First staging slice, user-verified in the running app (stage across folders → view → toggle back).
+- **New:** `StagingStore` (shared ordered URL set, session-only, dedup on add) and
+  `StagingSource: PanelSource` (loads staged URLs; a gone file returns `isMissing`).
+- **Source swap (ADR 0003):** `PanelModel.showingStaging` branches `reload()` to a
+  `StagingSource` over the directory listing; the panel keeps its `directory` so toggle-back
+  is instant. Staged set is *pulled* via an injected `stagedURLs` closure (mirrors the
+  `makeSource` seam) — `WorkspaceModel` owns the store and drives refresh on add.
+- **Input:** `AppAction.addToStaging` (⌘⇧S) + `.toggleStaging` (⌘⇧B), both verified
+  collision-free in `Keymap.default`. `FileItem.isMissing` ships now; greying/exclusion is #33.
+- **UI:** `PanelView` shows a "Staging" header label + an empty-state placeholder.
+- Tests: **92 green** (3 new `StagingSourceTests`: cross-folder load, missing-flag, store dedup/order).
+- Scope deferred: header button / context-menu / drag-to-stage (#31), operate-on-set (#32),
+  remove/clear + missing-item greying (#33).
