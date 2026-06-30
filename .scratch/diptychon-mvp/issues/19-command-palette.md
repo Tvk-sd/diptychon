@@ -1,6 +1,6 @@
 # 19 — Command palette (⌘K)
 
-Status: needs-triage
+Status: done — merged to `main` (commit `f983c89`), user-verified; see PROJECT-TRACKER issue 19. Stale `needs-triage` corrected during triage 2026-06-30.
 
 ## Parent
 
