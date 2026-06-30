@@ -74,7 +74,8 @@ enum CommandCatalog {
         // View
         cmd(.toggleHidden, "Show/Hide Hidden Files", "View"),
         cmd(.focusFilter, "Find in Folder", "View"),
-        toggle("togglePreview", "Toggle Preview Pane", shortcut: "⇧⌘P") { $0.previewVisible.toggle() },
+        toggle("togglePreview", "Toggle Preview Pane", shortcut: "⇧⌘P") { $0.togglePreviewPane() },
+        toggle("toggleStaging", "Toggle Staging Pane", shortcut: "⌘⇧B") { $0.toggleStaging() },
         toggle("toggleSidebar", "Toggle Sidebar", shortcut: nil) { $0.sidebarVisible.toggle() },
         toggle("toggleRightPanel", "Toggle Right Panel", shortcut: "⌥⌘S") { $0.rightPanelVisible.toggle() },
         // Navigation

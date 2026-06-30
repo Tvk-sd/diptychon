@@ -11,6 +11,11 @@ import Observation
 final class WorkspaceModel {
     enum Side { case left, right }
 
+    /// What occupies the right auxiliary pane (issue 20). Preview and Staging are
+    /// mutually exclusive — they share the one slot. Modelled as an enum so the two
+    /// can never both be "on".
+    enum RightPane { case none, preview, staging }
+
     /// A copy-or-move write paused on the collision-resolution step.
     struct PendingWrite: Identifiable {
         enum Kind { case copy, move }
@@ -49,6 +54,13 @@ final class WorkspaceModel {
 
     let left: PanelModel
     let right: PanelModel
+    /// The shared virtual staging set (issue 20): files gathered from many folders,
+    /// shown in the right auxiliary pane. Session-only.
+    let staging: StagingStore
+    /// The panel that renders the staging set in the right pane. A real `PanelModel`
+    /// whose `PanelSource` is the staging set, so it reuses the file list's selection
+    /// / sort / drag / context-menu (which the operate-on-set slice needs).
+    let stagingPanel: PanelModel
     let coordinator = OperationCoordinator()
     private let quickLook = QuickLookController()
     private let openWith = OpenWithController()
@@ -76,11 +88,43 @@ final class WorkspaceModel {
         if case .collision = presentedSheet { nil } else { presentedSheet }
     }
 
-    /// Whether the inline preview pane is shown (issue 14). Persisted across
-    /// launches so it stays where the user left it.
-    var previewVisible = UserDefaults.standard.bool(forKey: "previewVisible") {
-        didSet { UserDefaults.standard.set(previewVisible, forKey: "previewVisible") }
+    /// What the right auxiliary pane shows: nothing, the file Preview (issue 14), or
+    /// the virtual Staging set (issue 20). Only the preview choice is persisted —
+    /// staging starts hidden each launch (the set is session-only, empty at launch).
+    var rightPane: RightPane = UserDefaults.standard.bool(forKey: "previewVisible") ? .preview : .none {
+        didSet {
+            // Persist only whether preview was the chosen pane; entering staging must
+            // not clear a remembered preview preference.
+            if rightPane != .staging {
+                UserDefaults.standard.set(rightPane == .preview, forKey: "previewVisible")
+            }
+            // Opening Staging focuses it (so keyboard ops act on the set immediately);
+            // hiding it returns focus to the file panels.
+            stagingFocused = (rightPane == .staging)
+        }
     }
+
+    /// Whether the Staging pane is the current **operation source** (issue 20/32). When
+    /// true, copy/move/trash/tag read the Staging selection instead of the active file
+    /// panel's; the destination for copy/move is the active file panel. Set when the
+    /// pane opens or is clicked; cleared by clicking a file panel.
+    var stagingFocused = false
+
+    /// The panel whose selection feeds the next operation: the Staging pane when it
+    /// holds focus, otherwise the active file panel.
+    var operationSourceModel: PanelModel { stagingFocused ? stagingPanel : activeModel }
+
+    /// Source URLs for the next file operation, **excluding** staged items whose file
+    /// is gone (issue 33) — a missing entry can't be a copy/move/trash/tag source.
+    /// (File panels never carry `isMissing`, so this is a no-op outside Staging.)
+    var operationSourceURLs: [URL] {
+        operationSourceModel.selectedItems.filter { !$0.isMissing }.map(\.url)
+    }
+
+    /// Toggle the file preview in the right pane (⇧⌘P / bottom-bar). Off-swaps staging.
+    func togglePreviewPane() { rightPane = (rightPane == .preview) ? .none : .preview }
+    /// Toggle the staging set in the right pane (⌘⇧B / bottom-bar). Off-swaps preview.
+    func toggleStaging() { rightPane = (rightPane == .staging) ? .none : .staging }
 
     /// Whether the left sidebar (places + pinned folders) is shown (issue 16).
     /// Defaults to true (a registered default in `DiptychonApp`). Persisted.
@@ -115,8 +159,14 @@ final class WorkspaceModel {
     }
 
     init() {
+        let staging = StagingStore()
+        self.staging = staging
         left = PanelModel(directory: .startDirectory)
         right = PanelModel(directory: .startDirectory)
+        // The staging pane is a panel whose source is the staging set (ADR 0003) —
+        // `StagingSource` reads the current URLs on each load.
+        stagingPanel = PanelModel(directory: .startDirectory,
+                                  makeSource: { _, _ in StagingSource(urls: staging.urls) })
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
         coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
@@ -132,6 +182,15 @@ final class WorkspaceModel {
         refreshBoth()
     }
 
+    /// Called when the app reactivates. The staging set has no FSEvents watch (its
+    /// files are scattered across folders — issue 20), so files changed in Finder
+    /// while we were backgrounded aren't noticed live. Re-validate on activation so a
+    /// since-deleted staged item greys out (issue 33) without a new in-app interaction.
+    func windowDidBecomeActive() {
+        recheckFullDiskAccess()
+        if !staging.isEmpty { stagingPanel.refresh() }
+    }
+
     var activeModel: PanelModel { active == .left ? left : right }
     var inactiveModel: PanelModel { active == .left ? right : left }
 
@@ -141,6 +200,9 @@ final class WorkspaceModel {
         // ⎋ clears the selection, but only when nothing modal is up — otherwise leave
         // Esc for the open sheet/dialog to consume (close on Esc). Don't swallow it.
         if case .selectNone = action, presentedSheet != nil { return false }
+        // Plain ⌫ only means "unstage" while Staging holds focus — elsewhere don't
+        // swallow it, so it stays free for the file panels.
+        if case .removeFromStaging = action, !stagingFocused { return false }
         perform(action)
         return true
     }
@@ -148,9 +210,14 @@ final class WorkspaceModel {
     func perform(_ action: AppAction) {
         switch action {
         case .copyToInactive:
-            // No visible inactive target when the right panel is hidden.
-            guard rightPanelVisible else { return }
-            write(.copy, sources: activeModel.selectionURLs, into: inactiveModel.directory)
+            if stagingFocused {
+                // Staging is the source → write into the active file panel.
+                write(.copy, sources: operationSourceURLs, into: activeModel.directory)
+            } else {
+                // No visible inactive target when the right panel is hidden.
+                guard rightPanelVisible else { return }
+                write(.copy, sources: operationSourceURLs, into: inactiveModel.directory)
+            }
         case .undo: coordinator.undo()
         case .redo: coordinator.redo()
         case .goUp: activeModel.navigateUp()
@@ -197,11 +264,57 @@ final class WorkspaceModel {
                              onAddFavorite: { [weak self] in self?.addFavoriteApp($0) },
                              onRemoveFavorite: { [weak self] in self?.removeFavoriteApp($0) })
         case .moveToInactive:
-            // No visible inactive target when the right panel is hidden.
-            guard rightPanelVisible else { return }
-            write(.move, sources: activeModel.selectionURLs, into: inactiveModel.directory)
+            if stagingFocused {
+                write(.move, sources: operationSourceURLs, into: activeModel.directory)
+            } else {
+                // No visible inactive target when the right panel is hidden.
+                guard rightPanelVisible else { return }
+                write(.move, sources: operationSourceURLs, into: inactiveModel.directory)
+            }
         case .openPalette: togglePalette()
+        case .addToStaging: addSelectionToStaging()
+        case .toggleStaging: toggleStaging()
+        case .removeFromStaging: removeStagingSelection()
         }
+    }
+
+    /// Unstage the focused Staging selection (⌫). Non-destructive — files stay on disk;
+    /// only the in-memory set is edited. No-op unless Staging holds focus.
+    private func removeStagingSelection() {
+        guard stagingFocused else { return }
+        removeFromStaging(stagingPanel.selectionURLs)
+    }
+
+    /// Remove specific files from the staging set (context-menu "Remove from Staging").
+    /// Non-destructive. Missing entries are removable too — that's how you clear stale ones.
+    func removeFromStaging(_ urls: [URL]) {
+        guard !urls.isEmpty else { return }
+        staging.remove(urls)
+        stagingPanel.refresh()
+    }
+
+    /// Empty the staging set (clear-all). Non-destructive — files stay on disk.
+    func clearStaging() {
+        guard !staging.isEmpty else { return }
+        staging.clear()
+        stagingPanel.refresh()
+    }
+
+    // MARK: - Virtual staging (issue 20)
+
+    /// Add the Active Panel's selection (from whatever folder) to the shared staging
+    /// set — the ⌘⇧S path.
+    private func addSelectionToStaging() {
+        addToStaging(activeModel.selectionURLs)
+    }
+
+    /// Add specific files to the shared staging set (context menu / drag-to-stage),
+    /// re-list the staging pane, and reveal it so the user sees where they landed.
+    func addToStaging(_ urls: [URL]) {
+        guard !urls.isEmpty else { return }
+        staging.add(urls)
+        stagingPanel.refresh()
+        if rightPane != .staging { rightPane = .staging }
     }
 
     // MARK: - Command palette (issue 19)
@@ -330,7 +443,7 @@ final class WorkspaceModel {
     // MARK: - Finder tags
 
     private func beginTagging() {
-        guard !activeModel.selectedItems.isEmpty else { return }
+        guard !operationSourceURLs.isEmpty else { return }   // excludes missing staged items
         presentedSheet = .tags
     }
 
@@ -352,7 +465,7 @@ final class WorkspaceModel {
     /// Toggle a tag across the Active selection: remove it if every selected item
     /// already has it, otherwise add it to all. One undoable `SetTagsOperation`.
     func toggleTag(_ tag: FinderTag) {
-        let items = activeModel.selectedItems
+        let items = operationSourceModel.selectedItems.filter { !$0.isMissing }
         guard !items.isEmpty else { return }
         let onAll = items.allSatisfy { $0.tags.contains { $0.name == tag.name } }
         let targets: [(url: URL, newTags: [FinderTag])] = items.map { item in
@@ -421,7 +534,7 @@ final class WorkspaceModel {
     // MARK: - Clipboard (real macOS pasteboard, file URLs)
 
     private func clipboardCopy() {
-        let urls = activeModel.selectionURLs
+        let urls = operationSourceURLs
         guard !urls.isEmpty else { return }
         let pb = NSPasteboard.general
         pb.clearContents()
@@ -475,7 +588,7 @@ final class WorkspaceModel {
     }
 
     private func trashSelection() {
-        let sources = activeModel.selectionURLs
+        let sources = operationSourceURLs
         guard !sources.isEmpty else { return }
         let op = TrashOperation(sources: sources)
         coordinator.run(op)
@@ -489,5 +602,8 @@ final class WorkspaceModel {
     private func refreshBoth() {
         left.refresh()
         right.refresh()
+        // A move/trash from Staging changes the set's reality (the URL is now gone /
+        // relocated), so re-list the Staging pane too.
+        stagingPanel.refresh()
     }
 }

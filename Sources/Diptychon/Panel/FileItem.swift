@@ -24,6 +24,10 @@ struct FileItem: Identifiable, Hashable {
     /// path **relative to the search root**. `nil` outside search and for direct
     /// children of the root (no location to disambiguate).
     var subtitle: String? = nil
+    /// The staged file no longer exists on disk (issue 20). Set by `StagingSource`
+    /// on load when the URL is gone; later slices grey such rows and exclude them
+    /// from operations (issue 33). Always `false` for directory-backed rows.
+    var isMissing: Bool = false
 
     var id: URL { url }
 

@@ -15,6 +15,8 @@ protocol FileListView: View {
         sortOrder: Binding<[KeyPathComparator<FileItem>]>,
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
         onPin: @escaping (_ folder: URL) -> Void,
+        onAddToStaging: @escaping (_ urls: [URL]) -> Void,
+        onRemoveFromStaging: ((_ urls: [URL]) -> Void)?,
         renameRequest: UUID?,
         onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
         accessibilityID: String
@@ -36,6 +38,8 @@ struct TableFileListView: FileListView {
     @Binding var sortOrder: [KeyPathComparator<FileItem>]
     let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
     let onPin: (_ folder: URL) -> Void
+    let onAddToStaging: (_ urls: [URL]) -> Void
+    let onRemoveFromStaging: ((_ urls: [URL]) -> Void)?
     let renameRequest: UUID?
     let onRename: (_ item: FileItem, _ newName: String) -> Bool
     let accessibilityID: String
@@ -46,6 +50,8 @@ struct TableFileListView: FileListView {
         sortOrder: Binding<[KeyPathComparator<FileItem>]>,
         onDrop: @escaping (_ urls: [URL], _ targetFolder: FileItem?) -> Void,
         onPin: @escaping (_ folder: URL) -> Void,
+        onAddToStaging: @escaping (_ urls: [URL]) -> Void = { _ in },
+        onRemoveFromStaging: ((_ urls: [URL]) -> Void)? = nil,
         renameRequest: UUID?,
         onRename: @escaping (_ item: FileItem, _ newName: String) -> Bool,
         accessibilityID: String = ""
@@ -55,6 +61,8 @@ struct TableFileListView: FileListView {
         self._sortOrder = sortOrder
         self.onDrop = onDrop
         self.onPin = onPin
+        self.onAddToStaging = onAddToStaging
+        self.onRemoveFromStaging = onRemoveFromStaging
         self.renameRequest = renameRequest
         self.onRename = onRename
         self.accessibilityID = accessibilityID

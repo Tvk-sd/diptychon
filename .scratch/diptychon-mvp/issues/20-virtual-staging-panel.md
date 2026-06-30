@@ -26,11 +26,19 @@ a directory. See `context/competitor-benchmark.md` §3.
 - **Adding to staging (decide in plan):** a selection action "Add to Staging"
   (context menu + a chord), and/or drag onto the staging panel. Adds the Active
   selection regardless of which folder they came from.
-- **Surfacing the staging panel (decide in plan — this is the main open question):**
-  - **A — temporary source swap:** a panel toggles to show Staging instead of its
-    directory, and back (cleanest reuse of the two-panel frame). Recommended.
-  - **B — a third pane:** richer but breaks the strict "diptych" two-panel identity
-    (`CONTEXT.md`) — weigh carefully before doing this.
+- **Surfacing the staging panel — RESOLVED 2026-06-30 → option A′ (auxiliary pane).**
+  Built option A first (temporary source swap) and tested it live: swapping a file
+  panel to Staging sacrifices a whole directory view, but the staging workflow needs
+  source panel + destination panel + the set visible at once. So staging now renders in
+  the **right auxiliary pane** (where the file Preview sits), mutually exclusive with
+  Preview, toggled from the bottom bar. Both file panels stay directories — preserves
+  the diptych (it's the aux pane, not a third *file* panel), so it does not trip the B
+  concern. The "exclusive single-panel staging" constraint is no longer needed.
+  Original options, for the record:
+  - ~~A — temporary source swap: a panel toggles to show Staging instead of its
+    directory~~ (built, then superseded — felt wrong: lost a panel).
+  - ~~B — a third file pane~~ (would break the diptych; A′ avoids this by living in the
+    auxiliary/preview region rather than adding a third file panel).
 - **Operating on the set:** existing Operations must accept a staging selection as
   *source* into a real directory *destination* (Commander gesture ⌥⌘→/←, ⌘C/⌘V,
   drag). The reversible spine (ADR 0004) applies unchanged — moves/copies from a
