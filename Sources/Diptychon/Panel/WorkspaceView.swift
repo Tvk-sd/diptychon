@@ -334,6 +334,8 @@ struct WorkspaceView: View {
                     if !inTopBar && inPanels {
                         let panelsMid = (leftEdge + rightEdge) / 2
                         model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
+                        // A file-panel click takes operation focus back from Staging.
+                        model.stagingFocused = false
 
                         // Double-click opens the selected row (first click already
                         // selected it). Handled here so the Table keeps native
@@ -341,6 +343,9 @@ struct WorkspaceView: View {
                         if event.clickCount == 2 {
                             DispatchQueue.main.async { model.openSelection() }
                         }
+                    } else if !inTopBar && model.rightPane == .staging && x > rightEdge {
+                        // Click in the Staging pane → it becomes the operation source.
+                        model.stagingFocused = true
                     }
                 }
                 return event

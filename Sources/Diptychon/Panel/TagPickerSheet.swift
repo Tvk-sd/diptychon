@@ -12,7 +12,7 @@ struct TagPickerSheet: View {
     @State private var newColor: FinderTagColor = .none
 
     var body: some View {
-        let items = model.activeModel.selectedItems
+        let items = model.operationSourceModel.selectedItems
         let custom = model.customTagsInUse
         VStack(alignment: .leading, spacing: 12) {
             Text("Tags — \(items.count) item\(items.count == 1 ? "" : "s")")

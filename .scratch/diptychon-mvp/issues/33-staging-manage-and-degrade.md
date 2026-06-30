@@ -22,9 +22,13 @@ End-to-end behavior:
 
 ## Acceptance criteria
 
-- [ ] Items can be removed from the staging set individually and via clear-all.
-- [ ] Remove and clear-all never touch the underlying files on disk.
+- [~] Items can be removed from the staging set individually and via clear-all.
+      (Per-item remove via ⌫ landed in #32 — `StagingStore.remove`; remaining: clear-all
+      + a context-menu/hover affordance for mouse users.)
+- [x] Remove and clear-all never touch the underlying files on disk. (⌫ is non-destructive.)
 - [ ] Staged items that no longer exist are greyed and excluded from operation sources.
+      (`FileItem.isMissing` is set by `StagingSource`; still needs the grey rendering +
+      exclusion from operation sources.)
 
 ## Blocked by
 

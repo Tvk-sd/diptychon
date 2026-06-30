@@ -98,8 +98,21 @@ final class WorkspaceModel {
             if rightPane != .staging {
                 UserDefaults.standard.set(rightPane == .preview, forKey: "previewVisible")
             }
+            // Opening Staging focuses it (so keyboard ops act on the set immediately);
+            // hiding it returns focus to the file panels.
+            stagingFocused = (rightPane == .staging)
         }
     }
+
+    /// Whether the Staging pane is the current **operation source** (issue 20/32). When
+    /// true, copy/move/trash/tag read the Staging selection instead of the active file
+    /// panel's; the destination for copy/move is the active file panel. Set when the
+    /// pane opens or is clicked; cleared by clicking a file panel.
+    var stagingFocused = false
+
+    /// The panel whose selection feeds the next operation: the Staging pane when it
+    /// holds focus, otherwise the active file panel.
+    var operationSourceModel: PanelModel { stagingFocused ? stagingPanel : activeModel }
 
     /// Toggle the file preview in the right pane (⇧⌘P / bottom-bar). Off-swaps staging.
     func togglePreviewPane() { rightPane = (rightPane == .preview) ? .none : .preview }
@@ -171,6 +184,9 @@ final class WorkspaceModel {
         // ⎋ clears the selection, but only when nothing modal is up — otherwise leave
         // Esc for the open sheet/dialog to consume (close on Esc). Don't swallow it.
         if case .selectNone = action, presentedSheet != nil { return false }
+        // Plain ⌫ only means "unstage" while Staging holds focus — elsewhere don't
+        // swallow it, so it stays free for the file panels.
+        if case .removeFromStaging = action, !stagingFocused { return false }
         perform(action)
         return true
     }
@@ -178,9 +194,14 @@ final class WorkspaceModel {
     func perform(_ action: AppAction) {
         switch action {
         case .copyToInactive:
-            // No visible inactive target when the right panel is hidden.
-            guard rightPanelVisible else { return }
-            write(.copy, sources: activeModel.selectionURLs, into: inactiveModel.directory)
+            if stagingFocused {
+                // Staging is the source → write into the active file panel.
+                write(.copy, sources: stagingPanel.selectionURLs, into: activeModel.directory)
+            } else {
+                // No visible inactive target when the right panel is hidden.
+                guard rightPanelVisible else { return }
+                write(.copy, sources: activeModel.selectionURLs, into: inactiveModel.directory)
+            }
         case .undo: coordinator.undo()
         case .redo: coordinator.redo()
         case .goUp: activeModel.navigateUp()
@@ -227,13 +248,28 @@ final class WorkspaceModel {
                              onAddFavorite: { [weak self] in self?.addFavoriteApp($0) },
                              onRemoveFavorite: { [weak self] in self?.removeFavoriteApp($0) })
         case .moveToInactive:
-            // No visible inactive target when the right panel is hidden.
-            guard rightPanelVisible else { return }
-            write(.move, sources: activeModel.selectionURLs, into: inactiveModel.directory)
+            if stagingFocused {
+                write(.move, sources: stagingPanel.selectionURLs, into: activeModel.directory)
+            } else {
+                // No visible inactive target when the right panel is hidden.
+                guard rightPanelVisible else { return }
+                write(.move, sources: activeModel.selectionURLs, into: inactiveModel.directory)
+            }
         case .openPalette: togglePalette()
         case .addToStaging: addSelectionToStaging()
         case .toggleStaging: toggleStaging()
+        case .removeFromStaging: removeStagingSelection()
         }
+    }
+
+    /// Unstage the focused Staging selection (⌫). Non-destructive — files stay on disk;
+    /// only the in-memory set is edited. No-op unless Staging holds focus.
+    private func removeStagingSelection() {
+        guard stagingFocused else { return }
+        let urls = stagingPanel.selectionURLs
+        guard !urls.isEmpty else { return }
+        staging.remove(urls)
+        stagingPanel.refresh()
     }
 
     // MARK: - Virtual staging (issue 20)
@@ -379,7 +415,7 @@ final class WorkspaceModel {
     // MARK: - Finder tags
 
     private func beginTagging() {
-        guard !activeModel.selectedItems.isEmpty else { return }
+        guard !operationSourceModel.selectedItems.isEmpty else { return }
         presentedSheet = .tags
     }
 
@@ -401,7 +437,7 @@ final class WorkspaceModel {
     /// Toggle a tag across the Active selection: remove it if every selected item
     /// already has it, otherwise add it to all. One undoable `SetTagsOperation`.
     func toggleTag(_ tag: FinderTag) {
-        let items = activeModel.selectedItems
+        let items = operationSourceModel.selectedItems
         guard !items.isEmpty else { return }
         let onAll = items.allSatisfy { $0.tags.contains { $0.name == tag.name } }
         let targets: [(url: URL, newTags: [FinderTag])] = items.map { item in
@@ -470,7 +506,7 @@ final class WorkspaceModel {
     // MARK: - Clipboard (real macOS pasteboard, file URLs)
 
     private func clipboardCopy() {
-        let urls = activeModel.selectionURLs
+        let urls = operationSourceModel.selectionURLs
         guard !urls.isEmpty else { return }
         let pb = NSPasteboard.general
         pb.clearContents()
@@ -524,7 +560,7 @@ final class WorkspaceModel {
     }
 
     private func trashSelection() {
-        let sources = activeModel.selectionURLs
+        let sources = operationSourceModel.selectionURLs
         guard !sources.isEmpty else { return }
         let op = TrashOperation(sources: sources)
         coordinator.run(op)
@@ -538,5 +574,8 @@ final class WorkspaceModel {
     private func refreshBoth() {
         left.refresh()
         right.refresh()
+        // A move/trash from Staging changes the set's reality (the URL is now gone /
+        // relocated), so re-list the Staging pane too.
+        stagingPanel.refresh()
     }
 }

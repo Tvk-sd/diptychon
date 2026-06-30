@@ -37,6 +37,7 @@ enum AppAction: Equatable, Hashable {
     case openPalette     // ⌘K  — open the command palette (issue 19)
     case addToStaging    // ⌘⇧S — add the Active selection to the staging set (issue 20)
     case toggleStaging   // ⌘⇧B — swap the Active Panel to the staging set and back (issue 20)
+    case removeFromStaging // ⌫ in the Staging pane — unstage (no disk delete) (issue 20)
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -121,6 +122,7 @@ enum Keymap {
         // Issue 20 — virtual staging panel.
         (KeyChord(.character("s"), command: true, shift: true), .addToStaging),  // ⌘⇧S add to staging
         (KeyChord(.character("b"), command: true, shift: true), .toggleStaging), // ⌘⇧B show/hide staging
+        (KeyChord(.code(Key.delete)), .removeFromStaging),                       // ⌫ unstage (staging pane)
     ]
 
     static func action(for event: NSEvent,

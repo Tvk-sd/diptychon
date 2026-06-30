@@ -33,6 +33,41 @@ final class WorkspaceStagingTests: XCTestCase {
         XCTAssertEqual(model.rightPane, .none, "an empty add does not pop the pane")
     }
 
+    func testStagingFocusFollowsPaneAndDrivesOperationSource() {
+        let model = makeModel()
+        XCTAssertFalse(model.stagingFocused)
+        XCTAssertTrue(model.operationSourceModel === model.activeModel,
+                      "source is the active file panel until staging is focused")
+
+        model.toggleStaging()   // open staging → it takes operation focus
+        XCTAssertTrue(model.stagingFocused)
+        XCTAssertTrue(model.operationSourceModel === model.stagingPanel,
+                      "a focused Staging pane is the operation source")
+
+        model.stagingFocused = false   // simulate clicking back into a file panel
+        XCTAssertTrue(model.operationSourceModel === model.activeModel)
+
+        model.toggleStaging()   // hide staging → focus returns to file panels
+        XCTAssertFalse(model.stagingFocused)
+    }
+
+    func testDeleteUnstagesTheStagingSelection() {
+        let model = makeModel()
+        model.addToStaging([a, b])        // reveals + focuses staging
+        model.stagingPanel.selection = [a]
+        model.perform(.removeFromStaging)
+        XCTAssertEqual(model.staging.urls, [b], "⌫ in staging unstages, leaving the rest")
+    }
+
+    func testDeleteDoesNothingWhenStagingNotFocused() {
+        let model = makeModel()
+        model.addToStaging([a, b])
+        model.stagingFocused = false      // focus is on a file panel
+        model.stagingPanel.selection = [a]
+        model.perform(.removeFromStaging)
+        XCTAssertEqual(model.staging.urls, [a, b], "no unstage unless staging holds focus")
+    }
+
     func testPreviewAndStagingShareTheRightPaneExclusively() {
         let model = makeModel()
         model.togglePreviewPane()

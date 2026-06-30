@@ -24,4 +24,11 @@ final class StagingStore {
             urls.append(url)
         }
     }
+
+    /// Remove files from the set (unstage). Non-destructive — the files stay on disk;
+    /// this only edits the in-memory list.
+    func remove(_ urls: [URL]) {
+        let drop = Set(urls)
+        self.urls.removeAll { drop.contains($0) }
+    }
 }

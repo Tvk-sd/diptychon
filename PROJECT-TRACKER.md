@@ -620,3 +620,18 @@ staging workflow wants source + destination + set visible at once.
   were collapsing the panel column and dropping the path bar (visible on empty folder/search/staging).
 - Tests: **95 green** (`WorkspaceStagingTests` rewritten: add reveals pane + dedup, empty add no-op,
   preview/staging mutual exclusion). Exclusivity constraint dropped from #32 (both panels stay dirs).
+
+### Issue 32 operate on the staged set (2026-06-30, branch `feat/32-operate-on-staged-set`)
+User-verified. The Staging pane is now a usable operation **source**; no new operation type
+(the spine already takes `sources: [URL]`).
+- **Operation focus:** `WorkspaceModel.stagingFocused` + `operationSourceModel` (Staging when
+  focused, else active file panel). copy/move/trash/tag/clipboard/tag-picker all read the source
+  model; copy/move destination = active file panel's directory. Focus auto-on when the pane opens,
+  cleared by a file-panel click; staging-pane click re-focuses (mouse monitor aux branch).
+- **No focus border** — user found a second blue outline confusing; only the destination file panel
+  is bordered. Two source→dest paths: clipboard (⌘C→folder→⌘V) and Commander gesture (⌥⌘→/←).
+- **Delete semantics:** ⌫ unstages (non-destructive, `StagingStore.remove`, pulled forward from #33);
+  ⌘⌫ trashes the real file (undoable). `handleKeyDown` only swallows ⌫ when staging holds focus.
+- `refreshBoth()` now also re-lists `stagingPanel` after any settled op.
+- Tests: **98 green** (focus→source routing, ⌫ unstage, ⌫ no-op when unfocused).
+- Deferred to #33: clear-all + mouse unstage affordance; missing-item greying + operation-source exclusion.

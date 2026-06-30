@@ -31,11 +31,25 @@ exactly like the same operation from a directory.
 
 ## Acceptance criteria
 
-- [ ] Move/copy into a file panel, trash, and tag all work with the Staging pane's
+- [x] Move/copy into a file panel, trash, and tag all work with the Staging pane's
       selection as the operation source and a file panel's directory as destination.
-- [ ] Each operation is undoable/redoable via the existing spine, with no new operation
+- [x] Each operation is undoable/redoable via the existing spine, with no new operation
       type added.
-- [ ] The destination file panel is unambiguous (active panel by default).
+- [x] The destination file panel is unambiguous (active panel by default).
+
+## Implementation notes (2026-06-30)
+
+- **Operation focus:** the Staging pane can hold operation focus (`stagingFocused`).
+  When focused, copy/move/trash/tag read the Staging selection; destination is the
+  active file panel. Set when the pane opens or is clicked; cleared by clicking a file
+  panel. No focus border (the user found a second blue outline confusing — only the
+  destination panel is bordered).
+- **Two clean source→destination paths:** clipboard (⌘C in staging → click folder →
+  ⌘V) and the Commander gesture (pick destination panel → click staging → ⌥⌘→/←).
+- **Delete semantics (pulled forward from #33):** ⌫ in the Staging pane **unstages**
+  (non-destructive); ⌘⌫ **moves the real file to Trash** (undoable). Kept distinct so
+  "delete in a shortlist" never silently trashes a file.
+- Move/trash from Staging re-lists the pane (the staged URL is now relocated/gone).
 
 ## Blocked by
 
