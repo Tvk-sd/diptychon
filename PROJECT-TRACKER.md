@@ -121,7 +121,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 17 | File-list polish (data-driven display) | ✅ done, PR pending — Size right-aligned + scan-friendly dates |
 | 18 | Operation history / time-travel undo | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 19 | Command palette (⌘K) | ✅ done on branch `feat/19-command-palette` — user-verified; + file-row hover |
-| 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
+| 20 | Virtual staging panel | ✅ done, PR #33 (merged) — 4 slices #30–#33, user-verified; Option A→A′ auxiliary-pane pivot; 100 tests green |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
 | — | **Architecture review** — all 5 deepenings (#1 settle-hook, #2 presentedSheet, #3 Panel Source inject, #4 SelectionEchoGuard, #5 compileVisible) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed, user-verified — QA filed #25/#26/#27 (see outcome below) |
