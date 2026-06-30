@@ -1,10 +1,35 @@
 # 12 — Custom tag color registration (Finder sidebar)
 
-Status: ready-for-agent
+Status: wontfix — resolved via AC3 fallback (decision 2026-06-27); see ADR 0005
 
 ## Parent
 
 `.scratch/diptychon-mvp/PRD.md`
+
+## Decision (2026-06-27) — not building this; documented instead
+
+**Resolved: don't register custom-tag colors into Finder's private store.** This is
+AC3's explicit fallback ("if direct registration proves too fragile, land a written
+rationale + the safest partial approach"). Full rationale: **ADR 0005**.
+
+Read-only probe findings:
+- The file xattr layer already works — custom tags (name + color) round-trip with
+  Finder *on the file*. That's the part users rely on.
+- The custom-tag→color store is undocumented, Finder-owned, version-sensitive, and
+  the hypothesized `~/Library/SyncedPreferences/com.apple.finder.plist` **wasn't even
+  present** on the dev machine — Finder creates/syncs it lazily.
+- Forging it risks desyncing the user's real tags and breaking on macOS updates, for
+  a cosmetic gain (custom tag shows in *Finder's* sidebar pre-colored *immediately*
+  vs *eventually*, once Finder sees a tagged file).
+
+Decision: do nothing beyond the working xattr; ship the documented rationale. The 7
+built-in color tags are unaffected and continue to round-trip (AC2 holds). Revisit
+only with a concrete recurring need AND a public/supported registration API — never
+by forging the private store. Aligns with transferable-learnings §4 (restraint).
+
+---
+
+_Original scoping below retained for the record; superseded by the decision above._
 
 ## What to build
 
