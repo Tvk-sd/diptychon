@@ -35,12 +35,14 @@ final class WorkspaceModel {
         case rename(RenameRequest)
         case tags
         case goToFolder
+        case palette
         var id: String {
             switch self {
             case .collision: "collision"
             case .rename: "rename"
             case .tags: "tags"
             case .goToFolder: "goToFolder"
+            case .palette: "palette"
             }
         }
     }
@@ -198,7 +200,26 @@ final class WorkspaceModel {
             // No visible inactive target when the right panel is hidden.
             guard rightPanelVisible else { return }
             write(.move, sources: activeModel.selectionURLs, into: inactiveModel.directory)
+        case .openPalette: togglePalette()
         }
+    }
+
+    // MARK: - Command palette (issue 19)
+
+    /// ⌘K: open the palette, or close it if it's already the presented sheet. Does
+    /// nothing if another modal is up (one modal at a time — the `presentedSheet`
+    /// invariant).
+    func togglePalette() {
+        if case .palette = presentedSheet { presentedSheet = nil }
+        else if presentedSheet == nil { presentedSheet = .palette }
+    }
+
+    /// Run a palette command: dismiss the palette first, then execute — so a command
+    /// that opens its own sheet (rename / tags / go-to-folder) can present into the
+    /// now-free modal slot.
+    func runPaletteCommand(_ command: PaletteCommand) {
+        presentedSheet = nil
+        command.run(self)
     }
 
     // MARK: - Reveal / Copy paths / Get Info (issue 28)

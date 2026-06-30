@@ -167,6 +167,11 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
 
         func numberOfRows(in tableView: NSTableView) -> Int { parent.items.count }
 
+        /// Custom row view so the table can paint a hover background under the pointer.
+        func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
+            HoverRowView()
+        }
+
         func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
             guard row < parent.items.count, let columnID = tableColumn?.identifier.rawValue else { return nil }
             let item = parent.items[row]
@@ -247,12 +252,20 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
                     image.heightAnchor.constraint(equalToConstant: 16),
                     text.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 6),
                     text.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
-                    // Name → location (search) → tag dots, all on one line; name
-                    // truncates before the location, location before nothing.
+                    // Tag dots sit in a fixed right-aligned column pinned to the
+                    // cell's trailing edge (under the Name sort arrow), so they line
+                    // up across rows instead of trailing each name. The dots stack is
+                    // content-sized (required hugging) and pinned by *trailing only*,
+                    // so the dot hugs the right edge rather than floating at the left
+                    // of a stretched frame. The name/location are bounded by the dots'
+                    // leading (`<=`) so a long name truncates before the dot column.
                     location.leadingAnchor.constraint(equalTo: text.trailingAnchor, constant: 8),
                     location.firstBaselineAnchor.constraint(equalTo: text.firstBaselineAnchor),
-                    dots.leadingAnchor.constraint(equalTo: location.trailingAnchor, constant: 6),
-                    dots.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -4),
+                    location.trailingAnchor.constraint(lessThanOrEqualTo: dots.leadingAnchor, constant: -8),
+                    // +2 nudges the dot just past the content edge so it centers under
+                    // the header's sort arrow (which sits in the indicator zone beyond
+                    // the cell's content trailing).
+                    dots.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: 2),
                     dots.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
                 ])
                 dots.setContentHuggingPriority(.required, for: .horizontal)
@@ -500,6 +513,96 @@ final class FileTableView: NSTableView {
         pendingEdit = work
         DispatchQueue.main.asyncAfter(deadline: .now() + NSEvent.doubleClickInterval + 0.05, execute: work)
     }
+
+    // MARK: Hover highlight
+    // A local `.mouseMoved` monitor (with `acceptsMouseMovedEvents`) is the reliable
+    // path: per-row tracking areas don't hand off cleanly, and a table-level tracking
+    // area is shadowed by the row/cell subviews. The monitor sees every move.
+
+    private var hoveredRow = -1
+    private var moveMonitor: Any?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if let window {
+            window.acceptsMouseMovedEvents = true
+            if moveMonitor == nil {
+                moveMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
+                    self?.updateHover(event)
+                    return event
+                }
+            }
+        } else if let monitor = moveMonitor {
+            NSEvent.removeMonitor(monitor)
+            moveMonitor = nil
+        }
+    }
+
+    private func updateHover(_ event: NSEvent) {
+        guard event.window === window else { setHoveredRow(-1); return }
+        let point = convert(event.locationInWindow, from: nil)
+        setHoveredRow(visibleRect.contains(point) ? row(at: point) : -1)
+    }
+
+    /// Apply hover to the visible rows: the matched row on, every other off. Using
+    /// `enumerateAvailableRowViews` (not per-row tracking of a previous index) keeps
+    /// it correct across row reuse and the two panels' shared mouse monitor.
+    private func setHoveredRow(_ newRow: Int) {
+        guard newRow != hoveredRow else { return }
+        hoveredRow = newRow
+        enumerateAvailableRowViews { rowView, index in
+            (rowView as? HoverRowView)?.isHovered = (index == newRow)
+        }
+    }
+
+    deinit {
+        if let moveMonitor { NSEvent.removeMonitor(moveMonitor) }
+    }
+}
+
+/// Row view that shows a subtle background when the owning table marks it hovered,
+/// suppressed while selected so the two states never fight. Uses a dedicated overlay
+/// subview (inserted below the cells) rather than `drawBackground` / the row's own
+/// layer — NSTableView manages those itself (alternating-row colors) and overwrites
+/// them, but it leaves a foreign subview alone.
+final class HoverRowView: NSTableRowView {
+    private let overlay: NSView = {
+        let view = NSView()
+        view.wantsLayer = true
+        view.layer?.cornerRadius = 5
+        view.layer?.backgroundColor = NSColor.secondaryLabelColor.withAlphaComponent(0.16).cgColor
+        view.isHidden = true
+        return view
+    }()
+
+    var isHovered = false {
+        didSet { if isHovered != oldValue { updateOverlay() } }
+    }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        addSubview(overlay, positioned: .below, relativeTo: nil)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) not used") }
+
+    override var isSelected: Bool {
+        didSet { if isSelected != oldValue { updateOverlay() } }
+    }
+
+    override func layout() {
+        super.layout()
+        overlay.frame = bounds.insetBy(dx: 2, dy: 1)
+    }
+
+    private func updateOverlay() {
+        // Re-attach + re-frame defensively: NSTableView reuses row views and can strip
+        // foreign subviews, so an overlay added only in init may be gone by hover time.
+        if overlay.superview !== self {
+            addSubview(overlay, positioned: .below, relativeTo: nil)
+        }
+        overlay.frame = bounds.insetBy(dx: 2, dy: 1)
+        overlay.isHidden = !(isHovered && !isSelected)
+    }
 }
 
 /// Name-column cell that also carries a trailing tag-dots view.
@@ -601,6 +704,23 @@ extension FinderTagColor {
         case .yellow: return .systemYellow
         case .red: return .systemRed
         case .orange: return .systemOrange
+        }
+    }
+
+    /// A filled-circle swatch as a **non-template** image so it keeps its color
+    /// inside an `NSMenu`. SwiftUI strips `.foregroundStyle` from menu-item SF
+    /// Symbols, which is why the tag-filter dots rendered grey (issue 26); a
+    /// non-template `NSImage` survives the bridge. `.none` draws a hollow ring to
+    /// match the row dot. Shares `nsColor` as the single color source of truth.
+    func menuSwatch(diameter: CGFloat = 10) -> NSImage {
+        NSImage(size: NSSize(width: diameter, height: diameter), flipped: false) { rect in
+            let path = NSBezierPath(ovalIn: rect.insetBy(dx: 0.5, dy: 0.5))
+            if let fill = self.nsColor {
+                fill.setFill(); path.fill()
+            } else {
+                NSColor.tertiaryLabelColor.setStroke(); path.lineWidth = 1; path.stroke()
+            }
+            return true
         }
     }
 }

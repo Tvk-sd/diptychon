@@ -58,7 +58,7 @@ struct TopBarView: View {
             .help("Filter the active panel by name (⌘F)")
         }
         .padding(.horizontal, 12)
-        .frame(height: 36)
+        .frame(height: 32)
         .onChange(of: model.filterFocusRequest) { filterFocused = true }
     }
 

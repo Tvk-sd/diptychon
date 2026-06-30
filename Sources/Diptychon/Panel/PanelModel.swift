@@ -111,14 +111,7 @@ final class PanelModel {
     /// Distinct tags present across the loaded rows (for the header's filter menu),
     /// first-seen order. Includes custom tags, not just the built-in colors.
     var availableTags: [FinderTag] {
-        var seen = Set<String>()
-        var result: [FinderTag] = []
-        for item in loadedItems {
-            for tag in item.tags where seen.insert(tag.name).inserted {
-                result.append(tag)
-            }
-        }
-        return result
+        FinderTag.distinctByName(in: loadedItems.map(\.tags))
     }
 
     func load() { reload() }

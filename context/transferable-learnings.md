@@ -91,8 +91,22 @@ compromise. The benchmark's §3 lists remote mounts, archive browsing, and
 folder-sync as deliberate ➖, not gaps. The product's one durable differentiator —
 **lightweight** — is defended entirely by saying no.
 
+**Second receipt (issue 29).** An "add email to Diptychon" itch (born from wanting a
+Notion-style one-stop tool) got scoped *down* to its smallest honest version —
+`.eml` metadata in the inspector — and **prototyped specifically to earn the right
+to decide.** A functional parser (9/9), a spec-by-example, and a visual HTML mock
+later, the rendered surface made the answer obvious: email is *its own app*, not a
+feature — showing a message invites a verb set (reply/forward/compose/thread) a file
+manager can't honestly carry. We shelved it as a deliberate non-scope (`wontfix`),
+keeping only what's already free (the OS previews `.eml` bodies). The prototype's job
+wasn't to build the feature — it was to make the "no" concrete and defensible (ties
+to §14: aim the cheap probe at the real question).
+
 **Principle.** Positioning lives in what you refuse to build. A feature list with no
-explicit non-scope has no identity; the deliberate-don'ts *are* the shape.
+explicit non-scope has no identity; the deliberate-don'ts *are* the shape. And a
+*no* is sometimes worth a cheap prototype: building the smallest version is often the
+fastest way to *see* that it doesn't belong — and to record why, so it isn't
+re-litigated.
 
 **Where it transfers.** AI products bloat fastest of all — every capability feels
 free to bolt on. The discipline of a written "deliberately out of scope" list (and
@@ -317,6 +331,46 @@ performance tripwires as tripwires, not steering wheels.
 
 ---
 
+## 14. Prototype your riskiest assumption, not the part that looks most like the product
+
+**Diptychon moment.** Scoping the `.eml` preview (issue 29), we weighed three
+prototype fidelities for the *same* feature: an **md spec-by-example** (ASCII
+mockups of the inspector + parse traces), an **HTML mockup**, and a **~20-line
+inline functional parser** run against a real `.eml`. The feature had two unknowns
+with *opposite* risk. Layout was near-zero risk — the email metadata strip reuses
+the existing `MetadataView` row component, just different labels — and the body
+preview turned out **free** (macOS Quick Look already renders the
+`com.apple.mail.email` UTI). The entire risk lived in the header parser: folded
+continuation lines, `Subject: Re: Re:` colons-in-value, body lines that *look*
+like headers. The functional snippet proved all three breakable cases in a single
+run; an HTML mockup would have cost more and validated only the safe layout with
+hardcoded fake data.
+
+**Principle.** Fidelity isn't a scalar you turn up. Rank prototype media by **how
+much each de-risks your riskiest assumption per unit of effort**, not by how much
+the artifact resembles the finished product. A polished mockup of a low-risk
+surface is motion, not progress — and the prettier the artifact, the more it tempts
+you to validate the part that was never going to break. For a *known-UI-over-risky-
+logic* feature, the cheapest *meaningful* prototype is running code on a real input,
+not a rendered screen. Bonus move: match each medium to the axis it actually tests —
+the cheap md locked the UX + became the unit-test cases (low-risk axis), the
+functional snippet proved the parse (high-risk axis), and the middle option (HTML)
+did neither well, so it was skipped.
+
+**Where it transfers.** Any product / PM decision about how to test a bet *before*
+building it. The instinct is to make the prototype resemble the product — a
+clickable Figma flow, a styled landing page, a pixel-perfect mockup — when the real
+question is usually *"will the core mechanic actually work?"* or *"will users
+actually do the hard step?"* Spend the prototype budget on whichever axis is
+genuinely uncertain: a fake-door / concierge test for **demand** risk, a throwaway
+working spike for **feasibility** risk, a paper sketch when only the **layout** is
+in doubt. The fidelity that looks impressive in a review is rarely the fidelity that
+answers the question. Same family as §10 (size the test to the failure you fear) and
+§12 (test the real path): aim the cheap probe at the assumption that can actually
+sink the feature, and refuse to polish the safe part first.
+
+---
+
 ## How to use this doc
 - **When starting a new product** (especially AI): read §1 and §5 *before* you
   design the second pane or give an agent write-access. They're the expensive
@@ -333,6 +387,9 @@ performance tripwires as tripwires, not steering wheels.
   *fresh* build, or say "not yet verified."
 - **When evaluating a refactor or any internal-quality work:** §13 — score fitness
   functions, not a north-star; keep perf numbers as tripwires.
+- **When deciding how to prototype a feature:** §14 — aim the prototype at your
+  riskiest assumption, not at product-likeness; run real code on real input over a
+  pretty mockup of the safe part.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).

@@ -120,13 +120,14 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 16 | Left sidebar (places + pinned folders) | ✅ done, PR pending — all 3 slices, user-verified |
 | 17 | File-list polish (data-driven display) | ✅ done, PR pending — Size right-aligned + scan-friendly dates |
 | 18 | Operation history / time-travel undo | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
-| 19 | Command palette (⌘K) | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
+| 19 | Command palette (⌘K) | ✅ done on branch `feat/19-command-palette` — user-verified; + file-row hover |
 | 20 | Virtual staging panel | ⬜ needs-triage — differentiation bet, `context/competitor-benchmark.md` §3 |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
 | 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
 | — | **Architecture review** — all 5 deepenings (#1 settle-hook, #2 presentedSheet, #3 Panel Source inject, #4 SelectionEchoGuard, #5 compileVisible) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed, user-verified — QA filed #25/#26/#27 (see outcome below) |
 | 25 | Double-click opens entire selection, not clicked row | ⬜ needs-triage — found in QA, product call needed (`.scratch/diptychon-mvp/issues/25-*`) |
 | 28 | Keyboard command expansion (Marta-informed) + Open-With favorites | ✅ done on branch `feat/28-keyboard-commands` (off `improve-codebase-architecture`), user-verified — commit `2bdad9d` |
+| — | **Chrome redesign** — toggles → bottom bar; top bar decoupled from sidebar tint; 32pt bands; fold-to-corner | ✅ done on branch `feat/chrome-toggles-bottom-bar`, pushed (`3c5301f`), user-verified |
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but
@@ -470,6 +471,26 @@ vs loaded) + sort. `VisibleItemsTests`. Commit `c3cc180`, no behavior change.
 shipped; #5 shipped). 70 tests green. Three bugs/features surfaced during QA: issue
 #25 (double-click selection), #26 (tag filter menu dot grey), #27 (tags column).
 
+### Issue 19 outcome (2026-06-27) — Command palette (⌘K) + file-row hover (branch `feat/19-command-palette`, off `main`)
+Linear/Raycast-style palette, user-verified, plus a row-hover highlight in the panels.
+- **Palette** drives off the data-driven `Keymap` (`CommandCatalog` of `PaletteCommand`):
+  each command runs via the same `perform(action)` / model mutation as its chord/toolbar
+  (one implementation, three entry points), and chord glyphs are reverse-looked-up from
+  `Keymap` so labels can't drift. Pure fuzzy filter + glyph formatting are unit-tested (7).
+- `.openPalette` (⌘K) is special-cased in the key monitor *before* the text-field guard,
+  so it opens even while the Filter is focused; `Sheet.palette` + `togglePalette` /
+  `runPaletteCommand` (dismiss-then-run so a command's own sheet presents cleanly).
+- **Mouse + keyboard share one highlight.** Rows are plain `Button`s (no system hover
+  tint, so hover matches keyboard exactly). Hover never scrolls; scrolling is keyboard-only,
+  and a 0.3s post-keypress window stops the scroll-induced `.onHover` from hijacking arrow
+  nav (the "stuck in 4 rows" bug).
+- **File-row hover** (`NSTableViewFileList`): a local `.mouseMoved` monitor → `row(at:)` →
+  a `HoverRowView` overlay subview. Hard-won: NSTableView strips foreign subviews on row
+  reuse, so the overlay is re-attached each update; `drawBackground`/layer color get
+  overwritten by the table's own drawing, so an overlay subview is the reliable path.
+  `enumerateAvailableRowViews` keeps exactly one row lit. (Debugging lesson: separate
+  "is the state set?" from "is it drawn?" — a forced-on-launch render test isolated the two.)
+
 ### Issue 28 outcome (2026-06-27) — Keyboard command expansion + Open-With favorites (branch `feat/28-keyboard-commands`, off `improve-codebase-architecture`)
 Marta-informed keyboard pass + a customizable Open-With menu, user-verified end to
 end ("all work perfectly"). Spec: `.scratch/diptychon-mvp/issues/28-keyboard-command-expansion.md`.
@@ -503,3 +524,47 @@ xattr already round-trips (name + color) and the 7 built-in colors are unaffecte
 No Finder mutation, no code. Decision + rationale: `docs/adr/0005-…md` and
 `.scratch/diptychon-mvp/issues/12-…md`. Lesson: transferable-learnings §4 (restraint).
 **Not an open thread.**
+
+### Issue 26 outcome (2026-06-30) — Tag-filter menu dot showed grey, not the tag color (branch `fix/26-tag-filter-menu-dot-grey`, off `main`)
+Two real causes, both fixed; user-verified in a live build:
+- **Render (the visible bug):** SwiftUI strips `.foregroundStyle` from SF-Symbol icons
+  inside a native `Menu` (`NSMenu`), so every filter-menu dot rendered grey. Fix: a
+  non-template `NSImage` swatch (`FinderTagColor.menuSwatch`) drawn with the same
+  `nsColor` source of truth as the row dots; the active filter shows a checkmark.
+- **Data (latent):** `PanelModel.availableTags` deduped by name keeping first-seen, so
+  a same-named `.none` tag could shadow the real colored one. Fix:
+  `FinderTag.distinctByName` prefers a colored instance over a same-named `.none`,
+  first-seen order preserved. 6 unit tests (`FinderTagDistinctTests`), **82 green.**
+- **Lessons (this slice):** (1) a clean `xcodebuild test` + relaunch can still pass over
+  a *bad repro* — custom tag color indices are **normalized by `mdworker` on
+  Spotlight-indexed volumes** (Desktop rewrote `Green\n2`→`Green\n1`); fabricate tag
+  test data in non-indexed `/tmp`. (2) The work was recovered from two stashes, one
+  **mislabeled** "issue-29" — verify stash *contents*, not labels.
+- Follow-up (done, same branch): **row** tag dots now sit in one right-aligned vertical
+  column centered under the Name sort arrow (was: trailing each filename at varying x).
+  Fix in `NameCellView` constraints — dots stack is content-sized + pinned trailing-only
+  (so the single dot hugs the edge, not the left of a stretched frame), name/location
+  bounded by the dots' leading (`<=`) so a long name truncates; trailing inset +2 to
+  center under the header's sort indicator (tuned live with the user).
+
+### Chrome redesign (2026-06-30) — toggles to bottom bar + decoupled top bar (branch `feat/chrome-toggles-bottom-bar`, off `main`, pushed `3c5301f`)
+Design pass on the window chrome, user-verified ("perfect") through a build →
+screenshot iteration loop.
+- **View-toggles relocated** (sidebar / split / preview) from the top header into a
+  new full-width **bottom bar**, flat icon style preserved. The whole bar carries
+  one even `sidebarSurface` tint with the vertical seam drawn on top (stacking two
+  materials would darken the overlap — one material, divider above).
+- **Top bar decoupled from the sidebar tint** — now plain black (window background):
+  a traffic-light divider (gap right of the dots mirrors the gap to the window edge)
+  caps the dots into their own cell, then the `Diptychon` name, then the name-divider
+  on the 200px sidebar edge; the remaining width is free space for future displays.
+- **Fold-to-corner:** when the sidebar hides, the bottom toggle + its divider collapse
+  to the left corner (left box 200→44px, toggle un-spaced to the left). The even bar
+  tint means nothing is orphaned, and the decoupled top bar stays fixed — so folding
+  only moves the one toggle, reading as intentional.
+- **Chrome bands unified to 32pt** (from 36): header, nav (`TopBarView`), bottom bar,
+  and the sidebar search field — kept in lockstep so their seams line up across the
+  sidebar/panel boundary.
+- Files: `WorkspaceView.swift` (header + bottom bar), `TopBarView.swift`,
+  `SidebarView.swift` (search-field height). No new `.swift` files → no
+  `xcodegen generate` needed.

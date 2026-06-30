@@ -1,6 +1,6 @@
 # 26 — Tag filter menu dot shows grey, not the tag's color
 
-Status: ready-for-agent — found in QA 2026-06-27
+Status: done — branch `fix/26-tag-filter-menu-dot-grey`, user-verified; see PROJECT-TRACKER issue 26 outcome
 
 ## Parent
 
