@@ -690,3 +690,33 @@ spine already shipped; #18 only adds *legibility*. Right-sized into tiers; shipp
 - **Tier 2 (deferred):** scrubbable timeline + "undo to here" — build only on a demand signal.
   Explicitly **not a git graph** (undo is linear/LIFO → a flat newest-first list). Recorded in the issue.
 - Tests: **105 green** (coordinator emits undo/redo toasts; non-undoable path toasts "can't undo").
+
+### Session outcome (2026-07-02 → 07-03) — perf, ⌘B, staging palette + discovery
+All merged to `main`; merged branches deleted, `build/` gitignored (183 MB Xcode output).
+
+**Code shipped:**
+- **Performance baselines (#22)** — PR #37. `Perf` unified-log helper + `LoadPerformanceTests`
+  (`measure{}`); baselines in `context/performance.md`. Finding: 50k folder ~4.6s load /
+  ~6.5s interactive — never blocks, but "instant" claim retracted. Follow-up filed → issue 40.
+- **⌘B sidebar toggle + staging commands in the command palette** (+ palette filtered-result
+  render fix) — PR #38.
+
+**Discovery / docs shipped (PR #40):**
+- **Marta gap analysis** — `context/competitor-benchmark.md` §5 (full Marta tool inventory +
+  gap table; PM note on resisting heavy extensibility).
+- **Netnography / social-listening study** — `context/netnography/` (6 files: methodology+
+  ethics, coded corpus, analysis, synthesis, Diptychon mapping). Kozinets method; r/macapps +
+  HN + Applefritter corpus. **Core finding: reliability/trust (state persistence, visible op
+  queue, values-hygiene) beats feature breadth; remote is the strongest unmet job but is
+  out of segment.**
+- **Backlog issues filed: 34–43** — 34 operation queue (+merge/W9, bottom-left panel, boundary
+  vs #18), 35 disk usage, 36 gadgets-lite, 37 multi-column, 38 per-pane tabs, 39 recents,
+  40 load-path optimization, 41 state persistence, 42 docs/onboarding, 43 local instant search.
+- **Netnography-informed backlog priority** added above (Status → *Backlog priority*):
+  reliability (41, 34) before feature breadth (37, 36).
+- **GTM implications** — `context/positioning-note.md` §GTM (values-hygiene + proof culture +
+  non-remote framing).
+
+**Note:** PR #39 (`feat/toggle-sidebar-hotkey`) was a superset branch of #37+#38 and also merged;
+its content is fully represented by #37/#38. All four topic branches deleted post-merge.
+
