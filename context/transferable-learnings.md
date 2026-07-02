@@ -2,13 +2,18 @@
 
 The other research docs (`dashboard-research.md`, `sidebar-research.md`,
 `competitor-benchmark.md`) serve *Diptychon*. **This one serves future-you** — the
-patterns from building a dual-panel native app that carry into the next product,
-especially **AI products**, which are converging on multi-panel, left-to-right
-work surfaces.
+patterns from building a dual-panel native app that carry into the next product.
+
+**Lens.** Entries are captured first through a **product-management lens** — scope,
+positioning, metrics, decision-making, risk — with **AI product-building as a light
+lookout**, not the main frame. So "where it transfers" leads with the PM move; the
+AI angle gets a secondary glance where it genuinely applies (AI products are
+converging on the same multi-panel, left-to-right work surfaces, which is why the
+lookout is worth keeping — but it's a lookout, not the lens).
 
 **Anchor rule for every entry:** name the concrete Diptychon moment that taught it,
-the generalizable principle, and where it transfers. No platitudes without a
-receipt.
+the generalizable principle, and where it transfers (PM-first, AI-light). No
+platitudes without a receipt.
 
 > **One claim, sharpened up front.** It's tempting to say "all AI products are
 > multi-panel." That's false — most are still single-column chat. The credible
