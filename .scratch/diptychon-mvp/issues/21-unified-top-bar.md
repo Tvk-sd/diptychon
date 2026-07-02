@@ -1,6 +1,6 @@
 # 21 — Unified top bar: breadcrumb, back/forward, search
 
-Status: done — branch `feat/21-unified-top-bar`, PR #21 open, user-verified. Some
+Status: done — merged (PR #21), user-verified. Some
 ACs were superseded by user decisions during the build (see notes below + the
 issue-21 outcome in `PROJECT-TRACKER.md`).
 

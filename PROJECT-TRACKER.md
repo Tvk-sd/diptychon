@@ -123,7 +123,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 19 | Command palette (⌘K) | ✅ done on branch `feat/19-command-palette` — user-verified; + file-row hover |
 | 20 | Virtual staging panel | ✅ done, PR #33 (merged) — 4 slices #30–#33, user-verified; Option A→A′ auxiliary-pane pivot; 100 tests green |
 | 21 | Unified top bar (breadcrumb, back/forward, search) | ✅ done on branch `feat/21-unified-top-bar`, PR #21 open — slices 1–3 + redesign, user-verified |
-| 22 | Performance baseline measurements | ⬜ needs-triage — unblocks speed claim, `context/competitor-benchmark.md` §4 |
+| 22 | Performance baseline measurements | ✅ done (2026-07-02) — baselines in `context/performance.md`; §4 corrected. **Finding: 50k is NOT "instant" (~4.6s load / ~6.5s interactive); never blocks. "instant" claim retracted.** `Perf` log helper + `LoadPerformanceTests` (`measure{}`) |
 | — | **Architecture review** — all 5 deepenings (#1 settle-hook, #2 presentedSheet, #3 Panel Source inject, #4 SelectionEchoGuard, #5 compileVisible) + self-overwrite data-loss fix | ✅ done on branch `improve-codebase-architecture`, pushed, user-verified — QA filed #25/#26/#27 (see outcome below) |
 | 25 | Double-click opens entire selection, not clicked row | ✅ done (bug) — Option A: double-click → clicked row only via table `doubleAction`/`clickedRow`; user-verified, branch `fix/25-double-click-clicked-row` |
 | 26 | Tag-filter menu dot grey + row dots aligned | ✅ done, PR #31 — menu swatch color fix + dedup + row dots right-aligned under Name arrow |
@@ -131,6 +131,33 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 28 | Keyboard command expansion (Marta-informed) + Open-With favorites | ✅ done on branch `feat/28-keyboard-commands` (off `improve-codebase-architecture`), user-verified — commit `2bdad9d` |
 | 29 | Type column in the file list | ✅ done (branch `feat/29-kind-column`), user-verified — Name·Type·Date·Size; short Type (uppercased ext); Name flexes; default sort Date-desc |
 | — | **Chrome redesign** — toggles → bottom bar; top bar decoupled from sidebar tint; 32pt bands; fold-to-corner | ✅ done on branch `feat/chrome-toggles-bottom-bar`, pushed (`3c5301f`), user-verified |
+| 30–33 | Virtual staging panel (4 slices) | ✅ done — see issue-20 outcome above (PR #33 merged) |
+
+---
+
+## Backlog priority (netnography-informed, 2026-07-03)
+
+Open/candidate issues, ranked by the social-listening study in `context/netnography/`
+(ranking basis: `02-analyse-und-befunde.md` §2, `03-synthese-kundenwuensche.md` §5).
+**Core line: reliability/trust (41, 34) before feature breadth (37, 36).** All rows
+are `needs-triage` unless noted.
+
+| Prio | Issue | Title | Rationale (evidence) |
+|------|-------|-------|----------------------|
+| 1 | 41 | Reliable state persistence | Rank-1 opportunity; underserved, no rival advertises it (N1/JTBD-1) |
+| 2 | 34 | Operation Queue UI (+ Merge/W9, bottom-left panel) | Trust feature; builds on the undo spine; Nimble gap (P5/W9) |
+| 3 | 38 | Per-pane tabs | Enabler for 41's tab persistence; heaviest refactor (`PanelModel`) → do after/with 41 |
+| 4 | 42 | Text-first docs & first-run onboarding | Cheapest real moat vs Marta/Path Finder; adoption track (N3/T4) |
+| 5 | 07+ | Regex/EXIF batch-rename (extend shipped #07) | Wish W3, named "differentiator" |
+| 6 | 39 | Recent locations | Small, self-contained; complements persistence |
+| 7 | 35 | Analyze disk usage | Self-contained; Marta-parity gap |
+| 8 | 43 | Local instant search (non-Spotlight) | Gate on demand-check in our own segment (single strong voice, remote-adjacent) (N5/P9) |
+| 9 | 37 | Multi-column brief display mode | Weak demand in corpus |
+| 10 | 36 | Gadgets-lite (external-tool actions) | Tinkerer niche — lowest in corpus |
+| ↗ | 40 | Load-path optimization | Perf track, orthogonal — sequence by perf need, not this value ranking |
+
+> Full findings → `context/netnography/` (04-diptychon-mapping.md maps each finding to
+> these issues). Positioning implications → `context/positioning-note.md` §GTM.
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but

@@ -1,6 +1,6 @@
 # 32 — Operate on the staged set
 
-Status: ready-for-agent
+Status: done — merged (staging stack, PR #33; commit `fdcb1e7`), user-verified
 
 ## Parent
 

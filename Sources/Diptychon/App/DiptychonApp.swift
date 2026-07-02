@@ -11,6 +11,9 @@ import SwiftUI
 @main
 struct DiptychonApp: App {
     init() {
+        // Earliest app-controlled instant — the cold-launch baseline start (issue 22).
+        // The first panel to finish loading reports the delta to the unified log.
+        Perf.launchStart = .now()
         // Right panel defaults to shown; `bool(forKey:)` then honors the persisted
         // value or a `-rightPanelVisible NO` launch arg. (Registered before the
         // WorkspaceModel reads it.)

@@ -1,6 +1,6 @@
 # 07 — Batch rename
 
-Status: ready-for-human
+Status: done — merged (PR #8; + QA fixes #10 refresh-both-panels, #11 case-only rename)
 
 ## Parent
 

@@ -76,8 +76,12 @@ enum CommandCatalog {
         cmd(.focusFilter, "Find in Folder", "View"),
         toggle("togglePreview", "Toggle Preview Pane", shortcut: "⇧⌘P") { $0.togglePreviewPane() },
         toggle("toggleStaging", "Toggle Staging Pane", shortcut: "⌘⇧B") { $0.toggleStaging() },
-        toggle("toggleSidebar", "Toggle Sidebar", shortcut: nil) { $0.sidebarVisible.toggle() },
+        cmd(.toggleSidebar, "Toggle Sidebar", "View"),
         toggle("toggleRightPanel", "Toggle Right Panel", shortcut: "⌥⌘S") { $0.rightPanelVisible.toggle() },
+        // Staging (issue 20)
+        cmd(.addToStaging, "Add to Staging", "Staging", enabled: hasSelection),
+        cmd(.removeFromStaging, "Remove from Staging", "Staging",
+            enabled: { $0.stagingFocused && !$0.stagingPanel.selection.isEmpty }),
         // Navigation
         cmd(.goUp, "Go Up", "Navigation", enabled: { $0.activeModel.canGoUp }),
         cmd(.goBack, "Back", "Navigation", enabled: { $0.activeModel.canGoBack }),

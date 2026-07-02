@@ -1,6 +1,6 @@
 # 06 — Drag & drop
 
-Status: ready-for-human
+Status: done — merged (PR #7)
 
 ## Parent
 

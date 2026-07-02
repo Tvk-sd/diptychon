@@ -1,6 +1,6 @@
 # 20 — Virtual staging panel
 
-Status: needs-triage
+Status: done — merged (PR #33) — 4 slices #30–#33, user-verified; Option A→A′ auxiliary-pane pivot
 
 ## Parent
 

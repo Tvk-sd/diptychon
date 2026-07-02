@@ -48,7 +48,8 @@ Legend: ✅ ships · 🔄 backlog/planned · ➖ deliberately out of scope · �
 | **Dual side-by-side panels** | ✅ core (issue 03) | ➖ single-pane | ✅ | ✅ | ✅ |
 | **Active/Inactive focus model** | ✅ Tab + click, accent border (03) | ➖ | ✅ | ✅ | ✅ |
 | **Commander "copy to other panel"** | ✅ ⌥⌘→/← (04) | ➖ | ✅ | ✅ | ✅ |
-| **Multi-level undo/redo of file ops** | ✅ reversible Operation spine, ⌘Z/⇧⌘Z (04/05) | ❔ limited | ❔ | ❔ | ❔ |
+| **Multi-level undo/redo of file ops** | ✅ reversible Operation spine, ⌘Z/⇧⌘Z (04/05) | 🟡 limited/single-step | 🟡 partial (in-place rename) | ❌ op *queue*, no undo spine | ✅ multi-level, logged into Activity |
+| **Operation *legibility* — visible/scrubbable timeline** (issue 18) | 🔄 spine exists but **invisible + LIFO-only** (18) | ❌ undo invisible | 🟡 live op *queue* only (not undo history) | 🟡 live op *queue* only | 🟡 **Activity/Log** pane (closest) — but not scrub-to-a-point |
 | **Pre-write collision dialog** (overwrite/keep-both/skip) | ✅ (04/05) | ✅ replace/keep-both | ✅ | ❔ | ✅ |
 | **Clipboard cut/copy/paste** (⌘C/⌘V/⌥⌘V) | ✅ Finder convention (05) | ✅ | ✅ | ✅ | ✅ |
 | **Drag & drop incl. to/from Finder** | ✅ (06) | ✅ | ✅ | ✅ | ✅ |
@@ -62,7 +63,7 @@ Legend: ✅ ships · 🔄 backlog/planned · ➖ deliberately out of scope · �
 | **Inline preview / inspector pane** | ✅ toggleable, ⇧⌘P (14) | ✅ Preview pane | ✅ | ❔ | ✅ |
 | **Path bar + Go to Folder (⇧⌘G)** | ✅ clickable breadcrumb (15) | ✅ | ✅ | ✅ | ✅ |
 | **Type-ahead filter / hidden toggle** | ✅ (02) | ❔ type-select only | ✅ | ✅ | ✅ |
-| **Large-folder perf (50k+ virtualized)** | ✅ verified (01/06) | ✅ | ✅ | ❔ | ❔ |
+| **Large-folder perf (50k+ virtualized)** | 🔶 non-blocking, ~4.6s load (22) | ✅ | ✅ | ❔ | ❔ |
 | **Left sidebar (places + pinned)** | 🔄 backlog, spec'd (16) | ✅ rich (Locations/Tags/iCloud) | ✅ | ❔ | ✅ |
 | **Remote/cloud mounts** (SFTP/S3/…) | ➖ out of scope (local-only MVP) | ➖ | ❔ | ➖ | ✅ flagship |
 | **Built-in archive browse/extract** | ➖ out of scope (modeled as future `PanelSource`) | ❔ extract only | ✅ | ❔ | ✅ |
@@ -128,22 +129,127 @@ no bundled runtime, no Chromium. This is the most *visceral* proof of the
 **What size proves:** native + lightweight. **What it does *not* prove:** runtime
 speed — don't let the two blur.
 
-### Performance — architected for, not yet benchmarked
-Evidence we have (from issue outcomes), honestly labelled as *design + spot-check*,
-not measured numbers:
-- Directory loads run **off-main** (`Task.detached`, prefetched resource keys) —
-  the UI never blocks (issue 01).
-- **Virtualized `NSTableView`** render; a **50k-file folder verified** to load
-  without blocking or crashing (issues 01/06).
+### Performance — measured (issue 22)
+Baselines on Apple M1 / macOS 26.5.1 / arm64, Release build, warm cache
+(2026-07-02). Full method + refresh commands: `context/performance.md`.
+- **Cold launch → first panel interactive:** ~716 ms (small folder).
+- **Directory loads run off-main** (`Task.detached`, prefetched resource keys) —
+  the UI **never blocks**; you get a loading state, then rows (issue 01).
+- **Virtualized `NSTableView`** render (O(visible rows), not O(items)).
 - `visibleItems` cached (issue 04); FSEvents refresh debounced (issue 09).
 
-**Gap:** no measured cold-launch time or large-folder time-to-interactive. Until
-those exist (issue 22), claim *"instant on huge folders — 50k verified"* and stop
-short of hard speed numbers.
+**⚠️ Correction — do NOT claim "instant on huge folders."** The measurement
+contradicts it: a **50k-file folder takes ~4.6 s to load** (single panel) and
+**~6.5 s to become fully interactive** (dual-panel launch). It never *blocks* —
+but it is not *instant*. Honest, defensible claim:
+> *"Stays responsive on huge folders — never freezes the UI; a 50k-file folder
+> stays scrollable while it loads."*
+
+**Follow-up (candidate, not filed):** ~92 µs/file is dominated by two per-file
+resource keys — `contentType` (Kind column) and `localizedName`. Trimming the load
+path could cut the 50k number materially; needs an Instruments/A-B confirmation
+first (`context/performance.md`).
 
 ---
 
-## 5. How to use this doc
+## 5. Marta deep-dive — full tool inventory & gaps
+
+Marta is our closest spiritual peer ("Total Commander for macOS"), so it's worth a
+one-competitor deep read rather than a single matrix row. Sourced from
+[marta.sh/docs](https://marta.sh/docs/) + homepage (read 2026-07-02).
+
+**Where Diptychon already leads Marta:** reversible multi-level undo (Marta has an
+operation *queue* but no undo spine); real Finder-tag round-trip + per-panel tag
+filter (not a Marta concept); virtual staging panel (issues 20/30–33, no Marta
+analogue). Those stay our wins — don't trade them away chasing parity.
+
+**Deliberately out of scope** (see §3 — not gaps): archive-as-folder,
+remote/cloud mounts, folder sync-compare.
+
+### Gap table — Marta tools Diptychon lacks
+Legend: ❌ absent · 🟡 partial · 🔄 backlog · ➖ deliberate
+
+| Marta tool | What it does | Diptychon | Verdict |
+|---|---|---|---|
+| **Operation Queue** | Queued ops, shared across windows, progress bar, **pause/cancel**, keyboard-driven (`=`) | ❌ ops run off-main but no surfaced queue/pause/cancel | **Top gap** — extends our reversible-op lead (issue 34) |
+| **Analyze Disk Usage** | Recursive size scan → sorted-desc virtual view | ❌ | **File** (issue 35) |
+| **Gadgets** | User-defined actions running external apps/executables on the selection | ❌ | **Gadgets-lite** (issue 36) |
+| **Flatten** | Recursive folder → one flat file list | ❌ | Candidate — cheap, pairs with disk-usage |
+| **Look Up** | System-global search via Spotlight indices | ❌ | Candidate |
+| **Embedded Terminal (etty)** | Per-pane pty, dir-synced (`⌘O`) | ❌ | Weight risk — tension w/ "lightweight" |
+| **Multi-column brief display mode** | 1/2/3-column view alongside table | ❌ table-only | **File** (issue 37) |
+| **Tabs** (per pane) | Multiple tabs | ❌ | **File** (issue 38) |
+| **Recent Locations** | Visited-folder history | ❌ | **File** (issue 39) |
+| **Favorites / Volumes** | Pinned places + volume list | 🔄 sidebar (issue 16) | Covered by backlog |
+| **Hierarchy parents menu** (`⌥0`) | Keyboard breadcrumbs | 🟡 have path bar | Minor |
+| **Clone folder to other pane** | Point inactive pane at active folder | ❌ (have copy-*files*, not clone-*view*) | Minor |
+| **Regex quick search** | Filter by substring **or** regex | 🟡 substring type-ahead only | Minor |
+| **Decoupled selection** | Move cursor without losing selection | ❌ Finder-style | UX-divergence decision, not a bug |
+| **Action Bar** | Button strip + hotkey cheat sheet below panes | ❌ (have command palette, issue 19) | Deferred |
+| **Extensibility suite** | Lua plugin API · config DSL · configurable keybindings · themes · fonts · CLI | ❌ none | ➖ mostly *against* the lightweight/Finder-native thesis — **not** parity targets (except Gadgets-lite, issue 36) |
+
+> **PM note.** Marta's extensibility is its moat *and* its weight. Don't chase
+> plugin/theme/DSL parity — it fights "lightweight + Finder muscle memory." The
+> three worth filing (34/35/36) are the ones that either extend an existing
+> Diptychon strength (the op queue) or are self-contained, high-utility, low-weight.
+
+---
+
+## 6. Issue 18 — Operation *legibility*: where we stand
+
+**The trait.** *Legibility* = can the user **see what just happened** and **reverse to a
+chosen point** — not just fire blind ⌘Z. The reversible Operation spine (ADR 0004)
+already makes actions undoable; issue 18 makes that spine **visible and scrubbable**
+("you moved 12 files to /Archive 8 min ago → Undo back to here"). Reversibility is
+*done*; **legibility is the gap** (see transferable-learnings §5; 2026-06-30 retro).
+
+**Legibility ladder — the fitness function (test where any tool stands, don't assert):**
+
+| Level | Definition | Who |
+|---|---|---|
+| **L0** | Operation invisible, no undo | Finder (moves) |
+| **L1** | Blind LIFO undo (⌘Z), no visibility of *what* reverts | **Diptychon today**; Finder (partial); Marta/Nimble (+ live queue) |
+| **L2** | Persistent, **visible activity log** of past operations | **ForkLift** (Activity/Log pane) |
+| **L3** | **Scrubbable timeline** — click any past point, "undo back to here" w/ legible summary | **nobody ships** — issue 18 target |
+
+**Standing: Diptychon = L1 today → L3 target.** We *lead* on the underlying spine
+(multi-level, real inverses) but *trail ForkLift on visibility* — they surface ops in an
+Activity/Log pane, we surface nothing yet. The whitespace we'd own outright is **L3**,
+the scrub-to-a-point interaction no competitor has.
+
+**How to test standing (both risks):**
+- *Feasibility* — a working spike: render the existing Operation stack as a list, wire
+  "undo back to index N". Cheap; the spine already exists.
+- *Demand* — a **legibility probe / fake-door**: the undo toast (#18 Tier 1) is the seed;
+  instrument whether users open/act on history before building the full timeline. Gate
+  L3 on that signal (2026-06-30 retro: scrubbable timeline deferred until demand shows).
+
+**User-need evidence (live dig, 2026-07-02):**
+- *"Not sure if there is a way to find a log of actions. That's something I would love to
+  see… a history of user actions."* — HN, dsego (Mar 2025). Same comment calls blind
+  Finder undo **"potentially destructive"** (undo after reformatting an SD card) → a
+  *visible* timeline is **safer**, not just nicer.
+- User moved **thousands** of files to the wrong folder; Finder has no undo; wants **a log
+  of moves to restore from** — Apple Community.
+- *"the issue is undo… and it also covers e.g. renames"* — HN, eviks. Multi-op undo across
+  move/rename, not just trash-restore.
+
+**Competitive read.** Multi-level undo is **commoditizing** (ForkLift ✅; Double Commander
+shipped it; Trove has per-panel undo stacks). A **visible log** exists (ForkLift). The
+**scrubbable-to-a-point timeline is unclaimed.** But demand is **latent, not loud** —
+acute-but-rare pain, individual voices not upvote piles. So scope issue 18 as a
+**trust/safety/legibility** play (reinforces positioning-note's "small, stable, undoable"),
+**not** a growth headline; keep **moves + bulk ops** as the wedge.
+
+*Sources: HN [43498984](https://news.ycombinator.com/item?id=43498984),
+[37403773](https://news.ycombinator.com/item?id=37403773); Apple
+[254492651](https://discussions.apple.com/thread/254492651); [ForkLift version
+history](https://binarynights.com/versionhistory);
+[Trove](https://apps.apple.com/lu/app/trove-file-explorer/id6757410257).*
+
+---
+
+## 7. How to use this doc
 - **Positioning checks:** when tempted to add a feature, find its row. If it's a ➖,
   the bar to flip it is "does this break *lightweight*?"
 - **Pairs with:** `sidebar-research.md` (the "less than Finder" sidebar),

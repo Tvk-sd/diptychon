@@ -1,6 +1,6 @@
 # 02 — Panel navigation, sorting, hidden files, type-ahead filter
 
-Status: ready-for-human
+Status: done — merged (PR #2)
 
 ## Parent
 

@@ -1,6 +1,6 @@
 # 31 — Staging: full add surface + header toggle button
 
-Status: ready-for-agent
+Status: done — merged (staging stack, PR #33; commit `857f70e`, supersedes Option A), user-verified
 
 ## Parent
 

@@ -1,6 +1,6 @@
 # 30 — Stage files and view them in a panel
 
-Status: ready-for-agent
+Status: done — merged (staging stack, PR #33; commit `945ebe3`), user-verified
 
 ## Parent
 

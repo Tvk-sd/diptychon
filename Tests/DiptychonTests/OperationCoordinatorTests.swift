@@ -85,6 +85,9 @@ final class OperationCoordinatorTests: XCTestCase {
         coordinator.onOperationSettled = { ran.fulfill() }
         coordinator.run(FakeOperation(isUndoable: false))
         await fulfillment(of: [ran], timeout: 1)
+        // undo() settles again synchronously; drop the hook so it can't re-fulfill
+        // `ran` (a second fulfill() is an XCTest API violation and crashes the run).
+        coordinator.onOperationSettled = {}
 
         var toast: String?
         coordinator.onUndoRedoToast = { text, _ in toast = text }
