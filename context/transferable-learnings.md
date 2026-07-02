@@ -443,6 +443,93 @@ while it's still cheap to change*.
 
 ---
 
+## 17. A capability is an *input* to value, not proof of it — "we built X" is not "users get the outcome X promised"
+
+**Diptychon moment.** The app was architected for speed — off-main loads, a
+virtualized `NSTableView`, prefetched resource keys — and a 50k folder was
+spot-checked as "doesn't block." That *output* (the fast design shipped) hardened,
+unmeasured, into an *outcome claim*: the benchmark's planned headline §4 *"instant
+on huge folders."* Issue 22 finally measured it — ~4.6 s to load, ~6.5 s to fully
+interactive. The design goal (never freeze the UI) was real and met; it had just
+been quietly promoted into a different promise (fast) nobody had checked.
+Non-blocking is *responsiveness*, not *speed*.
+
+**Principle.** This is **the build trap** in miniature: shipping the capability
+feels like delivering the value, so "we implemented the fast architecture" gets
+logged as "it's fast." Keep the ledger honest — a feature is an *input* to an
+outcome, and the outcome is real only when measured in the unit the user feels
+(wall-clock seconds, not "we went off-main"). Corollary for **positioning**: a
+superlative you can't put a number behind ("instant") is a liability, not an asset
+— it breaks the first time a user counts. The specific, honest claim ("never
+freezes; stays scrollable while it loads") is both defensible *and* more
+differentiated than the superlative you can't defend.
+
+**Where it transfers.** Any roadmap or OKR: police the line between **output
+metrics** ("shipped the feature," "launched the model") and **outcome metrics**
+("task completes faster," "user succeeds"). Celebrating the former as the latter is
+product's most common self-deception. Before a claim reaches a landing page, a
+sales deck, or a benchmark doc, ask *"what number defends this, and have we taken
+it?"* — the same discipline whether the claim is load time or model accuracy.
+(Pairs with §13: measure the property you're actually changing.)
+
+---
+
+## 18. A rolled-up "green" can be a watermelon — green on top, red inside; trust what *ran*, and run the counterfactual before you blame
+
+**Diptychon moment.** One test double-`fulfill()`ed an expectation and crashed the
+whole XCTest runner (exit 65); it restarted, re-ran the survivors, and the tracker
+read *"100 tests green."* The suite had been compromised since the issue-18 merge
+(PR #36) — a single crashing test masking the readout, and the summary line hid it.
+The other 105 tests were fine. I only trusted the crash was pre-existing (not mine)
+after reverting my own changes and reproducing it on a clean tree.
+
+**Principle.** Two classic reporting traps, both here. (1) **Watermelon status**: an
+aggregate "green" (a summary line, a rolled-up KPI, a RAG dashboard) can be green
+while a component underneath is red — and it reports only on what *ran*, silently
+dropping what never did. Trust the count of *ran-and-passed*, not the headline, and
+ask *"what's excluded from this number?"* (2) **Attribution**: don't pin a
+regression on the latest change because it's the obvious suspect — run the
+counterfactual (revert, isolate, holdout) and reproduce. Cheaper and surer than
+reasoning "it can't be mine."
+
+**Where it transfers.** Every metric a PM reads is an aggregate that can hide its
+exceptions: NPS computed on responders only, a funnel that drops errored sessions,
+an OKR green because the measured segment is green. Watermelon reporting is how a
+project sails green into a failed launch. And "the metric moved *because* of our
+change" is product's most common causal error — the fix is the test-suite fix:
+isolate and run the counterfactual, don't eyeball the timeline. (Pairs with §12:
+a green readout is a proxy, not the thing.)
+
+---
+
+## 19. The map drifts from the territory, always toward flattering — reconcile records to ground truth or they rot
+
+**Diptychon moment.** In a single session, four representations of the work were
+wrong — each in the *optimistic* direction. Issue frontmatter said "ready-for-agent"
+/ "needs-triage" on work merged weeks earlier. The tracker said "100 tests green"
+over a crashing suite. The benchmark was about to claim "instant" over a 4.6 s load.
+The footprint said "~1.5 MB," measured once (2026-06-24) and stale after ~10 more
+shipped issues. Nothing was maliciously wrong — each record simply stopped being
+reconciled with reality and drifted the pleasant way.
+
+**Principle.** Any artifact that *describes* the work — status, dashboards,
+benchmark claims, docs — decays toward optimism unless actively reconciled against
+ground truth, because nobody re-checks a record that already says what they hope.
+Two defenses: designate **one source of truth per fact** (here git + a green suite
+are truth; the tracker is a derived view, and when they disagree the tracker is
+wrong), and **date every measured claim** so staleness is visible — a number with
+no date is an unearned assertion that it's still true. (Distinct from §17: that's a
+*category error* at claim-time, an input mistaken for an outcome; this is *entropy*
+over time, records rotting for want of reconciliation.)
+
+**Where it transfers.** Status reporting and metrics hygiene — the daily PM job.
+Two trackers with no reconciler diverge (roadmap vs. Jira vs. the deck); a "last
+measured" date on every KPI tile is the cheapest guard against quoting a rotted
+number; and the artifact that agrees with you is precisely the one to distrust.
+Reconcile the map to the territory on a cadence, or it quietly becomes fiction.
+
+---
+
 ## How to use this doc
 - **When starting a new product** (especially AI): read §1 and §5 *before* you
   design the second pane or give an agent write-access. They're the expensive
@@ -468,6 +555,14 @@ while it's still cheap to change*.
 - **When the interaction shape is the real unknown:** §16 — ship a thin *working*
   slice to find the wrong surfacing in the hand, with the core split from the surface
   so the pivot is cheap.
+- **Before turning a capability into a claim (a landing page, deck, or benchmark):**
+  §17 — a feature is an input to an outcome, not the outcome; measure it in the unit
+  the user feels, and don't ship a superlative you can't put a number behind.
+- **When reading any green dashboard / rolled-up status, or attributing a metric
+  move:** §18 — trust what *ran-and-passed* (watch for watermelons), and run the
+  counterfactual before you assign a cause.
+- **When status / docs / benchmarks feel "probably still true":** §19 — records drift
+  optimistic; pick one source of truth per fact and date every measured claim.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).
