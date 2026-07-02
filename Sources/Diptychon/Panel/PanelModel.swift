@@ -210,8 +210,10 @@ final class PanelModel {
         if showLoading { state = .loading }
         loadTask = Task {
             do {
+                let loadStart = DispatchTime.now()
                 let items = try await source.load()
                 if Task.isCancelled { return }
+                Perf.markListLoad(items: items.count, since: loadStart)
                 loadedItems = items
                 // A refresh while searching (e.g. after trashing a result) must drop
                 // results whose file is now gone — the panel shows searchResults, not
@@ -223,6 +225,9 @@ final class PanelModel {
                 recomputeVisible()
                 accessDenied = false
                 state = .loaded
+                // First panel to reach `.loaded` reports the cold-launch baseline
+                // (self-guards to fire once per launch; no-op thereafter).
+                Perf.markFirstPanelInteractive()
             } catch {
                 if Task.isCancelled { return }
                 accessDenied = (error as NSError).code == NSFileReadNoPermissionError

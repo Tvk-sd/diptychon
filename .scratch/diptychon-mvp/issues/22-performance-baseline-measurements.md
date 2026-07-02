@@ -1,6 +1,9 @@
 # 22 — Performance baseline measurements
 
-Status: needs-triage
+Status: done (2026-07-02) — baselines captured in `context/performance.md`; benchmark §4
+corrected. **Key finding: 50k is NOT "instant" — ~4.6s load / ~6.5s to interactive; it
+never blocks (off-main), but the "instant" claim was dropped.** Candidate follow-up: trim
+the load path (contentType/localizedName per-file cost).
 
 ## Parent
 
@@ -38,12 +41,16 @@ deliberately stops at *"instant on huge folders (50k verified)"* with no figure.
 
 ## Acceptance criteria
 
-- [ ] Cold-launch time and 50k-folder time-to-interactive are measured on a Release
-      build and recorded with date + machine + OS.
-- [ ] The measurement method is repeatable (documented commands or a `measure {}`
-      test) so the numbers can be refreshed after future changes.
-- [ ] `context/competitor-benchmark.md` §4 is updated to cite the real figures and
-      drop the "not yet benchmarked" caveat.
+- [x] Cold-launch time and 50k-folder time-to-interactive are measured on a Release
+      build and recorded with date + machine + OS. → `context/performance.md`
+      (M1 / macOS 26.5.1 / arm64, 2026-07-02).
+- [x] The measurement method is repeatable (documented commands or a `measure {}`
+      test) so the numbers can be refreshed after future changes. →
+      `LoadPerformanceTests` (`measure{}`) + `Perf` unified-log lines + documented
+      commands in `context/performance.md`.
+- [x] `context/competitor-benchmark.md` §4 is updated to cite the real figures and
+      drop the "not yet benchmarked" caveat. → done; the planned *"instant on huge
+      folders"* claim was **retracted** (measurement contradicts it).
 
 ## Out of scope
 
