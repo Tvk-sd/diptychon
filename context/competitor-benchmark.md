@@ -48,7 +48,8 @@ Legend: ✅ ships · 🔄 backlog/planned · ➖ deliberately out of scope · �
 | **Dual side-by-side panels** | ✅ core (issue 03) | ➖ single-pane | ✅ | ✅ | ✅ |
 | **Active/Inactive focus model** | ✅ Tab + click, accent border (03) | ➖ | ✅ | ✅ | ✅ |
 | **Commander "copy to other panel"** | ✅ ⌥⌘→/← (04) | ➖ | ✅ | ✅ | ✅ |
-| **Multi-level undo/redo of file ops** | ✅ reversible Operation spine, ⌘Z/⇧⌘Z (04/05) | ❔ limited | ❔ | ❔ | ❔ |
+| **Multi-level undo/redo of file ops** | ✅ reversible Operation spine, ⌘Z/⇧⌘Z (04/05) | 🟡 limited/single-step | 🟡 partial (in-place rename) | ❌ op *queue*, no undo spine | ✅ multi-level, logged into Activity |
+| **Operation *legibility* — visible/scrubbable timeline** (issue 18) | 🔄 spine exists but **invisible + LIFO-only** (18) | ❌ undo invisible | 🟡 live op *queue* only (not undo history) | 🟡 live op *queue* only | 🟡 **Activity/Log** pane (closest) — but not scrub-to-a-point |
 | **Pre-write collision dialog** (overwrite/keep-both/skip) | ✅ (04/05) | ✅ replace/keep-both | ✅ | ❔ | ✅ |
 | **Clipboard cut/copy/paste** (⌘C/⌘V/⌥⌘V) | ✅ Finder convention (05) | ✅ | ✅ | ✅ | ✅ |
 | **Drag & drop incl. to/from Finder** | ✅ (06) | ✅ | ✅ | ✅ | ✅ |
@@ -176,9 +177,9 @@ Legend: ❌ absent · 🟡 partial · 🔄 backlog · ➖ deliberate
 | **Flatten** | Recursive folder → one flat file list | ❌ | Candidate — cheap, pairs with disk-usage |
 | **Look Up** | System-global search via Spotlight indices | ❌ | Candidate |
 | **Embedded Terminal (etty)** | Per-pane pty, dir-synced (`⌘O`) | ❌ | Weight risk — tension w/ "lightweight" |
-| **Multi-column brief display mode** | 1/2/3-column view alongside table | ❌ table-only | Candidate |
-| **Tabs** (per pane) | Multiple tabs | ❌ | Table-stakes eventually |
-| **Recent Locations** | Visited-folder history | ❌ | Candidate |
+| **Multi-column brief display mode** | 1/2/3-column view alongside table | ❌ table-only | **File** (issue 37) |
+| **Tabs** (per pane) | Multiple tabs | ❌ | **File** (issue 38) |
+| **Recent Locations** | Visited-folder history | ❌ | **File** (issue 39) |
 | **Favorites / Volumes** | Pinned places + volume list | 🔄 sidebar (issue 16) | Covered by backlog |
 | **Hierarchy parents menu** (`⌥0`) | Keyboard breadcrumbs | 🟡 have path bar | Minor |
 | **Clone folder to other pane** | Point inactive pane at active folder | ❌ (have copy-*files*, not clone-*view*) | Minor |
@@ -194,7 +195,61 @@ Legend: ❌ absent · 🟡 partial · 🔄 backlog · ➖ deliberate
 
 ---
 
-## 6. How to use this doc
+## 6. Issue 18 — Operation *legibility*: where we stand
+
+**The trait.** *Legibility* = can the user **see what just happened** and **reverse to a
+chosen point** — not just fire blind ⌘Z. The reversible Operation spine (ADR 0004)
+already makes actions undoable; issue 18 makes that spine **visible and scrubbable**
+("you moved 12 files to /Archive 8 min ago → Undo back to here"). Reversibility is
+*done*; **legibility is the gap** (see transferable-learnings §5; 2026-06-30 retro).
+
+**Legibility ladder — the fitness function (test where any tool stands, don't assert):**
+
+| Level | Definition | Who |
+|---|---|---|
+| **L0** | Operation invisible, no undo | Finder (moves) |
+| **L1** | Blind LIFO undo (⌘Z), no visibility of *what* reverts | **Diptychon today**; Finder (partial); Marta/Nimble (+ live queue) |
+| **L2** | Persistent, **visible activity log** of past operations | **ForkLift** (Activity/Log pane) |
+| **L3** | **Scrubbable timeline** — click any past point, "undo back to here" w/ legible summary | **nobody ships** — issue 18 target |
+
+**Standing: Diptychon = L1 today → L3 target.** We *lead* on the underlying spine
+(multi-level, real inverses) but *trail ForkLift on visibility* — they surface ops in an
+Activity/Log pane, we surface nothing yet. The whitespace we'd own outright is **L3**,
+the scrub-to-a-point interaction no competitor has.
+
+**How to test standing (both risks):**
+- *Feasibility* — a working spike: render the existing Operation stack as a list, wire
+  "undo back to index N". Cheap; the spine already exists.
+- *Demand* — a **legibility probe / fake-door**: the undo toast (#18 Tier 1) is the seed;
+  instrument whether users open/act on history before building the full timeline. Gate
+  L3 on that signal (2026-06-30 retro: scrubbable timeline deferred until demand shows).
+
+**User-need evidence (live dig, 2026-07-02):**
+- *"Not sure if there is a way to find a log of actions. That's something I would love to
+  see… a history of user actions."* — HN, dsego (Mar 2025). Same comment calls blind
+  Finder undo **"potentially destructive"** (undo after reformatting an SD card) → a
+  *visible* timeline is **safer**, not just nicer.
+- User moved **thousands** of files to the wrong folder; Finder has no undo; wants **a log
+  of moves to restore from** — Apple Community.
+- *"the issue is undo… and it also covers e.g. renames"* — HN, eviks. Multi-op undo across
+  move/rename, not just trash-restore.
+
+**Competitive read.** Multi-level undo is **commoditizing** (ForkLift ✅; Double Commander
+shipped it; Trove has per-panel undo stacks). A **visible log** exists (ForkLift). The
+**scrubbable-to-a-point timeline is unclaimed.** But demand is **latent, not loud** —
+acute-but-rare pain, individual voices not upvote piles. So scope issue 18 as a
+**trust/safety/legibility** play (reinforces positioning-note's "small, stable, undoable"),
+**not** a growth headline; keep **moves + bulk ops** as the wedge.
+
+*Sources: HN [43498984](https://news.ycombinator.com/item?id=43498984),
+[37403773](https://news.ycombinator.com/item?id=37403773); Apple
+[254492651](https://discussions.apple.com/thread/254492651); [ForkLift version
+history](https://binarynights.com/versionhistory);
+[Trove](https://apps.apple.com/lu/app/trove-file-explorer/id6757410257).*
+
+---
+
+## 7. How to use this doc
 - **Positioning checks:** when tempted to add a feature, find its row. If it's a ➖,
   the bar to flip it is "does this break *lightweight*?"
 - **Pairs with:** `sidebar-research.md` (the "less than Finder" sidebar),

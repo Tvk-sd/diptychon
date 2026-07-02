@@ -131,6 +131,33 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 28 | Keyboard command expansion (Marta-informed) + Open-With favorites | ✅ done on branch `feat/28-keyboard-commands` (off `improve-codebase-architecture`), user-verified — commit `2bdad9d` |
 | 29 | Type column in the file list | ✅ done (branch `feat/29-kind-column`), user-verified — Name·Type·Date·Size; short Type (uppercased ext); Name flexes; default sort Date-desc |
 | — | **Chrome redesign** — toggles → bottom bar; top bar decoupled from sidebar tint; 32pt bands; fold-to-corner | ✅ done on branch `feat/chrome-toggles-bottom-bar`, pushed (`3c5301f`), user-verified |
+| 30–33 | Virtual staging panel (4 slices) | ✅ done — see issue-20 outcome above (PR #33 merged) |
+
+---
+
+## Backlog priority (netnography-informed, 2026-07-03)
+
+Open/candidate issues, ranked by the social-listening study in `context/netnography/`
+(ranking basis: `02-analyse-und-befunde.md` §2, `03-synthese-kundenwuensche.md` §5).
+**Core line: reliability/trust (41, 34) before feature breadth (37, 36).** All rows
+are `needs-triage` unless noted.
+
+| Prio | Issue | Title | Rationale (evidence) |
+|------|-------|-------|----------------------|
+| 1 | 41 | Reliable state persistence | Rank-1 opportunity; underserved, no rival advertises it (N1/JTBD-1) |
+| 2 | 34 | Operation Queue UI (+ Merge/W9, bottom-left panel) | Trust feature; builds on the undo spine; Nimble gap (P5/W9) |
+| 3 | 38 | Per-pane tabs | Enabler for 41's tab persistence; heaviest refactor (`PanelModel`) → do after/with 41 |
+| 4 | 42 | Text-first docs & first-run onboarding | Cheapest real moat vs Marta/Path Finder; adoption track (N3/T4) |
+| 5 | 07+ | Regex/EXIF batch-rename (extend shipped #07) | Wish W3, named "differentiator" |
+| 6 | 39 | Recent locations | Small, self-contained; complements persistence |
+| 7 | 35 | Analyze disk usage | Self-contained; Marta-parity gap |
+| 8 | 43 | Local instant search (non-Spotlight) | Gate on demand-check in our own segment (single strong voice, remote-adjacent) (N5/P9) |
+| 9 | 37 | Multi-column brief display mode | Weak demand in corpus |
+| 10 | 36 | Gadgets-lite (external-tool actions) | Tinkerer niche — lowest in corpus |
+| ↗ | 40 | Load-path optimization | Perf track, orthogonal — sequence by perf need, not this value ranking |
+
+> Full findings → `context/netnography/` (04-diptychon-mapping.md maps each finding to
+> these issues). Positioning implications → `context/positioning-note.md` §GTM.
 
 ## Decision (2026-06-19): migrate to Xcode before issues 08–10
 The no-Xcode SwiftPM + hand-wrapped `.app` setup carried us through 01–07 but

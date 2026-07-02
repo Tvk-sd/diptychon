@@ -10,6 +10,12 @@
 > sentiment, not a rigorous review scrape** — re-verify (actual r/macapps threads,
 > App Store review exports) before banking real positioning on it.
 
+> **Update 2026-07-02 — deeper sourcing now exists.** A structured netnography
+> (`context/netnography/`) since gathered r/macapps threads (via `old.reddit.com`),
+> Hacker News, and the Applefritter comparison into a coded corpus. It **confirms**
+> this note's core read and adds the GTM section below (§GTM). Where the two differ,
+> the netnography is the better-sourced layer.
+
 ---
 
 ## What the community says
@@ -61,6 +67,40 @@ Finder-compatible + visibly lightweight (~3 MB).
 
 Open question this raises for the roadmap: **pricing/distribution** (Nimble's
 paywall friction is instructive) — not yet decided.
+
+---
+
+## GTM implications (netnography, 2026-07-02)
+
+From the coded corpus (`context/netnography/03-synthese-kundenwuensche.md` §3–4,
+`04-diptychon-mapping.md` §4). Three moves, all already true of Diptychon — the work
+is making them **visible**, not building them:
+
+1. **Lead with values-hygiene, and prove it.** Native / ~3 MB, **one-time purchase
+   (no subscription)**, **no telemetry / 100% local** are *actively advertised buying
+   arguments* in this segment (trends T-A/T-B/T-C) — competitors sell on exactly
+   these. Put them prominent on the site/README, with **verifiable** numbers (measured
+   bundle size from `competitor-benchmark.md` §4; an open, plain-language privacy
+   policy). This audience runs Little Snitch and posts screenshots of data dialogs —
+   it rewards proof and punishes overclaiming ("proof culture", netnography §4).
+2. **Anti-subscription is moral, not just economic.** "Renting software" /
+   "monetization optimization stuff" is spoken with contempt. If pricing lands here,
+   a fair one-time purchase with free updates is itself a positioning asset — align
+   the pricing decision (open question above) with this.
+3. **Communicate the segment boundary — don't fake remote.** The single strongest
+   *unmet* job in the broader market is remote mounts (SFTP/WebDAV), which Diptychon
+   deliberately excludes (`competitor-benchmark.md` §3). Do **not** market against
+   ForkLift/QSpace on remote. Own the frame: *"the light, reliable, native dual-pane
+   for local work"* (Personas B/C). Clarity protects the positioning; pretending
+   otherwise invites the one review that says "but it can't do SFTP".
+
+**Distribution.** Word-of-mouth in r/macapps + HN decides this segment (one convinced
+advocate carries weight). Presence there should be honest, not astroturf (see the
+study's ethics, `00-methodik-und-ethik.md` §5).
+
+**Product ties-in:** the trust story is carried by issues **41** (state persistence —
+"never forgets") and **34** (visible, controllable operation queue). See
+`PROJECT-TRACKER.md` → *Backlog priority*.
 
 ---
 
