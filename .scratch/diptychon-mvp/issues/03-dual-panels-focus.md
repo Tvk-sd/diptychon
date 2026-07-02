@@ -1,6 +1,6 @@
 # 03 — Dual panels with focus switching
 
-Status: ready-for-human
+Status: done — merged (PR #3)
 
 ## Parent
 

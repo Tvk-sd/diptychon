@@ -1,6 +1,6 @@
 # 04 — Command/undo spine + "copy to Inactive Panel" gesture
 
-Status: ready-for-human
+Status: done — merged (PR #5)
 
 ## Parent
 

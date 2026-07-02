@@ -1,6 +1,6 @@
 # 05 — Remaining file operations + clipboard
 
-Status: ready-for-human
+Status: done — merged (PR #6)
 
 ## Parent
 

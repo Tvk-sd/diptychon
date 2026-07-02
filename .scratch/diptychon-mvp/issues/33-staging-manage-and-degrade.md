@@ -1,6 +1,6 @@
 # 33 — Staging: manage the set + degrade gracefully
 
-Status: ready-for-agent
+Status: done — merged (staging stack, PR #33; commit `9269417`), user-verified; 100 tests green
 
 ## Parent
 

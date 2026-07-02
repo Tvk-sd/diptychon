@@ -1,6 +1,6 @@
 # 01 — Panel lists a local folder
 
-Status: ready-for-human
+Status: done — merged (PR #1)
 
 ## Parent
 
