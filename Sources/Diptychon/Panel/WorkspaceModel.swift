@@ -302,6 +302,7 @@ final class WorkspaceModel {
         case .addToStaging: addSelectionToStaging()
         case .toggleStaging: toggleStaging()
         case .removeFromStaging: removeStagingSelection()
+        case .toggleSidebar: sidebarVisible.toggle()
         }
     }
 

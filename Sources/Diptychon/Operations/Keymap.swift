@@ -38,6 +38,7 @@ enum AppAction: Equatable, Hashable {
     case addToStaging    // ⌘⇧S — add the Active selection to the staging set (issue 20)
     case toggleStaging   // ⌘⇧B — swap the Active Panel to the staging set and back (issue 20)
     case removeFromStaging // ⌫ in the Staging pane — unstage (no disk delete) (issue 20)
+    case toggleSidebar   // ⌘B — show/hide the left Places sidebar (VS Code convention)
 }
 
 /// What identifies a key. Letters are matched by **character** (layout-aware, so
@@ -123,6 +124,7 @@ enum Keymap {
         (KeyChord(.character("s"), command: true, shift: true), .addToStaging),  // ⌘⇧S add to staging
         (KeyChord(.character("b"), command: true, shift: true), .toggleStaging), // ⌘⇧B show/hide staging
         (KeyChord(.code(Key.delete)), .removeFromStaging),                       // ⌫ unstage (staging pane)
+        (KeyChord(.character("b"), command: true), .toggleSidebar), // ⌘B show/hide sidebar
     ]
 
     static func action(for event: NSEvent,

@@ -159,7 +159,7 @@ struct WorkspaceView: View {
         return HStack(spacing: 0) {
             HStack(spacing: 0) {
                 if !folded { Spacer(minLength: 0) }
-                headerIcon("sidebar.leading", help: "Show/Hide Sidebar") {
+                headerIcon("sidebar.leading", help: "Show/Hide Sidebar (⌘B)") {
                     model.sidebarVisible.toggle()
                 }
                 .accessibilityIdentifier("toggle-sidebar")
