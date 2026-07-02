@@ -2,17 +2,23 @@
 
 The other research docs (`dashboard-research.md`, `sidebar-research.md`,
 `competitor-benchmark.md`) serve *Diptychon*. **This one serves future-you** — the
-patterns from building a dual-panel native app that carry into the next product,
-especially **AI products**, which are converging on multi-panel, left-to-right
-work surfaces.
+patterns from building a dual-panel native app that carry into the next product.
+
+**Lens.** Entries are captured first through a **product-management lens** — scope,
+positioning, metrics, decision-making, risk — with **AI product-building as a light
+lookout**, not the main frame. So "where it transfers" leads with the PM move; the
+AI angle gets a secondary glance where it genuinely applies (AI products are
+converging on the same multi-panel, left-to-right work surfaces, which is why the
+lookout is worth keeping — but it's a lookout, not the lens).
 
 **Anchor rule for every entry:** name the concrete Diptychon moment that taught it,
-the generalizable principle, and where it transfers. No platitudes without a
-receipt.
+the generalizable principle, and where it transfers (PM-first, AI-light). No
+platitudes without a receipt.
 
-> **One claim, sharpened up front.** It's tempting to say "all AI products are
-> multi-panel." That's false — most are still single-column chat. The credible
-> claim is that **multi-panel is the *maturity direction***: as a product moves
+> **The AI lookout, in one claim** (a taste of the secondary glance, not the lens).
+> It's tempting to say "all AI products are multi-panel." That's false — most are
+> still single-column chat. The credible claim is that **multi-panel is the
+> *maturity direction***: as a product moves
 > from "give an answer" to "be a place you do work," it grows a second pane —
 > Claude's artifacts panel, ChatGPT canvas, Cursor, v0. Diptychon is a small,
 > honest lab for the problems that *every* product hits when it crosses that line.
@@ -531,9 +537,9 @@ Reconcile the map to the territory on a cadence, or it quietly becomes fiction.
 ---
 
 ## How to use this doc
-- **When starting a new product** (especially AI): read §1 and §5 *before* you
-  design the second pane or give an agent write-access. They're the expensive
-  lessons to learn late.
+- **When starting a new product:** read §1 and §5 *before* you design the second
+  pane or hand consequential actions to any operator (a user or an agent). They're
+  the expensive lessons to learn late.
 - **When a surface feels noisy or unreadable:** §2 and §3.
 - **When scope is creeping:** §4.
 - **When debugging a runaway / freeze / non-terminating loop** (code *or* agent):
