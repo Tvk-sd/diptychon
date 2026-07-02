@@ -15,9 +15,10 @@ lookout is worth keeping — but it's a lookout, not the lens).
 the generalizable principle, and where it transfers (PM-first, AI-light). No
 platitudes without a receipt.
 
-> **One claim, sharpened up front.** It's tempting to say "all AI products are
-> multi-panel." That's false — most are still single-column chat. The credible
-> claim is that **multi-panel is the *maturity direction***: as a product moves
+> **The AI lookout, in one claim** (a taste of the secondary glance, not the lens).
+> It's tempting to say "all AI products are multi-panel." That's false — most are
+> still single-column chat. The credible claim is that **multi-panel is the
+> *maturity direction***: as a product moves
 > from "give an answer" to "be a place you do work," it grows a second pane —
 > Claude's artifacts panel, ChatGPT canvas, Cursor, v0. Diptychon is a small,
 > honest lab for the problems that *every* product hits when it crosses that line.
@@ -536,9 +537,9 @@ Reconcile the map to the territory on a cadence, or it quietly becomes fiction.
 ---
 
 ## How to use this doc
-- **When starting a new product** (especially AI): read §1 and §5 *before* you
-  design the second pane or give an agent write-access. They're the expensive
-  lessons to learn late.
+- **When starting a new product:** read §1 and §5 *before* you design the second
+  pane or hand consequential actions to any operator (a user or an agent). They're
+  the expensive lessons to learn late.
 - **When a surface feels noisy or unreadable:** §2 and §3.
 - **When scope is creeping:** §4.
 - **When debugging a runaway / freeze / non-terminating loop** (code *or* agent):
