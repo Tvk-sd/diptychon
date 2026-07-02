@@ -53,7 +53,11 @@ struct CommandPaletteSheet: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(Array(results.enumerated()), id: \.element.id) { idx, command in
+                    // Identify rows by position, matching `.id(idx)` and the
+                    // index-based `scrollTo`. Keying by `\.element.id` while also
+                    // setting `.id(idx)` gave rows two identities, so a changed
+                    // filter reused stale rows and showed the wrong titles.
+                    ForEach(Array(results.enumerated()), id: \.offset) { idx, command in
                         row(command, idx: idx).id(idx)
                     }
                 }
