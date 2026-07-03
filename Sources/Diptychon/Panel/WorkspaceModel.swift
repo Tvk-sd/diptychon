@@ -184,18 +184,132 @@ final class WorkspaceModel {
     init() {
         let staging = StagingStore()
         self.staging = staging
-        left = PanelModel(directory: .startDirectory)
-        right = PanelModel(directory: .startDirectory)
+
+        // Restore last-session workspace (issue 41). Resolve each saved folder against
+        // what exists *now* so a moved/unmounted drive never opens a broken pane; a
+        // first launch (no snapshot) falls through to the home dir + default sort.
+        //
+        // A `DIPTYCHON_DIR` launch override means "open here, deterministically" (used
+        // by UI tests and dev). Like the `-sidebarVisible`/`-previewVisible` launch
+        // args that override persisted UserDefaults flags, it disables restore *and*
+        // save, so persisted state never leaks into an overridden launch.
+        let persistenceEnabled = ProcessInfo.processInfo.environment["DIPTYCHON_DIR"] == nil
+        self.persistenceEnabled = persistenceEnabled
+        let saved = persistenceEnabled ? WorkspaceStateStore.load() : nil
+        let home = URL.startDirectory
+        let mounted = Self.mountedVolumeRoots()
+        let leftPlan = Self.plan(saved?.left, home: home, mounted: mounted)
+        let rightPlan = Self.plan(saved?.right, home: home, mounted: mounted)
+
+        left = PanelModel(directory: leftPlan.directory)
+        right = PanelModel(directory: rightPlan.directory)
         // The staging pane is a panel whose source is the staging set (ADR 0003) —
         // `StagingSource` reads the current URLs on each load.
         stagingPanel = PanelModel(directory: .startDirectory,
                                   makeSource: { _, _ in StagingSource(urls: staging.urls) })
+
+        // Apply restored sort (folder is already set via the resolved plan above).
+        left.restore(directory: leftPlan.directory, sort: leftPlan.sort)
+        right.restore(directory: rightPlan.directory, sort: rightPlan.sort)
+        // Folders on an unmounted drive: remember them, restore on remount (step 5).
+        if let t = leftPlan.pendingTarget { pendingRemount[.left] = t }
+        if let t = rightPlan.pendingTarget { pendingRemount[.right] = t }
+        // Staged set is persisted as path refs; `StagingSource` greys out missing ones.
+        if let paths = saved?.staging, !paths.isEmpty {
+            staging.add(paths.map { URL(fileURLWithPath: $0) })
+        }
+
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
         coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
         // Make undo/redo legible with a transient toast (issue 18, Tier 1).
         coordinator.onUndoRedoToast = { [weak self] text, image in
             self?.showActivityToast(text, systemImage: image)
+        }
+        // Persist folder/sort/staging changes (debounced). A hard flush also runs on
+        // quit (AppDelegate) so an unclean exit loses at most the debounce window.
+        if persistenceEnabled { trackChangesForSave() }
+    }
+
+    // MARK: - State persistence (issue 41)
+
+    /// False under a `DIPTYCHON_DIR` launch override (tests/dev): don't restore or save.
+    private let persistenceEnabled: Bool
+    /// Saved folders on a currently-unmounted drive, awaiting remount (step 5).
+    private var pendingRemount: [Side: URL] = [:]
+    private var saveTask: Task<Void, Never>?
+
+    /// Resolution of one saved pane against the live filesystem.
+    private struct PanePlan {
+        let directory: URL
+        let sort: PaneSort
+        let pendingTarget: URL?
+    }
+
+    private static func plan(_ pane: PaneState?, home: URL, mounted: [String]) -> PanePlan {
+        guard let pane else { return PanePlan(directory: home, sort: .default, pendingTarget: nil) }
+        switch RestorePath.resolve(path: pane.directoryPath, home: home,
+                                   fileExists: Self.directoryExists,
+                                   mountedVolumeRoots: mounted) {
+        case .use(let url):
+            return PanePlan(directory: url, sort: pane.sort, pendingTarget: nil)
+        case .pending(let target, let fallback):
+            return PanePlan(directory: fallback, sort: pane.sort, pendingTarget: target)
+        case .fallback(let url):
+            return PanePlan(directory: url, sort: pane.sort, pendingTarget: nil)
+        }
+    }
+
+    private static func directoryExists(_ path: String) -> Bool {
+        var isDir: ObjCBool = false
+        return FileManager.default.fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue
+    }
+
+    /// Absolute roots of the currently-mounted external volumes (`/Volumes/NAME`). The
+    /// boot volume is `/`, not under `/Volumes`, so it's naturally excluded.
+    private static func mountedVolumeRoots() -> [String] {
+        let urls = FileManager.default.mountedVolumeURLs(
+            includingResourceValuesForKeys: nil, options: [.skipHiddenVolumes]) ?? []
+        return urls.map(\.path).filter { $0.hasPrefix("/Volumes/") }
+    }
+
+    /// Build and persist the current snapshot. Cheap; called on quit and (debounced)
+    /// on change. `splitRatio` stays nil until the split view is wired (step 6).
+    func saveState() {
+        guard persistenceEnabled else { return }
+        let state = WorkspaceState(
+            left: left.paneState,
+            right: right.paneState,
+            splitRatio: nil,
+            staging: staging.urls.map(\.path)
+        )
+        WorkspaceStateStore.save(state)
+    }
+
+    /// Debounce a save so a burst of changes (typing a path, dragging sort) writes once.
+    private func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            self?.saveState()
+        }
+    }
+
+    /// Observe the restorable properties and reschedule a save whenever one changes.
+    /// `withObservationTracking` fires `onChange` once, so we re-arm after each change.
+    private func trackChangesForSave() {
+        withObservationTracking {
+            _ = left.directory
+            _ = left.sortOrder
+            _ = right.directory
+            _ = right.sortOrder
+            _ = staging.urls
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                self?.scheduleSave()
+                self?.trackChangesForSave()   // re-arm for the next change
+            }
         }
     }
 
