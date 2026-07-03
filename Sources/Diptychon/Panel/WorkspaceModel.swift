@@ -226,9 +226,13 @@ final class WorkspaceModel {
         coordinator.onUndoRedoToast = { [weak self] text, image in
             self?.showActivityToast(text, systemImage: image)
         }
-        // Persist folder/sort/staging changes (debounced). A hard flush also runs on
-        // quit (AppDelegate) so an unclean exit loses at most the debounce window.
-        if persistenceEnabled { trackChangesForSave() }
+        // Persist folder/sort/staging changes (debounced), plus a synchronous flush on
+        // quit so a graceful quit loses nothing; an unclean exit loses at most the
+        // debounce window.
+        if persistenceEnabled {
+            trackChangesForSave()
+            observeTerminationForSave()
+        }
     }
 
     // MARK: - State persistence (issue 41)
@@ -284,6 +288,17 @@ final class WorkspaceModel {
             staging: staging.urls.map(\.path)
         )
         WorkspaceStateStore.save(state)
+    }
+
+    /// Flush the snapshot synchronously on quit — the debounced save may not have
+    /// fired yet. The observer runs on the main queue during `willTerminate`, before
+    /// the process exits, so a plain async `Task` would be too late.
+    private func observeTerminationForSave() {
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.saveState() }
+        }
     }
 
     /// Debounce a save so a burst of changes (typing a path, dragging sort) writes once.
