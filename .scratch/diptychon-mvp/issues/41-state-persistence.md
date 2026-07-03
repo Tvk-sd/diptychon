@@ -5,6 +5,37 @@ Status: needs-triage (2026-07-02) — drafted from netnography finding N1
 (`context/netnography/03-synthese-kundenwuensche.md`). Top-candidate, cross-cutting;
 the recommended slot `40` was taken by load-path-optimization, so this is `41`.
 
+## Job to be Done
+
+**The job:** *"I want to find my workspace exactly as I left it — without setting it
+up again every time."* Users don't hire Diptychon to "save settings"; they hire it for
+**continuity**. Per Christensen's logic, a file manager that forgets on restart **gets
+fired**, however good the rest is — and the corpus documents exactly that.
+
+- **Functional** — sort, folder, layout, and mount state survive restart & drive
+  unmount; setup work disappears. *(JTBD-1, P1/W2)*
+- **Emotional** — **trust, not friction.** No "where did my files go?" moment, no daily
+  annoyance over lost settings. Quiet reliability. *(the "boring reliability" virtue)*
+- **Social** — **credibility with a discerning peer group** (TC refugees, power users).
+  A tool that forgets reads as "unfinished/amateur"; one that never forgets reads as
+  "trustworthy/grown-up." *(S6 public forum ask; N1 "delegitimizes rivals instantly")*
+
+Evidence O-Ton (S6): *"Is there any TC alternative for mac that can **at least**
+remember its UI settings?"* — the "at least" signals users treat this as table stakes,
+not a feature. Source: `context/netnography/03-synthese-kundenwuensche.md` JTBD-1;
+`context/netnography/04-diptychon-mapping.md` §3 N1.
+
+### Governing principle (from the emotional job)
+
+**A restore that confuses is worse than no restore.** The emotional job is *trust* —
+the win condition is the absence of a "where did my files go?" moment. So the decision
+rule for every restore behavior is: **when in doubt, restore less / fall back safely
+rather than restore something stale, hidden, or broken.** The filter-exclusion and the
+missing-folder fallback below are the *same* rule applied twice; apply it to any future
+state type too. Corollary: reliability of the **core** restore (folder, sort, layout)
+outranks **breadth** of what's restored — a rock-solid narrow restore beats a wide one
+that occasionally confuses.
+
 ## Parent
 
 `.scratch/diptychon-mvp/PRD.md`
