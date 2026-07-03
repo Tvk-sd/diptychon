@@ -164,6 +164,15 @@ final class PanelModel {
         afterNavigation()
     }
 
+    /// Move the pane to `url` **without** recording history — used when the current
+    /// folder vanishes under it (drive unmounted, issue 41) or comes back on remount.
+    /// Unlike `go`, there is no "back" to a folder that no longer exists.
+    func relocate(to url: URL) {
+        guard url != directory else { return }
+        directory = url
+        afterNavigation()
+    }
+
     /// Step back to the previous directory (forward becomes available).
     func goBack() {
         guard let previous = backStack.popLast() else { return }

@@ -233,6 +233,10 @@ final class WorkspaceModel {
             trackChangesForSave()
             observeTerminationForSave()
         }
+        // Drive eject/return handling runs regardless of persistence: it keeps a pane
+        // from going broken when its volume ejects mid-session, and restores a folder
+        // remembered at launch (pendingRemount) when its drive comes back.
+        observeVolumeMounts()
     }
 
     // MARK: - State persistence (issue 41)
@@ -288,6 +292,53 @@ final class WorkspaceModel {
             staging: staging.urls.map(\.path)
         )
         WorkspaceStateStore.save(state)
+    }
+
+    // MARK: Drive mount / unmount (issue 41)
+
+    private func observeVolumeMounts() {
+        let nc = NSWorkspace.shared.notificationCenter
+        nc.addObserver(forName: NSWorkspace.didUnmountNotification, object: nil, queue: .main) { [weak self] note in
+            MainActor.assumeIsolated { self?.handleUnmount(volume: Self.volumeURL(note)) }
+        }
+        nc.addObserver(forName: NSWorkspace.didMountNotification, object: nil, queue: .main) { [weak self] note in
+            MainActor.assumeIsolated { self?.handleMount(volume: Self.volumeURL(note)) }
+        }
+    }
+
+    private static func volumeURL(_ note: Notification) -> URL? {
+        note.userInfo?[NSWorkspace.volumeURLUserInfoKey] as? URL
+    }
+
+    /// A volume ejected: any pane sitting on it would go broken, so remember where it
+    /// was (to restore on remount) and relocate it to a safe fallback now.
+    func handleUnmount(volume: URL?) {
+        guard let root = volume?.path else { return }
+        for side in [Side.left, .right] {
+            let panel = model(for: side)
+            guard Self.isPath(panel.directory.path, under: root) else { continue }
+            pendingRemount[side] = panel.directory
+            let fallback = RestorePath.nearestExisting(of: panel.directory.path,
+                                                       fileExists: Self.directoryExists) ?? .startDirectory
+            panel.relocate(to: fallback)
+        }
+    }
+
+    /// A volume returned: restore any pane whose remembered folder lives on it.
+    func handleMount(volume: URL?) {
+        guard let root = volume?.path else { return }
+        for side in [Side.left, .right] {
+            guard let target = pendingRemount[side], Self.isPath(target.path, under: root) else { continue }
+            if Self.directoryExists(target.path) { model(for: side).relocate(to: target) }
+            pendingRemount[side] = nil
+        }
+    }
+
+    private func model(for side: Side) -> PanelModel { side == .left ? left : right }
+
+    /// Is `path` the volume root or inside it?
+    static func isPath(_ path: String, under root: String) -> Bool {
+        path == root || path.hasPrefix(root.hasSuffix("/") ? root : root + "/")
     }
 
     /// Flush the snapshot synchronously on quit — the debounced save may not have

@@ -26,6 +26,14 @@ final class PanelModelRestoreTests: XCTestCase {
         XCTAssertFalse(m.canGoForward)
     }
 
+    func testRelocateMovesWithoutHistory() {
+        // Drive unmount relocates the pane to a fallback with no "back" to the dead dir.
+        let m = PanelModel(directory: URL(fileURLWithPath: "/Volumes/Ext/Photos", isDirectory: true))
+        m.relocate(to: URL(fileURLWithPath: "/Users/me", isDirectory: true))
+        XCTAssertEqual(m.directory.path, "/Users/me")
+        XCTAssertFalse(m.canGoBack)
+    }
+
     func testSnapshotRestoreRoundTrip() {
         let original = PanelModel(directory: URL(fileURLWithPath: "/tmp/a", isDirectory: true))
         original.sortOrder = [KeyPathComparator(\FileItem.kind, order: .reverse)]
