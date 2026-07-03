@@ -22,6 +22,11 @@ the common case in a dual-pane workflow.
 
 - **Pane-local, not global.** Each panel remembers its own mode (a folder you're
   scanning for a name → brief; a folder you're inspecting → table). Persist per-pane.
+- **State persistence (issue 41).** 41 shipped the durable snapshot and owns
+  save/restore; its schema is additive. When this lands, add the mode (+ column count)
+  to `PaneState` (`Sources/Diptychon/Panel/WorkspaceState.swift`) so it survives quit +
+  relaunch — this is JTBD-1's "view is preserved" clause. Mode is a small enum; make it
+  a `Codable` optional field so old snapshots default to table view.
 - **Column count is a mode parameter** (1/2/3). Decide in plan whether it's a fixed
   choice or auto-fits to pane width; Marta lets the user pick — start with an explicit
   pick to keep it simple.
@@ -41,8 +46,9 @@ the common case in a dual-pane workflow.
 ## Acceptance criteria
 
 - [ ] A pane can switch between detailed table and a 1/2/3-column brief view.
-- [ ] The display mode is remembered per pane (survives navigation; persists across
-      launch is a plus, decide in plan).
+- [ ] The display mode is remembered per pane (survives navigation) **and persists
+      across quit + relaunch** via issue 41's snapshot (mode + column count in
+      `PaneState`). Flips issue 41's deferred "view mode restored" AC to done.
 - [ ] Keyboard navigation works correctly in brief mode (arrows move across/within
       columns; type-ahead filter and QuickLook still function).
 - [ ] Brief mode stays virtualized — a 50k-file folder renders without materializing
@@ -66,3 +72,4 @@ the common case in a dual-pane workflow.
 - `context/competitor-benchmark.md` §5 (Marta deep-dive).
 - `17-file-list-polish`, `27-tags-column`, `29-kind-column` (table-view columns —
   the detailed mode this sits beside).
+- `41-state-persistence` (owns the snapshot; add view mode to `PaneState` — see Notes).

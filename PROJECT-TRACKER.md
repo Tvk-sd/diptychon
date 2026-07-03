@@ -156,6 +156,7 @@ are `needs-triage` unless noted.
 | 9 | 37 | Multi-column brief display mode | Weak demand in corpus |
 | 10 | 36 | Gadgets-lite (external-tool actions) | Tinkerer niche — lowest in corpus |
 | ↗ | 40 | Load-path optimization | Perf track, orthogonal — sequence by perf need, not this value ranking |
+| ↳ | 45 | Persist split ratio | Follow-up from 41 (deferred AC); needs `HSplitView` replaced. Low prio — smallest restored item |
 
 > Full findings → `context/netnography/` (04-diptychon-mapping.md maps each finding to
 > these issues). Positioning implications → `context/positioning-note.md` §GTM.

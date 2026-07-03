@@ -40,6 +40,14 @@ per-pane in a dual-pane layout — the classic Commander pattern.
   issue 28. Consider "open folder in new tab" from context menu / a modifier on open.
 - **Empty/last-tab behavior:** closing the last tab in a pane — define it (keep one
   tab minimum, don't leave an empty pane).
+- **State persistence (issue 41).** 41 shipped the durable snapshot mechanism and owns
+  the save/restore path; its schema is **additive**. When tabs land, extend
+  `WorkspaceState`/`PaneState` (`Sources/Diptychon/Panel/WorkspaceState.swift`) so a
+  pane persists its **ordered tabs + active index** (each tab's folder + sort — the
+  same per-tab state 41 already persists for the single pane today). Restore must apply
+  41's unmounted-vs-gone resolution **per tab** (a tab on an ejected drive falls back /
+  restores on remount, never a broken tab). This *is* JTBD-1's "tabs are preserved"
+  clause — build it into this issue, don't re-defer it.
 
 ## Acceptance criteria
 
@@ -51,13 +59,16 @@ per-pane in a dual-pane layout — the classic Commander pattern.
       the window) when more than one tab is open.
 - [ ] Closing the last tab in a pane has defined, non-broken behavior.
 - [ ] No regression to single-tab behavior for users who never open a second tab.
+- [ ] **Open tabs + active index per pane survive quit + relaunch** (via issue 41's
+      snapshot; each tab's folder + sort restored, per-tab unmounted-vs-gone fallback).
+      Flips issue 41's deferred "open tabs are restored" AC to done.
 - [ ] `context/competitor-benchmark.md` §5 gap row for Tabs flips to ✅.
 
 ## Out of scope
 
 - Multiple windows (separate issue if desired — this is tabs *within* a window).
-- Tab reordering by drag, tab pinning, or restoring tabs across app restarts (v1 can
-  start fresh on launch; persistence is a follow-up).
+- Tab reordering by drag, tab pinning. (Restoring tabs across restarts is now **in
+  scope** — issue 41's mechanism exists; persist via its snapshot, see Notes/AC.)
 - Dragging files onto a tab to move-into-that-folder (nice-to-have, later).
 
 ## Blocked by
@@ -71,3 +82,4 @@ per-pane in a dual-pane layout — the classic Commander pattern.
 - `context/competitor-benchmark.md` §5 (Marta deep-dive).
 - `Sources/Diptychon/Panel/PanelModel.swift` (state that becomes per-tab).
 - `37-multi-column-brief-display-mode` (display mode is per-tab state).
+- `41-state-persistence` (owns the snapshot; extend it to persist tabs — see Notes).
