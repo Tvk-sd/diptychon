@@ -2,7 +2,10 @@
 
 Status: needs-triage (2026-07-02) — drafted from Marta gap analysis
 (`context/competitor-benchmark.md` §5). Small, self-contained; complements the
-sidebar (issue 16) without being the sidebar.
+sidebar (issue 16) without being the sidebar. **Sequencing: do AFTER #41 (soft dep).**
+Recents persists to app prefs — it should reuse #41's persistence store + schema/
+versioning rather than a competing path. Clean, near-AFK follow-up **once #41 lands**;
+not AFK before then.
 
 ## Parent
 
@@ -59,6 +62,8 @@ folders for fast return navigation.
 ## Blocked by
 
 - `15-path-bar-go-to-folder` (the jump-to-folder mechanism + a natural surface) — done.
+- `41-state-persistence` (**soft dep** — reuse its app-prefs persistence store/schema;
+  do 39 after 41 to avoid a competing persistence path).
 
 ## Related
 

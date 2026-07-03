@@ -1,7 +1,9 @@
 # 35 — Analyze Disk Usage
 
 Status: needs-triage (2026-07-02) — drafted from Marta gap analysis
-(`context/competitor-benchmark.md` §5). Self-contained, high-utility, low-weight.
+(`context/competitor-benchmark.md` §5). **NOT AFK-ready:** *who* it's for is clear, but
+the **job** and the **method** are undecided (see "Open decisions" below) — these are
+product calls, not plan details. Resolve them before handing off.
 
 ## Parent
 
@@ -16,6 +18,23 @@ true (recursive) size of each immediate child, and show the folder's contents so
 Marta's model (our reference): the action scans the hierarchy under the current
 folder, computes exact per-subfolder sizes, then opens a **new virtual view** with a
 "descending by size" order. It's the fast answer to "what's filling this disk?"
+
+## Open decisions (resolve before build — this is why it's not AFK)
+
+1. **What is the job?** Two different features hide under "disk usage":
+   - **"Free up space"** → sizes **plus an act-on-results flow** (reveal + delete/trash
+     the space hogs), possibly a treemap. Heavier, action-oriented.
+   - **"Understand what's here"** → recursive sizes, sorted desc, read-only. Lighter.
+   Pick one for v1 — they imply different scope and UI.
+2. **How is it presented?** Three viable builds:
+   - a **recursive-size sort key** applied to the *current* pane (lightest, reuses
+     issue 02 sort infra);
+   - a **separate virtual view** (Marta-style new tab, cf. issue 35 notes below);
+   - a **visualization** (treemap/bars — heaviest).
+3. **Scope of "act on results"** follows from #1 — normal selection ops only, or a
+   dedicated delete flow?
+
+Until 1–3 are decided, the acceptance criteria below are provisional.
 
 ## Notes / design
 
