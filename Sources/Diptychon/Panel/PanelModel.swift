@@ -117,6 +117,23 @@ final class PanelModel {
 
     func load() { reload() }
 
+    // MARK: - State persistence (issue 41)
+
+    /// This pane's restorable state — current folder + sort. Filters/search are
+    /// deliberately excluded: panes always reopen unfiltered.
+    var paneState: PaneState {
+        PaneState(directoryPath: directory.path, sort: PaneSort(sortOrder))
+    }
+
+    /// Apply a restored snapshot at launch: set the starting folder + sort **without**
+    /// pushing navigation history (this is where the pane opens, not a place it
+    /// navigated to). Call before the first `load()`; the caller resolves `directory`
+    /// against what exists on disk (`RestorePath`) so this never opens a broken pane.
+    func restore(directory: URL, sort: PaneSort) {
+        self.directory = directory
+        self.sortOrder = sort.comparators
+    }
+
     /// Re-list the current directory (after a file op or an external change).
     /// No loading flash — the rows are already on screen.
     func refresh() { reload(showLoading: false) }
