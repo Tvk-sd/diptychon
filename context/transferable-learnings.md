@@ -232,10 +232,16 @@ rendering, incapable of looping. We found the culprit by elimination, without a 
 locate an unexplained runaway, don't trace forward from the start; **inventory the
 writers-back in the changed surface.** There's usually exactly one, and it's the bug.
 
-**Where it transfers.** Agent loops and chains that never terminate: find the step
-that feeds its own input — a tool whose output re-triggers planning, a scratchpad the
-planner both reads and appends to, a "reflect" step that always finds more to do. The
-diagnosis is identical: which single step closes the cycle? Fix that, not the symptom.
+**Where it transfers.**
+*Classical PM.* Runaway *processes* work the same way — a reinforcing loop needs one
+step that feeds its own input. A support queue that generates more tickets than it
+closes, a status meeting that spawns more status meetings, a scope that grows every
+time you "finish" a piece: the runaway isn't everywhere, it's one reinforcing edge.
+Don't pile on symptoms (more agents, more meetings); inventory the loop and cut the
+single step that writes back into its own input.
+*AI lookout.* Agent loops that never terminate: find the step feeding its own input —
+a tool whose output re-triggers planning, a scratchpad the planner both reads and
+appends to. Fix the one step that closes the cycle, not the symptom.
 
 ---
 
@@ -256,11 +262,16 @@ change" and stops.
 action changes. Brake on a **discrete state transition you control**, recorded before
 you cause the side effect — not on a re-measurement of the thing you're perturbing.
 
-**Where it transfers.** Agent stop conditions. "Stop when the output looks complete"
-or "when the model seems confident" are perturbable measurements — they loop or halt
-wrong. Prefer explicit logical state: a tool returned success, a required field is now
-populated, an iteration counter, a done-flag the step sets. Guard on progress you can
-name, not on a self-affected signal.
+**Where it transfers.**
+*Classical PM.* "Done when it feels ready" or "ship when the demo looks good" are
+perturbable brakes — the act of building distorts the very signal you're braking on.
+Define exit criteria on a discrete state you control and record it *before* the work:
+acceptance criteria met, a checklist flag flipped, a metric past a pre-registered
+threshold. A launch gate keyed on a vibe slips forever; one keyed on a nameable state
+actually closes.
+*AI lookout.* Agent stop conditions: "stop when the output looks complete" is a
+perturbable measurement. Prefer explicit logical state — a tool returned success, a
+required field is populated, a done-flag the step sets.
 
 ---
 
@@ -279,10 +290,15 @@ suspected code*, stop staring at the code — the cause is the **surrounding str
 wiring** exposing a pre-existing latent fragility. Diff how the thing is composed and
 fed, not just what it does.
 
-**Where it transfers.** A prompt, tool, or chain step that worked suddenly misbehaves
-after you reorder the pipeline, add a pane/agent, or change the context budget — the
-component is usually fine; its *inputs, ordering, or timing* changed. Diff the
-composition (what's upstream, in what order, with what context), not the unit alone.
+**Where it transfers.**
+*Classical PM.* A team or workflow that ran fine suddenly degrades after a reorg, a
+new dependency, or a cadence change — and the unit itself never changed. The fragility
+was always latent; the new *wiring* exposed it. Don't audit the team; diff the
+composition — what's upstream now, in what order, with what handoffs and timing. The
+cause is the structure you changed, not the part that looks broken.
+*AI lookout.* A prompt or chain step that worked misbehaves after you reorder the
+pipeline, add an agent, or change the context budget — the component is usually fine;
+its inputs, ordering, or timing changed. Diff the composition, not the unit.
 
 ---
 
@@ -303,11 +319,17 @@ conditional* failure — size the watch to the failure's actual timescale and tr
 before you trust it. (b) For any failure that can damage the environment, **build the
 safety net before you reproduce**, not after.
 
-**Where it transfers.** Evals and agent safety. A model that passes 16 quick prompts
-can still fail on long-context, rare, or adversarial inputs — size the eval to the
-failure mode you fear, not to convenience. And before the first real run of an agent
-that can spend, send, delete, or deploy, wrap it in a hard budget / dry-run /
-kill-switch. The net is cheap; reproducing destructively isn't.
+**Where it transfers.**
+*Classical PM.* Two launch disciplines. (a) A rollout that looks clean in week 1 can
+still fail on slow, seasonal, or edge cohorts — size the measurement window to the
+*failure mode you fear*, not to when the dashboard looks good; a short clean sample
+doesn't disprove a slow or conditional failure. (b) Before exposing a risky change,
+build the safety net first — staged rollout, feature flag, rollback plan — so the
+blast radius is bounded *before* the first real run, not patched after.
+*AI lookout.* Evals and agent safety: a model passing 16 quick prompts can still fail
+on long-context or adversarial inputs — size the eval to the failure you fear. Before
+an agent that can spend, send, or delete runs for real, wrap it in a hard budget /
+dry-run / kill-switch.
 
 ---
 
@@ -336,12 +358,18 @@ your head. (b) A dispatcher keyed on **geometry is blind to identity** — it ca
 a file row from a text field at the same x. Every element you add inside its zone
 silently inherits its rule; adding a case means re-checking the ones that "worked."
 
-**Where it transfers.** Any hit-testing, drag-routing, or coordinate-mapping code
-(canvas/drawing tools, games, custom gesture handlers), and more broadly any router
-that dispatches on *position or surface features* rather than *explicit identity* —
-analytics that attribute by screen region, or an LLM router that classifies by keywords
-instead of declared intent. The failure mode is the same: it works until you add
-something new inside the zone, then an old path breaks with no error to point at it.
+**Where it transfers.**
+*Classical PM.* Any router or attribution keyed on a *proxy* rather than declared
+identity inherits two failures. It's content-blind — a lead-routing rule or analytics
+that attributes by screen region can't tell one thing from another at the same
+coordinates, so every new case dropped into its zone silently inherits the rule. And
+correlating two systems by a convenient anchor (a constant offset, a heuristic
+mapping) throws *no error* when it's wrong — it just opens a dead zone where behaviour
+quietly differs. Anchor on declared identity, and verify against the live system, not
+the mapping in your head.
+*AI lookout.* An LLM router that classifies by keywords instead of declared intent, or
+any hit-testing / coordinate-mapping code: works until you add something new inside the
+zone, then an old path breaks with no error to point at it.
 
 ---
 
