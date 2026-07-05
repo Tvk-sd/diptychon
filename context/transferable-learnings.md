@@ -13,7 +13,10 @@ lookout is worth keeping — but it's a lookout, not the lens).
 
 **Anchor rule for every entry:** name the concrete Diptychon moment that taught it,
 the generalizable principle, and where it transfers (PM-first, AI-light). No
-platitudes without a receipt.
+platitudes without a receipt. Transfers are tagged *Classical PM* (the lens) and
+*AI lookout* (the glance) so the balance stays honest and PM leads by volume. Each
+entry carries its *Captured* date so a claim's age is visible — re-check anything old
+before you rely on it (§19).
 
 > **The AI lookout, in one claim** (a taste of the secondary glance, not the lens).
 > It's tempting to say "all AI products are multi-panel." That's false — most are
@@ -26,6 +29,8 @@ platitudes without a receipt.
 ---
 
 ## 1. The hard part of multi-pane isn't layout — it's "where does this action go?"
+
+*Captured 2026-06-24.*
 
 **Diptychon moment.** The whole app is two panels, but the real work went into
 three `CONTEXT.md` concepts: **Active Panel** (exactly one, the source of
@@ -40,15 +45,25 @@ routing is the entire game**. You must answer, explicitly and per-action: which
 pane is authoritative right now, and where does the result land? Implicit answers
 produce bugs the user experiences as "it did the thing in the wrong place."
 
-**Where it transfers.** Every AI product that grows a second pane inherits this
-exact problem. Chat + canvas: when the user says "make it blue," does that edit the
-canvas selection or append to chat? An agent with a workspace: which artifact is
-"active," and where does a generated file go? Build the **Active / Destination**
-model *before* the second pane, not after. It's the load-bearing abstraction.
+**Where it transfers.**
+*Classical PM.* Any system where an action can originate from more than one place
+needs an explicit *authority + destination* rule — this is ownership/RACI wearing a
+UI costume. A cross-functional workflow where three teams can all "act" on a deal:
+which one is authoritative for a given decision, and where does its output land?
+Leave it implicit and the work happens in the wrong place — the org-scale version of
+"it did the thing in the wrong pane." Same for any multi-surface product (web +
+mobile + email + API): decide which surface owns the state and where a result
+surfaces *before* you ship the second entry point, not after the support tickets.
+*AI lookout.* Every AI product that grows a second pane inherits this — chat +
+canvas, "make it blue" edits the selection or appends to chat? Build the
+**Active / Destination** model before the second pane; it's the load-bearing
+abstraction.
 
 ---
 
 ## 2. Let the data drive the form — readability is a rendering decision
+
+*Captured 2026-06-24.*
 
 **Diptychon moment.** From `dashboard-research.md`, applied in the file list:
 **right-align numeric sizes** (digits line up by place value), **tags as colored
@@ -59,16 +74,23 @@ data *type*, not applied uniformly.
 of the data, instead of dumping everything as flat text. Categorical → chips;
 numeric → right-aligned; time-ordered → timeline; urgency → meaningful color.
 
-**Where it transfers.** This is *acutely* relevant to AI products, which mostly
-render model output as a wall of markdown. The same discipline applies to LLM
-output and tool results: a list of statuses should be chips, a table of numbers
-should right-align, a sequence of steps should be a timeline. **Don't render the
-model's text — render the data the text describes.** It's the difference between an
-AI feature that looks like a chat log and one that looks like a product.
+**Where it transfers.**
+*Classical PM.* This is the discipline of every dashboard, report, and status deck
+you'll ever ship: match the presentation to the *decision the data serves* instead
+of dumping rows of text at a stakeholder. Categorical → chips; numeric →
+right-aligned; time-ordered → timeline/sparkline; urgency → meaningful color. A KPI
+table an exec reads in ten seconds lives or dies on this — the same treatment that
+makes a file list scannable makes a board deck legible. (See `dashboard-research.md`
+for the depth.)
+*AI lookout.* Acute for AI products, which mostly render output as a wall of
+markdown: a list of statuses should be chips, a table of numbers should right-align.
+**Don't render the model's text — render the data the text describes.**
 
 ---
 
 ## 3. Discoverability is the tax on every keyboard / power UI — pay it with progressive disclosure
+
+*Captured 2026-06-24.*
 
 **Diptychon moment.** Keyboard-first is fast but the chords are *invisible* — the
 exact gap that drove issue 19 (a ⌘K command palette listing every command with its
@@ -81,15 +103,24 @@ of permanent chrome.
 hover / palette / menu, and give people a single place to *find* capability
 (the palette) without cluttering the default view.
 
-**Where it transfers.** AI products have the worst discoverability problem in
-software: the input is a blank box and the user has no idea what's possible ("what
-can I ask?", "what can the agent do?"). The answers are the same primitives —
-a command palette, suggested actions, slash-commands, example chips. The blank
-prompt is a keyboard UI with no key legend; treat it like one.
+**Where it transfers.**
+*Classical PM.* Discoverability is the hidden tax on adoption: a shipped feature
+nobody can find is unshipped in the metrics (ties to §17 — capability isn't
+outcome). Every complex product fights the same power-vs-approachability tension
+Diptychon's chords do — Excel, Figma, Notion — and resolves it the same way: surface
+the primary action, tuck depth behind menus / onboarding / empty-states, and give
+one place to *discover* capability. When a launched feature underperforms, "can
+users find it?" is the first question, before "do they want it?"
+*AI lookout.* AI products have the worst version of this — the input is a blank box
+and the user has no idea what's possible. Same primitives fix it: command palette,
+suggested actions, slash-commands, example chips. The blank prompt is a keyboard UI
+with no key legend; treat it like one.
 
 ---
 
 ## 4. Restraint is a feature — define the deliberate "don'ts"
+
+*Captured 2026-06-24.*
 
 **Diptychon moment.** The sidebar spec (issue 16) *explicitly excludes* Recents,
 Tags, and iCloud/Locations from v1 — "less than Finder" is the goal, not a
@@ -124,6 +155,8 @@ nothing.
 
 ## 5. Reversibility is the trust layer — and it matters more when an AI acts
 
+*Captured 2026-06-24.*
+
 **Diptychon moment.** ADR 0004: a reversible `Operation` spine where every action
 (copy/move/trash/rename) records its own inverse, powering multi-level undo. We
 built it *before* most operations existed, so every later op inherited undo for
@@ -134,16 +167,25 @@ honestly rather than pretending.
 **recording the inverse is what makes the action safe to offer.** "You can't mess
 this up" lets users move faster than "are you sure?" ever will.
 
-**Where it transfers.** This is the single most important learning for **agentic
-AI**. An agent that edits files, sends messages, or changes data is a file manager
-with a non-deterministic operator at the wheel. The reversible-Operation pattern —
-every agent action carries its undo, the few irreversible ones are flagged loudly —
-is the difference between an agent users trust with real work and a demo they
-babysit. Build the undo spine first; let the actions inherit it.
+**Where it transfers.**
+*Classical PM.* Reversibility is a trust primitive in any product that takes
+consequential action — Gmail's undo-send, soft-delete + trash, draft/publish, a
+staged rollout with a rollback plan. "You can't mess this up" lets users (and orgs)
+move faster than any confirmation dialog. The PM move is to build the reversibility
+spine *before* the risky actions so each new one inherits safety for free, and to
+flag the genuinely irreversible ones loudly rather than pretend. It scales up to
+change management: a pilot you can roll back is a change people will actually try.
+*AI lookout.* The most important version of the pattern for **agentic AI** — an
+agent that edits files or sends messages is a file manager with a non-deterministic
+operator at the wheel. Every agent action carries its undo, the few irreversible
+ones flagged loudly; that's the line between an agent trusted with real work and a
+demo you babysit.
 
 ---
 
 ## 6. When the framework fights you, drop to the layer that owns the problem
+
+*Captured 2026-06-24.*
 
 **Diptychon moment.** SwiftUI `Table` fought us across issues 03/04/06 — it swallows
 clicks, can't combine row-drag with reliable single-click selection, echoes stale
@@ -158,15 +200,24 @@ isn't the common case, fighting upward costs more than dropping down. Put **one
 well-placed seam** at the boundary so you can drop a layer without rewriting the
 app — but only seams you'll actually use.
 
-**Where it transfers.** Directly to AI engineering. High-level agent frameworks are
-SwiftUI `Table`: wonderful until your use case isn't theirs, at which point you
-fight the abstraction instead of the problem. Keep a seam between your app and the
-framework so you can drop to the **raw model API** when you need control — and
-resist abstracting every model/provider behind config you'll never vary.
+**Where it transfers.**
+*Classical PM.* This is the build-vs-buy and platform-dependency call in miniature.
+A high-level framework (or SaaS vendor, or platform) optimizes the common case —
+great until your differentiator *is* the uncommon case, at which point you're
+fighting the tool instead of the market. The PM hedge is one well-placed seam at the
+boundary so you can drop a layer (or swap a vendor) without rewriting the product —
+but *only* the seams you'll actually cash in. Abstracting every dependency "just in
+case" is speculative flexibility you pay for and never use.
+*AI lookout.* Directly to AI engineering: high-level agent frameworks are SwiftUI
+`Table` — wonderful until your use case isn't theirs. Keep a seam so you can drop to
+the **raw model API** when you need control; resist abstracting every provider behind
+config you'll never vary.
 
 ---
 
 ## 7. An infinite loop needs a "feedback writer" — find the one thing that writes back
+
+*Captured 2026-06-25.*
 
 **Diptychon moment.** Issue 21 slice 1 pegged the CPU to 99% and ballooned RAM until
 the Mac froze. Instead of bisecting by running it (it crashed the machine), we
@@ -189,6 +240,8 @@ diagnosis is identical: which single step closes the cycle? Fix that, not the sy
 ---
 
 ## 8. Terminate on a logical state change, not on a measurement the loop perturbs
+
+*Captured 2026-06-25.*
 
 **Diptychon moment.** The old `WindowMinWidth` stopped only when `current < minWidth`
 was false, where `current` was the window's *measured* content width read mid-relayout
@@ -213,6 +266,8 @@ name, not on a self-affected signal.
 
 ## 9. A regression after a refactor that didn't touch the suspect = the *structure* tripped a latent bug
 
+*Captured 2026-06-25.*
+
 **Diptychon moment.** `WindowMinWidth`'s code was byte-identical between `main` (fine)
 and the slice-1 branch (runaway). Slice 1 only **moved where it was attached** — from
 the inner `HStack` to a new outer `VStack` wrapping an `HSplitView`. The fragility (a
@@ -232,6 +287,8 @@ composition (what's upstream, in what order, with what context), not the unit al
 ---
 
 ## 10. Match the observation window to the failure's timescale — and build the kill-switch before you reproduce
+
+*Captured 2026-06-25.*
 
 **Diptychon moment.** Two receipts, one good and one a mistake. The mistake: I called
 the fix verified after watching memory stay flat for ~16 seconds — but the real
@@ -255,6 +312,8 @@ kill-switch. The net is cheap; reproducing destructively isn't.
 ---
 
 ## 11. Routing by geometry is content-blind — and a coordinate-space mismatch is a silent gap
+
+*Captured 2026-06-25.*
 
 **Diptychon moment.** Moving the Filter into the unified top bar made clicking it
 *steal the active panel to the right*. The cause was a global `NSEvent` `leftMouseDown`
@@ -288,6 +347,8 @@ something new inside the zone, then an old path breaks with no error to point at
 
 ## 12. A green test or a relaunch is a *proxy* for "verified" — not the thing itself
 
+*Captured 2026-06-26.*
+
 **Diptychon moment.** Fixing the self-overwrite data-loss bug (paste a file into its
 own folder + Overwrite → file destroyed), I twice told the user it was "fixed and
 verified" while it was still broken. First: the unit test passed because it
@@ -314,6 +375,8 @@ actually run.
 
 ## 13. Refactors are steered by fitness functions, not a north-star metric
 
+*Captured 2026-06-26.*
+
 **Diptychon moment.** Before deepening the operation/refresh seam, the user (a PM)
 asked for a "north-star metric" and floated an over-cautious ADR's 50k-file
 performance worry as the candidate. Reframing it unlocked a clean decision: a
@@ -338,6 +401,8 @@ performance tripwires as tripwires, not steering wheels.
 ---
 
 ## 14. Prototype your riskiest assumption, not the part that looks most like the product
+
+*Captured 2026-06-30.*
 
 **Diptychon moment.** Scoping the `.eml` preview (issue 29), we weighed three
 prototype fidelities for the *same* feature: an **md spec-by-example** (ASCII
@@ -378,6 +443,8 @@ sink the feature, and refuse to polish the safe part first.
 ---
 
 ## 15. JTBD is a *framing* instrument — it moves the question from feature to job, and scope + value + the right test all fall out
+
+*Captured 2026-06-30.*
 
 **Diptychon moment.** Issue 18 (operation history) was triaged and half-planned as a
 full scrubbable timeline — until the PM stopped it cold: *"is this git with extra
@@ -420,6 +487,8 @@ the build is what separates a product from a pile of capabilities.
 
 ## 16. A thin *real* slice is the cheapest way to discover the design is wrong — if the core is separable from the surface
 
+*Captured 2026-06-30.*
+
 **Diptychon moment.** The staging panel (#20). We deliberately chose **Option A** —
 a file panel *swaps its source* to show the staging set — and built it as the #30/#31
 slices, tests and all. Thirty seconds of using it live exposed what the plan couldn't:
@@ -450,6 +519,8 @@ while it's still cheap to change*.
 ---
 
 ## 17. A capability is an *input* to value, not proof of it — "we built X" is not "users get the outcome X promised"
+
+*Captured 2026-07-02.*
 
 **Diptychon moment.** The app was architected for speed — off-main loads, a
 virtualized `NSTableView`, prefetched resource keys — and a 50k folder was
@@ -482,6 +553,8 @@ it?"* — the same discipline whether the claim is load time or model accuracy.
 
 ## 18. A rolled-up "green" can be a watermelon — green on top, red inside; trust what *ran*, and run the counterfactual before you blame
 
+*Captured 2026-07-02.*
+
 **Diptychon moment.** One test double-`fulfill()`ed an expectation and crashed the
 whole XCTest runner (exit 65); it restarted, re-ran the survivors, and the tracker
 read *"100 tests green."* The suite had been compromised since the issue-18 merge
@@ -509,6 +582,8 @@ a green readout is a proxy, not the thing.)
 ---
 
 ## 19. The map drifts from the territory, always toward flattering — reconcile records to ground truth or they rot
+
+*Captured 2026-07-02.*
 
 **Diptychon moment.** In a single session, four representations of the work were
 wrong — each in the *optimistic* direction. Issue frontmatter said "ready-for-agent"
