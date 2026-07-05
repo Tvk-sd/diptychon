@@ -1,6 +1,13 @@
 # 46 — Cameras and SD cards are not shown in the sidebar
 
-Status: ready-for-agent
+Status: **Implemented + verified 2026-07-06 — awaiting human review.** Devices
+section added to `SidebarView`; `WorkspaceModel` enumerates removable/ejectable
+volumes and refreshes on mount/unmount/rename (reusing the issue-41 observer).
+Driven end-to-end through the live app with an `hdiutil` image (all ACs met):
+mount → row appears live (no relaunch); click → active panel navigates to volume
+root, only the active side moves; eject-while-showing → no crash (same pid),
+section removed, active pane relocates to `/Volumes` (issue-41 fallback); boot
+volume never listed; empty section hidden when nothing mounted. Build green.
 Category: enhancement
 
 ## Parent

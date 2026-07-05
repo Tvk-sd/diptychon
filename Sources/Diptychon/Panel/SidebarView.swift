@@ -31,6 +31,23 @@ struct SidebarPlace: Identifiable {
     }
 }
 
+/// A mounted external volume shown in the sidebar's **Devices** section (issue 46):
+/// an SD card, USB drive, card reader, mass-storage camera, external disk, or an
+/// attached disk image. The volume URL is its identity (a name can repeat), so a
+/// remount/rename replaces the row cleanly. Enumerated by `WorkspaceModel`.
+struct SidebarDevice: Identifiable, Equatable {
+    let name: String
+    let url: URL
+    let icon: String
+    var id: URL { url }
+
+    init(name: String, url: URL, icon: String = "externaldrive") {
+        self.name = name
+        self.url = url
+        self.icon = icon
+    }
+}
+
 /// The left sidebar (issue 16): a calm, Notion-style list — grouped sections,
 /// lighter than Finder. v1 shows **Places** (fixed system folders) and an
 /// (initially empty) **Pinned** section. Clicking a row navigates the Active
@@ -63,6 +80,16 @@ struct SidebarView: View {
                     } else {
                         ForEach(model.pinnedFolders, id: \.self) { url in
                             pinnedRow(url)
+                        }
+                    }
+                }
+                // Mounted removable/external volumes (issue 46). Rendered only when
+                // something is plugged in — no empty chrome when the list is empty.
+                // The list is live: `WorkspaceModel` refreshes it on mount/unmount.
+                if !model.devices.isEmpty {
+                    section(header: "Devices") {
+                        ForEach(model.devices) { device in
+                            deviceRow(device)
                         }
                     }
                 }
@@ -136,6 +163,15 @@ struct SidebarView: View {
             .contextMenu {
                 Button("Remove from Sidebar") { model.unpin(url) }
             }
+    }
+
+    /// A device row (issue 46). Reuses `row`, so clicking navigates the active panel
+    /// to the volume root and the row highlights when the panel sits on it. `row`
+    /// re-checks the path at click time, so a volume ejected since render is a no-op
+    /// rather than a crash.
+    private func deviceRow(_ device: SidebarDevice) -> some View {
+        row(name: device.name, icon: device.icon, url: device.url)
+            .accessibilityIdentifier("device:\(device.name)")
     }
 
     @ViewBuilder

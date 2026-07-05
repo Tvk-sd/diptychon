@@ -163,6 +163,13 @@ final class WorkspaceModel {
         didSet { UserDefaults.standard.set(PinnedFolders.encode(pinnedFolders), forKey: "pinnedFolders") }
     }
 
+    /// Mounted external volumes shown in the sidebar's **Devices** section (issue 46):
+    /// removable/ejectable media (SD cards, USB drives, card readers, mass-storage
+    /// cameras, external disks, attached disk images). Live — refreshed on
+    /// `NSWorkspace` mount/unmount/rename alongside the pane-relocation handling
+    /// (issue 41). Empty when nothing external is mounted, so the section hides.
+    private(set) var devices: [SidebarDevice] = WorkspaceModel.mountedDeviceVolumes()
+
     /// Apps the user pinned to the Open-With menu (⌘↩, issue 28). Backed by a
     /// `[String]` of app paths in `UserDefaults`; deduped on add via `FavoriteApps`.
     var favoriteApps: [URL] = FavoriteApps.decode(
@@ -281,6 +288,34 @@ final class WorkspaceModel {
         return urls.map(\.path).filter { $0.hasPrefix("/Volumes/") }
     }
 
+    /// The external volumes to surface in the sidebar's Devices section (issue 46).
+    ///
+    /// Inclusion predicate: a volume is a "device" when it is **removable or
+    /// ejectable**, and never the root (boot) file system. The internal boot/data
+    /// volumes are internal + non-ejectable, so they drop out naturally; SD cards,
+    /// USB sticks, mass-storage cameras, external disks, and attached disk images
+    /// all report removable and/or ejectable. This is the one real judgement call
+    /// here — widen it (e.g. include any non-internal volume) and network shares
+    /// start appearing, which issue 46 scopes out (see ADR 0003 / issue 47).
+    static func mountedDeviceVolumes() -> [SidebarDevice] {
+        let keys: [URLResourceKey] = [
+            .volumeNameKey, .volumeIsRemovableKey, .volumeIsEjectableKey,
+            .volumeIsInternalKey, .volumeIsRootFileSystemKey,
+        ]
+        let urls = FileManager.default.mountedVolumeURLs(
+            includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) ?? []
+        return urls.compactMap { url -> SidebarDevice? in
+            guard let v = try? url.resourceValues(forKeys: Set(keys)) else { return nil }
+            if v.volumeIsRootFileSystem == true { return nil }
+            guard v.volumeIsRemovable == true || v.volumeIsEjectable == true else { return nil }
+            return SidebarDevice(name: v.volumeName ?? url.lastPathComponent, url: url)
+        }
+    }
+
+    /// Re-enumerate the mounted devices (issue 46). Cheap; called on volume
+    /// mount/unmount/rename so the sidebar tracks inserts and ejects without relaunch.
+    private func refreshDevices() { devices = Self.mountedDeviceVolumes() }
+
     /// Build and persist the current snapshot. Cheap; called on quit and (debounced)
     /// on change. `splitRatio` stays nil until the split view is wired (step 6).
     func saveState() {
@@ -299,10 +334,20 @@ final class WorkspaceModel {
     private func observeVolumeMounts() {
         let nc = NSWorkspace.shared.notificationCenter
         nc.addObserver(forName: NSWorkspace.didUnmountNotification, object: nil, queue: .main) { [weak self] note in
-            MainActor.assumeIsolated { self?.handleUnmount(volume: Self.volumeURL(note)) }
+            MainActor.assumeIsolated {
+                self?.handleUnmount(volume: Self.volumeURL(note))
+                self?.refreshDevices()   // issue 46: drop the ejected volume's row
+            }
         }
         nc.addObserver(forName: NSWorkspace.didMountNotification, object: nil, queue: .main) { [weak self] note in
-            MainActor.assumeIsolated { self?.handleMount(volume: Self.volumeURL(note)) }
+            MainActor.assumeIsolated {
+                self?.handleMount(volume: Self.volumeURL(note))
+                self?.refreshDevices()   // issue 46: surface the newly-mounted volume
+            }
+        }
+        // A rename doesn't move any pane, but the Devices label must follow (issue 46).
+        nc.addObserver(forName: NSWorkspace.didRenameVolumeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshDevices() }
         }
     }
 
