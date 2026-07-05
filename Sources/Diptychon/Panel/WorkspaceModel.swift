@@ -184,18 +184,198 @@ final class WorkspaceModel {
     init() {
         let staging = StagingStore()
         self.staging = staging
-        left = PanelModel(directory: .startDirectory)
-        right = PanelModel(directory: .startDirectory)
+
+        // Restore last-session workspace (issue 41). Resolve each saved folder against
+        // what exists *now* so a moved/unmounted drive never opens a broken pane; a
+        // first launch (no snapshot) falls through to the home dir + default sort.
+        //
+        // A `DIPTYCHON_DIR` launch override means "open here, deterministically" (used
+        // by UI tests and dev). Like the `-sidebarVisible`/`-previewVisible` launch
+        // args that override persisted UserDefaults flags, it disables restore *and*
+        // save, so persisted state never leaks into an overridden launch.
+        let persistenceEnabled = ProcessInfo.processInfo.environment["DIPTYCHON_DIR"] == nil
+        self.persistenceEnabled = persistenceEnabled
+        let saved = persistenceEnabled ? WorkspaceStateStore.load() : nil
+        let home = URL.startDirectory
+        let mounted = Self.mountedVolumeRoots()
+        let leftPlan = Self.plan(saved?.left, home: home, mounted: mounted)
+        let rightPlan = Self.plan(saved?.right, home: home, mounted: mounted)
+
+        left = PanelModel(directory: leftPlan.directory)
+        right = PanelModel(directory: rightPlan.directory)
         // The staging pane is a panel whose source is the staging set (ADR 0003) —
         // `StagingSource` reads the current URLs on each load.
         stagingPanel = PanelModel(directory: .startDirectory,
                                   makeSource: { _, _ in StagingSource(urls: staging.urls) })
+
+        // Apply restored sort (folder is already set via the resolved plan above).
+        left.restore(directory: leftPlan.directory, sort: leftPlan.sort)
+        right.restore(directory: rightPlan.directory, sort: rightPlan.sort)
+        // Folders on an unmounted drive: remember them, restore on remount (step 5).
+        if let t = leftPlan.pendingTarget { pendingRemount[.left] = t }
+        if let t = rightPlan.pendingTarget { pendingRemount[.right] = t }
+        // Staged set is persisted as path refs; `StagingSource` greys out missing ones.
+        if let paths = saved?.staging, !paths.isEmpty {
+            staging.add(paths.map { URL(fileURLWithPath: $0) })
+        }
+
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
         coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
         // Make undo/redo legible with a transient toast (issue 18, Tier 1).
         coordinator.onUndoRedoToast = { [weak self] text, image in
             self?.showActivityToast(text, systemImage: image)
+        }
+        // Persist folder/sort/staging changes (debounced), plus a synchronous flush on
+        // quit so a graceful quit loses nothing; an unclean exit loses at most the
+        // debounce window.
+        if persistenceEnabled {
+            trackChangesForSave()
+            observeTerminationForSave()
+        }
+        // Drive eject/return handling runs regardless of persistence: it keeps a pane
+        // from going broken when its volume ejects mid-session, and restores a folder
+        // remembered at launch (pendingRemount) when its drive comes back.
+        observeVolumeMounts()
+    }
+
+    // MARK: - State persistence (issue 41)
+
+    /// False under a `DIPTYCHON_DIR` launch override (tests/dev): don't restore or save.
+    private let persistenceEnabled: Bool
+    /// Saved folders on a currently-unmounted drive, awaiting remount (step 5).
+    private var pendingRemount: [Side: URL] = [:]
+    private var saveTask: Task<Void, Never>?
+
+    /// Resolution of one saved pane against the live filesystem.
+    private struct PanePlan {
+        let directory: URL
+        let sort: PaneSort
+        let pendingTarget: URL?
+    }
+
+    private static func plan(_ pane: PaneState?, home: URL, mounted: [String]) -> PanePlan {
+        guard let pane else { return PanePlan(directory: home, sort: .default, pendingTarget: nil) }
+        switch RestorePath.resolve(path: pane.directoryPath, home: home,
+                                   fileExists: Self.directoryExists,
+                                   mountedVolumeRoots: mounted) {
+        case .use(let url):
+            return PanePlan(directory: url, sort: pane.sort, pendingTarget: nil)
+        case .pending(let target, let fallback):
+            return PanePlan(directory: fallback, sort: pane.sort, pendingTarget: target)
+        case .fallback(let url):
+            return PanePlan(directory: url, sort: pane.sort, pendingTarget: nil)
+        }
+    }
+
+    private static func directoryExists(_ path: String) -> Bool {
+        var isDir: ObjCBool = false
+        return FileManager.default.fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue
+    }
+
+    /// Absolute roots of the currently-mounted external volumes (`/Volumes/NAME`). The
+    /// boot volume is `/`, not under `/Volumes`, so it's naturally excluded.
+    private static func mountedVolumeRoots() -> [String] {
+        let urls = FileManager.default.mountedVolumeURLs(
+            includingResourceValuesForKeys: nil, options: [.skipHiddenVolumes]) ?? []
+        return urls.map(\.path).filter { $0.hasPrefix("/Volumes/") }
+    }
+
+    /// Build and persist the current snapshot. Cheap; called on quit and (debounced)
+    /// on change. `splitRatio` stays nil until the split view is wired (step 6).
+    func saveState() {
+        guard persistenceEnabled else { return }
+        let state = WorkspaceState(
+            left: left.paneState,
+            right: right.paneState,
+            splitRatio: nil,
+            staging: staging.urls.map(\.path)
+        )
+        WorkspaceStateStore.save(state)
+    }
+
+    // MARK: Drive mount / unmount (issue 41)
+
+    private func observeVolumeMounts() {
+        let nc = NSWorkspace.shared.notificationCenter
+        nc.addObserver(forName: NSWorkspace.didUnmountNotification, object: nil, queue: .main) { [weak self] note in
+            MainActor.assumeIsolated { self?.handleUnmount(volume: Self.volumeURL(note)) }
+        }
+        nc.addObserver(forName: NSWorkspace.didMountNotification, object: nil, queue: .main) { [weak self] note in
+            MainActor.assumeIsolated { self?.handleMount(volume: Self.volumeURL(note)) }
+        }
+    }
+
+    private static func volumeURL(_ note: Notification) -> URL? {
+        note.userInfo?[NSWorkspace.volumeURLUserInfoKey] as? URL
+    }
+
+    /// A volume ejected: any pane sitting on it would go broken, so remember where it
+    /// was (to restore on remount) and relocate it to a safe fallback now.
+    func handleUnmount(volume: URL?) {
+        guard let root = volume?.path else { return }
+        for side in [Side.left, .right] {
+            let panel = model(for: side)
+            guard Self.isPath(panel.directory.path, under: root) else { continue }
+            pendingRemount[side] = panel.directory
+            let fallback = RestorePath.nearestExisting(of: panel.directory.path,
+                                                       fileExists: Self.directoryExists) ?? .startDirectory
+            panel.relocate(to: fallback)
+        }
+    }
+
+    /// A volume returned: restore any pane whose remembered folder lives on it.
+    func handleMount(volume: URL?) {
+        guard let root = volume?.path else { return }
+        for side in [Side.left, .right] {
+            guard let target = pendingRemount[side], Self.isPath(target.path, under: root) else { continue }
+            if Self.directoryExists(target.path) { model(for: side).relocate(to: target) }
+            pendingRemount[side] = nil
+        }
+    }
+
+    private func model(for side: Side) -> PanelModel { side == .left ? left : right }
+
+    /// Is `path` the volume root or inside it?
+    static func isPath(_ path: String, under root: String) -> Bool {
+        path == root || path.hasPrefix(root.hasSuffix("/") ? root : root + "/")
+    }
+
+    /// Flush the snapshot synchronously on quit — the debounced save may not have
+    /// fired yet. The observer runs on the main queue during `willTerminate`, before
+    /// the process exits, so a plain async `Task` would be too late.
+    private func observeTerminationForSave() {
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.saveState() }
+        }
+    }
+
+    /// Debounce a save so a burst of changes (typing a path, dragging sort) writes once.
+    private func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            self?.saveState()
+        }
+    }
+
+    /// Observe the restorable properties and reschedule a save whenever one changes.
+    /// `withObservationTracking` fires `onChange` once, so we re-arm after each change.
+    private func trackChangesForSave() {
+        withObservationTracking {
+            _ = left.directory
+            _ = left.sortOrder
+            _ = right.directory
+            _ = right.sortOrder
+            _ = staging.urls
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                self?.scheduleSave()
+                self?.trackChangesForSave()   // re-arm for the next change
+            }
         }
     }
 

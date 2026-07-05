@@ -132,6 +132,7 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 29 | Type column in the file list | ✅ done (branch `feat/29-kind-column`), user-verified — Name·Type·Date·Size; short Type (uppercased ext); Name flexes; default sort Date-desc |
 | — | **Chrome redesign** — toggles → bottom bar; top bar decoupled from sidebar tint; 32pt bands; fold-to-corner | ✅ done on branch `feat/chrome-toggles-bottom-bar`, pushed (`3c5301f`), user-verified |
 | 30–33 | Virtual staging panel (4 slices) | ✅ done — see issue-20 outcome above (PR #33 merged) |
+| 41 | Reliable state persistence | 🟡 **core shipped** on branch `feat/41-state-persistence` — versioned `Codable` snapshot; restore-on-launch w/ unmounted-vs-gone fallback; debounced save + sync flush on quit; drive unmount/remount. Persists per-pane **folder + sort** and **staging** (path refs). Real-app verified. 129 unit tests. **Deferred:** tabs (#38), columns/view-mode (#27/29/37) — unbuilt; **split-ratio** — `HSplitView` unbindable. `DIPTYCHON_DIR` disables persistence for tests. |
 
 ---
 
@@ -155,6 +156,7 @@ are `needs-triage` unless noted.
 | 9 | 37 | Multi-column brief display mode | Weak demand in corpus |
 | 10 | 36 | Gadgets-lite (external-tool actions) | Tinkerer niche — lowest in corpus |
 | ↗ | 40 | Load-path optimization | Perf track, orthogonal — sequence by perf need, not this value ranking |
+| ↳ | 45 | Persist split ratio | Follow-up from 41 (deferred AC); needs `HSplitView` replaced. Low prio — smallest restored item |
 
 > Full findings → `context/netnography/` (04-diptychon-mapping.md maps each finding to
 > these issues). Positioning implications → `context/positioning-note.md` §GTM.

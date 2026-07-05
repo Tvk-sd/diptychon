@@ -2,16 +2,21 @@
 
 _No active task._
 
-Last task: **issue 18 (operation history) — Tier 1 undo toast** — done, user-verified,
-on branch `feat/18-operation-history` (not pushed). PM challenged the feature's value;
-reframed around the JTBD ("did I just break my folders?"), right-sized into tiers,
-shipped the cheap one.
-- Transient HUD on every ⌘Z/⇧⌘Z — "Undone — Moved 12 items". `OperationCoordinator`
-  emits `onUndoRedoToast` (no stack refactor); `WorkspaceModel` shows a self-dismissing
-  toast; `WorkspaceView` floats a capsule over the bottom bar. Overwrites stay honest.
-- **Tier 2 (scrubbable timeline + undo-to-here) deferred** — build on a demand signal;
-  explicitly a flat list, NOT a git graph (undo is linear). Recorded in issue 18.
-- 105 unit tests green.
+Last task: **issue 41 — Reliable state persistence** — core shipped + real-app verified,
+on branch `feat/41-state-persistence` (not pushed/merged). Outcome folded into
+`PROJECT-TRACKER.md` (Status row 41) and the issue file.
 
-Backlog remaining: **#22** performance baseline measurements (evidence, no UI), and
-**#18 Tier 2** if appetite shows. See tracker Status table.
+- Durable mechanism: versioned `Codable` snapshot (`WorkspaceState.swift`), restore-on-
+  launch with unmounted-vs-gone resolution, debounced save + synchronous flush on quit
+  (`willTerminate`), drive unmount/remount handling. Persists per-pane **folder + sort**
+  and the **staging set** (path refs, graceful degrade).
+- Verified through the real app: save-on-quit writes a clean versioned blob; restore
+  reopens distinct per-pane folder + sort (left `/tmp` name-asc, right home date-desc).
+- `DIPTYCHON_DIR` launch override disables persistence (deterministic test/dev launches).
+- 129 unit tests + full UI suite green.
+
+**Deferred (documented in the issue AC):**
+- Tabs (#38), columns/view-mode (#27/29/37) — features don't exist yet; schema is
+  additive so they slot in later with no format churn.
+- **Split ratio** — SwiftUI `HSplitView` exposes no bindable fraction; would require
+  replacing the working panel container (issue 13). A follow-up when appetite shows.

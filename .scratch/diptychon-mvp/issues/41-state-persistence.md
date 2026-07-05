@@ -1,9 +1,54 @@
 # 41 — Reliable state persistence
 
-Status: needs-triage (2026-07-02) — drafted from netnography finding N1
-(`context/netnography/04-diptychon-mapping.md` §3, N1) / JTBD-1
-(`context/netnography/03-synthese-kundenwuensche.md`). Top-candidate, cross-cutting;
-the recommended slot `40` was taken by load-path-optimization, so this is `41`.
+Status: **in-progress / core shipped** (2026-07-03, branch `feat/41-state-persistence`)
+— drafted from netnography finding N1 (`context/netnography/04-diptychon-mapping.md`
+§3, N1) / JTBD-1 (`context/netnography/03-synthese-kundenwuensche.md`). Top-candidate,
+cross-cutting; the recommended slot `40` was taken by load-path-optimization, so `41`.
+
+**Shipped:** the durable mechanism — versioned `Codable` snapshot, restore-on-launch
+with unmounted-vs-gone resolution, debounced save + synchronous flush on quit, drive
+unmount/remount handling — persisting the state that **exists today**: per-pane folder
++ sort, and the staging set (path refs, graceful degrade). Verified through the real
+app (save-on-quit + restore of distinct per-pane folder/sort). 129 unit tests green
+(+ full UI suite).
+**Deferred:** tabs (#38), columns/view-mode (#27/29/37) — those features don't exist
+yet, so there's nothing to persist; the schema is additive so they slot in later.
+**Split ratio deferred** — SwiftUI `HSplitView` exposes no bindable fraction; wiring it
+would mean replacing the working panel container (issue 13), which the governing
+principle (core-restore reliability > breadth) says isn't worth the risk now.
+**Decision:** a `DIPTYCHON_DIR` launch override disables persistence (deterministic
+test/dev launches), mirroring the `-sidebarVisible`/`-previewVisible` launch args.
+
+## Job to be Done
+
+**The job:** *"I want to find my workspace exactly as I left it — without setting it
+up again every time."* Users don't hire Diptychon to "save settings"; they hire it for
+**continuity**. Per Christensen's logic, a file manager that forgets on restart **gets
+fired**, however good the rest is — and the corpus documents exactly that.
+
+- **Functional** — sort, folder, layout, and mount state survive restart & drive
+  unmount; setup work disappears. *(JTBD-1, P1/W2)*
+- **Emotional** — **trust, not friction.** No "where did my files go?" moment, no daily
+  annoyance over lost settings. Quiet reliability. *(the "boring reliability" virtue)*
+- **Social** — **credibility with a discerning peer group** (TC refugees, power users).
+  A tool that forgets reads as "unfinished/amateur"; one that never forgets reads as
+  "trustworthy/grown-up." *(S6 public forum ask; N1 "delegitimizes rivals instantly")*
+
+Evidence O-Ton (S6): *"Is there any TC alternative for mac that can **at least**
+remember its UI settings?"* — the "at least" signals users treat this as table stakes,
+not a feature. Source: `context/netnography/03-synthese-kundenwuensche.md` JTBD-1;
+`context/netnography/04-diptychon-mapping.md` §3 N1.
+
+### Governing principle (from the emotional job)
+
+**A restore that confuses is worse than no restore.** The emotional job is *trust* —
+the win condition is the absence of a "where did my files go?" moment. So the decision
+rule for every restore behavior is: **when in doubt, restore less / fall back safely
+rather than restore something stale, hidden, or broken.** The filter-exclusion and the
+missing-folder fallback below are the *same* rule applied twice; apply it to any future
+state type too. Corollary: reliability of the **core** restore (folder, sort, layout)
+outranks **breadth** of what's restored — a rock-solid narrow restore beats a wide one
+that occasionally confuses.
 
 ## Parent
 
@@ -72,20 +117,23 @@ alternative for mac that can at least remember its UI settings?"* (S6).
 
 ## Acceptance criteria
 
-- [ ] After quit + relaunch, each pane restores its folder, sort, column widths,
-      shown columns, and view mode.
-- [ ] Open tabs and their folders are restored per pane on relaunch.
-- [ ] Window layout (split ratio, sidebar visibility) is restored.
-- [ ] Unmounting then remounting a drive restores the affected pane to its prior
-      folder; a permanently-missing folder degrades to a sensible fallback (no broken
-      pane).
-- [ ] Persisted state survives an app version update (schema is versioned; unknown
-      keys don't crash or wipe state).
-- [ ] Transient/virtual views (disk-usage results, staging previews) are not
-      persisted.
-- [ ] Active filters (type-ahead, tag) are **not** restored — panes reopen unfiltered.
-- [ ] Staging-set persistence behaves per the plan decision (recommended: staged set
-      restored as path refs, degrading gracefully when an item is gone).
+- [x] After quit + relaunch, each pane restores its folder + **sort** (verified live).
+      Column widths / shown columns / view mode **deferred** — not modeled yet (#27/29/37).
+- [ ] Open tabs and their folders are restored per pane — **deferred**: tabs don't
+      exist yet (#38). Schema is additive; slots in when 38 lands.
+- [~] Window layout: **sidebar visibility** restored (pre-existing). **Split ratio
+      deferred** — `HSplitView` has no bindable fraction; not worth replacing the
+      container now (governing principle: core reliability > breadth).
+- [x] Unmounting then remounting a drive restores the affected pane to its prior
+      folder; a permanently-missing folder degrades to nearest ancestor / home (no
+      broken pane). Logic unit-tested; wiring via `NSWorkspace` notifications.
+- [x] Persisted state survives an app version update (schema is versioned; unknown
+      keys ignored, newer/garbage blobs fall back to defaults — never crash or wipe).
+- [x] Transient/virtual views (disk-usage results, staging previews) are not persisted.
+- [x] Active filters (type-ahead, tag) are **not** restored — panes reopen unfiltered
+      (simply absent from the snapshot).
+- [x] Staging set restored as path refs, degrading gracefully when an item is gone
+      (`StagingSource` greys out missing entries, issue 33).
 
 ## Out of scope
 
