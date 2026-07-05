@@ -53,6 +53,9 @@ xcodebuild -scheme Diptychon -destination 'platform=macOS' test   # unit + UI te
   granting it on first use.
 - **Start folder:** set `DIPTYCHON_DIR=/some/path` to override the initial directory.
 
+**Shipping it to someone else?** See **[docs/distribution.md](docs/distribution.md)** —
+how to package a build and hand it to testers (and the Gatekeeper step they'll hit).
+
 ---
 
 ## The 60-second model
@@ -129,6 +132,7 @@ Measured on Apple M1 / macOS 26.5.1 / arm64, Release build, warm cache:
 | `docs/adr/` | Architecture Decision Records |
 | `docs/user-guide.md` | Full user walkthrough |
 | `docs/keyboard-reference.md` | Complete keyboard cheat-sheet |
+| `docs/distribution.md` | Packaging + tester handoff runbook |
 | `PROJECT-TRACKER.md` | Shipped work + backlog priority |
 | `.scratch/diptychon-mvp/` | PRD + issue files |
 | `context/` | Positioning, competitor benchmark, research notes |

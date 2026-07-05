@@ -21,7 +21,8 @@ that kills the "fast & lightweight" promise for a file manager.
 - User must grant Full Disk Access manually (System Settings → Privacy); cannot
   be requested programmatically — needs good first-run onboarding.
 - Code signing / notarization is deferred (optional); until then Gatekeeper
-  shows friction acceptable for a technical OSS audience.
+  shows friction acceptable for a technical OSS audience. Operational steps for
+  packaging and tester handoff live in [../distribution.md](../distribution.md).
 - App Store is foreclosed unless a separate sandboxed variant is built later —
   retrofitting the sandbox would mean rearchitecting all file access. Reversing
   this decision is expensive, which is why it is fixed now.
