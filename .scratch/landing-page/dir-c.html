@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diptychon — Move files at the speed of your keyboard</title>
+<style>
+  :root{
+    --bg:#0c0d0e;
+    --bg-2:#141517;
+    --ink:#f4f2ee;        /* warm off-white, from the icon monogram */
+    --ink-dim:#a6a49f;
+    --ink-faint:#6f6d69;
+    --accent:#3d84ff;     /* single vivid accent — echoes the selection blue in the app */
+    --accent-ink:#ffffff;
+    --line:rgba(244,242,238,.12);
+    --radius:14px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  img{display:block;max-width:100%;height:auto}
+  a{color:inherit}
+
+  .wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 24px}
+
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+  /* ---- nav ---- */
+  nav{
+    position:sticky;top:0;z-index:20;
+    background:rgba(12,13,14,.72);
+    backdrop-filter:saturate(150%) blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em;text-decoration:none}
+  .brand img{width:26px;height:26px;border-radius:7px}
+  .brand span{font-size:16px}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+    font:inherit;font-weight:600;font-size:15px;
+    padding:.66em 1.15em;border-radius:11px;
+    text-decoration:none;cursor:pointer;border:1px solid transparent;
+    transition:transform .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .btn-primary{background:var(--accent);color:var(--accent-ink)}
+  .btn-primary:hover{transform:translateY(-1px);background:#5495ff}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:rgba(244,242,238,.35)}
+  .btn-lg{font-size:17px;padding:.9em 1.5em;border-radius:13px}
+  nav .btn{padding:.5em .95em;font-size:14px}
+
+  /* ---- hero ---- */
+  .hero{padding:clamp(56px,11vw,128px) 0 clamp(36px,6vw,60px)}
+  h1{
+    margin:0;
+    font-size:clamp(2.85rem,10.5vw,7.5rem);
+    line-height:.94;
+    letter-spacing:-.035em;
+    font-weight:700;
+    max-width:15ch;
+  }
+  h1 .lead{color:var(--ink)}
+  h1 em{font-style:normal;color:var(--accent)}
+  .subhead{
+    margin:clamp(24px,4vw,34px) 0 0;
+    max-width:56ch;
+    font-size:clamp(1.06rem,2.4vw,1.4rem);
+    line-height:1.5;
+    color:var(--ink-dim);
+  }
+  .subhead b{color:var(--ink);font-weight:600}
+  .spec{
+    margin-top:20px;
+    font-family:var(--mono);
+    font-size:12.5px;letter-spacing:.02em;
+    color:var(--ink-faint);
+  }
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:clamp(28px,4vw,40px)}
+  .honesty{margin-top:18px;font-size:13.5px;color:var(--ink-faint)}
+  .honesty::before{content:"·  "}
+
+  /* ---- screenshot ---- */
+  .shot{padding:clamp(24px,4vw,44px) 0 clamp(48px,7vw,84px)}
+  .shot-frame{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:var(--bg-2);
+    box-shadow:0 40px 120px -40px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.02) inset;
+  }
+  .shot-frame img{width:100%}
+  .caption{
+    margin-top:16px;text-align:center;
+    font-size:14.5px;color:var(--ink-faint);
+  }
+
+  /* ---- the one loud gesture motif (used once) ---- */
+  .gesture{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:clamp(64px,12vw,140px) 0;
+    text-align:center;
+  }
+  .keys{
+    font-size:clamp(3.4rem,15vw,11rem);
+    line-height:1;
+    font-weight:600;
+    letter-spacing:-.02em;
+    color:var(--accent);
+    display:inline-block;
+  }
+  .gesture p{
+    margin:clamp(20px,3vw,30px) auto 0;
+    max-width:24ch;
+    font-size:clamp(1.25rem,3.4vw,2rem);
+    line-height:1.2;
+    letter-spacing:-.02em;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .gesture p .muted{color:var(--ink-dim);font-weight:500}
+
+  /* ---- why points ---- */
+  .why{padding:clamp(64px,10vw,120px) 0}
+  .why-item{
+    display:grid;grid-template-columns:minmax(0,1fr);gap:8px;
+    padding:clamp(26px,4vw,40px) 0;
+    border-top:1px solid var(--line);
+  }
+  .why-item:last-child{border-bottom:1px solid var(--line)}
+  .why-item h3{
+    margin:0;
+    font-size:clamp(1.6rem,4.5vw,2.6rem);
+    line-height:1.05;
+    letter-spacing:-.025em;
+    font-weight:700;
+  }
+  .why-item p{margin:0;max-width:64ch;font-size:clamp(1rem,2vw,1.18rem);color:var(--ink-dim)}
+  @media(min-width:720px){
+    .why-item{grid-template-columns:minmax(0,42%) minmax(0,58%);gap:clamp(24px,4vw,56px);align-items:baseline}
+  }
+
+  /* ---- first launch ---- */
+  .launch{padding:clamp(48px,7vw,88px) 0;border-top:1px solid var(--line)}
+  .launch h2{margin:0 0 20px;font-size:clamp(1.15rem,3vw,1.5rem);letter-spacing:-.02em}
+  .launch ol{margin:0;padding:0;list-style:none;counter-reset:step;max-width:60ch}
+  .launch li{
+    counter-increment:step;
+    padding:14px 0 14px 44px;position:relative;
+    color:var(--ink-dim);font-size:clamp(.98rem,2vw,1.1rem);
+    border-top:1px solid var(--line);
+  }
+  .launch li:first-child{border-top:0}
+  .launch li::before{
+    content:counter(step);
+    position:absolute;left:0;top:14px;
+    font-family:var(--mono);font-size:12px;
+    color:var(--ink-faint);
+    width:26px;height:26px;border:1px solid var(--line);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .launch li b{color:var(--ink);font-weight:600}
+
+  /* ---- final cta ---- */
+  .final{padding:clamp(72px,12vw,140px) 0;text-align:center;border-top:1px solid var(--line)}
+  .final h2{
+    margin:0 0 28px;
+    font-size:clamp(2.2rem,8vw,5rem);
+    line-height:.98;letter-spacing:-.035em;font-weight:700;
+    max-width:16ch;margin-inline:auto;
+  }
+  .final .cta-row{justify-content:center}
+  .final .spec{margin-top:22px}
+
+  /* ---- footer ---- */
+  footer{border-top:1px solid var(--line);padding:32px 0}
+  .foot-in{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between}
+  .foot-in a{color:var(--ink-faint);text-decoration:none;font-size:14px}
+  .foot-in a:hover{color:var(--ink)}
+  .foot-brand{display:flex;align-items:center;gap:9px;color:var(--ink-dim);font-size:14px}
+  .foot-brand img{width:20px;height:20px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <img src="icon.png" alt="Diptychon app icon">
+      <span>Diptychon</span>
+    </a>
+    <a class="btn btn-primary" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download for macOS</a>
+  </div>
+</nav>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap">
+      <h1><span class="lead">Move files at the speed of your</span> <em>keyboard.</em></h1>
+      <p class="subhead">The dual-panel macOS file manager Finder never gave you. Two folders side by side, one keystroke to move between them, and everything is undoable. <b>Native, and small: 1.4 MB to download, 5 MB installed.</b></p>
+      <p class="spec">Apple Silicon &amp; Intel · macOS 13+ · no Electron</p>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download for macOS</a>
+        <a class="btn btn-ghost btn-lg" href="https://github.com/Tvk-sd/diptychon">Build from source</a>
+      </div>
+      <p class="honesty">Free beta, not yet notarized by Apple.</p>
+    </div>
+  </section>
+
+  <section class="shot">
+    <div class="wrap">
+      <div class="shot-frame">
+        <img src="app-screenshot.png" alt="Diptychon showing a Places sidebar with two directory panels side by side: an Inbox of mixed files on the left with one file selected in blue, and an organized Website Redesign project folder on the right." width="2880" height="1560">
+      </div>
+      <p class="caption">Two panels, one window. Drag nothing — send the selected file across with a keystroke.</p>
+    </div>
+  </section>
+
+  <section class="gesture" aria-label="The signature gesture">
+    <div class="wrap">
+      <span class="keys">⌥⌘→</span>
+      <p>Sends the selected file to the other panel. <span class="muted">That's the whole idea.</span></p>
+    </div>
+  </section>
+
+  <section class="why">
+    <div class="wrap">
+      <div class="why-item">
+        <h3>Every action has a key.</h3>
+        <p>Chorded gestures for power, plus Finder's own conventions for copy, paste, go-to-folder and Quick Look, so your muscle memory just transfers.</p>
+      </div>
+      <div class="why-item">
+        <h3>Undo anything.</h3>
+        <p>Every move, copy, rename and trash is reversible. Multi-level ⌘Z, with a toast that says exactly what was undone.</p>
+      </div>
+      <div class="why-item">
+        <h3>Real Finder tags.</h3>
+        <p>Genuine Apple Finder tags that round-trip both ways. Diptychon rides the ecosystem instead of inventing its own.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="launch">
+    <div class="wrap">
+      <h2>Getting it, and the first launch</h2>
+      <ol>
+        <li>Download the <b>1.4 MB</b> build and drag Diptychon to your Applications folder.</li>
+        <li>It's a free beta, <b>not yet notarized by Apple</b> — on first open, right-click the app and choose <b>Open</b> to get past Gatekeeper.</li>
+        <li>Point the two panels at any folders and start moving. <b>Everything is undoable.</b></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2>Stop clicking. Start moving.</h2>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download for macOS</a>
+        <a class="btn btn-ghost btn-lg" href="https://github.com/Tvk-sd/diptychon">Build from source</a>
+      </div>
+      <p class="spec">Apple Silicon &amp; Intel · macOS 13+ · no Electron</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <span class="foot-brand"><img src="icon.png" alt="">Diptychon — a fast, keyboard-first file manager for macOS.</span>
+    <a href="https://github.com/Tvk-sd/diptychon">github.com/Tvk-sd/diptychon</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,535 @@
+<style>
+  :root{
+    --bg:#0b0b0d;
+    --bg-raise:#131316;
+    --line:#232327;
+    --line-soft:#1b1b1f;
+    --ink:#f2f1ec;          /* warm off-white */
+    --ink-dim:#a4a3a0;
+    --ink-faint:#6d6c6a;
+    --accent:#0a84ff;
+    --accent-hover:#3a9bff;
+    --radius:10px;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    --maxw:1080px;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.6;
+    letter-spacing:.005em;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+
+  a{color:var(--accent);text-decoration:none}
+  a:hover{color:var(--accent-hover)}
+
+  ::selection{background:rgba(10,132,255,.28);color:#fff}
+
+  :focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  .wrap{
+    width:100%;
+    max-width:var(--maxw);
+    margin-inline:auto;
+    padding-inline:24px;
+  }
+
+  /* mono micro-label motif — the single recurring accent style */
+  .label{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0 0 20px;
+  }
+
+  kbd{
+    font-family:var(--mono);
+    font-size:.82em;
+    color:var(--ink);
+    background:var(--bg-raise);
+    border:1px solid var(--line);
+    border-bottom-color:#2c2c31;
+    border-radius:5px;
+    padding:.12em .42em;
+    white-space:nowrap;
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;
+    top:0;
+    z-index:20;
+    background:rgba(11,11,13,.78);
+    backdrop-filter:saturate(160%) blur(14px);
+    -webkit-backdrop-filter:saturate(160%) blur(14px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav-in{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:60px;
+    gap:16px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    color:var(--ink);
+    font-family:var(--mono);
+    font-size:15px;
+    letter-spacing:.02em;
+  }
+  .brand img{
+    width:26px;height:26px;
+    border-radius:7px;
+    display:block;
+  }
+  .nav-cta{
+    font-family:var(--mono);
+    font-size:13.5px;
+    color:var(--ink);
+    border:1px solid var(--line);
+    background:var(--bg-raise);
+    padding:8px 15px;
+    border-radius:8px;
+    transition:border-color .15s ease,color .15s ease;
+  }
+  .nav-cta:hover{border-color:var(--accent);color:var(--ink)}
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:96px 0 44px;
+  }
+  h1{
+    font-size:clamp(34px,6vw,56px);
+    line-height:1.05;
+    letter-spacing:-.02em;
+    font-weight:600;
+    margin:0 0 24px;
+    max-width:16ch;
+  }
+  .subhead{
+    font-size:clamp(17px,2.4vw,20px);
+    color:var(--ink-dim);
+    max-width:60ch;
+    margin:0 0 32px;
+  }
+  .subhead strong{color:var(--ink);font-weight:500}
+
+  .cta-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:14px 18px;
+    margin-bottom:22px;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    font-size:15.5px;
+    font-weight:500;
+    border-radius:9px;
+    padding:13px 22px;
+    transition:background .15s ease,border-color .15s ease,color .15s ease;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:#fff;
+    box-shadow:0 1px 0 rgba(255,255,255,.12) inset;
+  }
+  .btn-primary:hover{background:var(--accent-hover);color:#fff}
+  .btn-secondary{
+    color:var(--ink);
+    border:1px solid var(--line);
+    background:transparent;
+    font-family:var(--mono);
+    font-size:14px;
+  }
+  .btn-secondary:hover{border-color:#3a3a40;color:var(--ink)}
+
+  .specline{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.04em;
+    color:var(--ink-faint);
+  }
+  .specline .dot{color:#3a3a40;padding:0 2px}
+  .honesty{
+    margin-top:10px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.02em;
+    color:var(--ink-faint);
+  }
+  .honesty::before{
+    content:"//";
+    color:#3a3a40;
+    margin-right:8px;
+  }
+
+  /* ---------- screenshot ---------- */
+  .shot{
+    padding:12px 0 20px;
+  }
+  .shot-frame{
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--bg-raise);
+    padding:10px;
+    box-shadow:0 40px 90px -50px rgba(0,0,0,.9),
+               0 2px 0 rgba(255,255,255,.02) inset;
+  }
+  .shot-frame img{
+    display:block;
+    width:100%;
+    max-width:100%;
+    height:auto;
+    border-radius:7px;
+    border:1px solid var(--line-soft);
+  }
+  .caption{
+    margin:16px 2px 0;
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.03em;
+    color:var(--ink-faint);
+    line-height:1.5;
+  }
+  .caption b{color:var(--ink-dim);font-weight:500}
+
+  /* ---------- sections ---------- */
+  section.block{
+    padding:72px 0;
+    border-top:1px solid var(--line-soft);
+  }
+
+  .why-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1px;
+    background:var(--line-soft);
+    border:1px solid var(--line-soft);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .why{
+    background:var(--bg);
+    padding:30px 26px 32px;
+  }
+  .why .n{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-faint);
+    letter-spacing:.1em;
+    display:block;
+    margin-bottom:16px;
+  }
+  .why h3{
+    font-size:19px;
+    font-weight:600;
+    letter-spacing:-.01em;
+    margin:0 0 10px;
+  }
+  .why p{
+    margin:0;
+    font-size:15px;
+    color:var(--ink-dim);
+    line-height:1.58;
+  }
+
+  /* ---------- shortcuts list ---------- */
+  .shortcuts{
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--bg-raise);
+    padding:8px 22px;
+    max-width:640px;
+  }
+  .sc-row{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    padding:13px 0;
+    font-family:var(--mono);
+    font-size:14px;
+    border-bottom:1px dashed var(--line);
+  }
+  .sc-row:last-child{border-bottom:0}
+  .sc-act{color:var(--ink);white-space:nowrap}
+  .sc-lead{
+    flex:1;
+    border-bottom:1px dotted #2a2a2f;
+    transform:translateY(-4px);
+    min-width:14px;
+  }
+  .sc-key{color:var(--ink-dim);white-space:nowrap;text-align:right}
+  .sc-key .hl{color:var(--accent)}
+  .sc-note{
+    margin:18px 2px 0;
+    font-size:14px;
+    color:var(--ink-dim);
+  }
+
+  /* ---------- getting it ---------- */
+  .install{
+    max-width:660px;
+  }
+  .install p{
+    color:var(--ink-dim);
+    font-size:16px;
+    margin:0 0 14px;
+  }
+  .install code{
+    font-family:var(--mono);
+    font-size:13.5px;
+    color:var(--ink);
+    background:var(--bg-raise);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:2px 7px;
+  }
+  .install ol{
+    margin:0;
+    padding:0;
+    list-style:none;
+    counter-reset:step;
+  }
+  .install li{
+    position:relative;
+    padding:14px 0 14px 40px;
+    border-top:1px solid var(--line-soft);
+    color:var(--ink-dim);
+    font-size:15.5px;
+  }
+  .install li:first-child{border-top:0}
+  .install li::before{
+    counter-increment:step;
+    content:counter(step);
+    position:absolute;
+    left:0;top:14px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-faint);
+    border:1px solid var(--line);
+    border-radius:6px;
+    width:24px;height:24px;
+    display:flex;align-items:center;justify-content:center;
+    line-height:1;
+  }
+  .install li b{color:var(--ink);font-weight:500}
+
+  /* ---------- final cta ---------- */
+  .final{
+    text-align:center;
+    padding:88px 0;
+  }
+  .final h2{
+    font-size:clamp(26px,4.5vw,38px);
+    font-weight:600;
+    letter-spacing:-.02em;
+    margin:0 0 14px;
+  }
+  .final p{
+    color:var(--ink-dim);
+    margin:0 0 30px;
+    font-size:17px;
+  }
+  .final .cta-row{justify-content:center}
+  .final .specline{display:block;margin-top:4px}
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:1px solid var(--line-soft);
+    padding:34px 0 48px;
+  }
+  .foot-in{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.03em;
+    color:var(--ink-faint);
+  }
+  .foot-in a{color:var(--ink-dim)}
+  .foot-in a:hover{color:var(--accent)}
+  .foot-links{display:flex;gap:22px;flex-wrap:wrap}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:760px){
+    body{font-size:16px}
+    .hero{padding:64px 0 32px}
+    .why-grid{grid-template-columns:1fr}
+    section.block{padding:56px 0}
+    .btn{flex:1 1 auto;justify-content:center}
+    .nav-cta{padding:7px 12px;font-size:12.5px}
+  }
+  @media (max-width:400px){
+    .wrap{padding-inline:18px}
+    .specline{font-size:11.5px}
+  }
+</style>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="Diptychon home">
+      <img src="icon.png" alt="" width="26" height="26">
+      <span>diptychon</span>
+    </a>
+    <a class="nav-cta" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download</a>
+  </div>
+</nav>
+
+<main id="top">
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="label">Dual-panel file manager · macOS</p>
+      <h1>Move files at the speed of your keyboard.</h1>
+      <p class="subhead">
+        The dual-panel macOS file manager Finder never gave you. Two folders
+        side by side, one keystroke to move between them, and everything is
+        undoable. <strong>Native, and small: 1.4&nbsp;MB to download, 5&nbsp;MB installed.</strong>
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download for macOS</a>
+        <a class="btn btn-secondary" href="https://github.com/Tvk-sd/diptychon">Build from source</a>
+      </div>
+      <p class="specline">
+        Apple&nbsp;Silicon&nbsp;&amp;&nbsp;Intel <span class="dot">·</span> macOS&nbsp;13+ <span class="dot">·</span> no&nbsp;Electron
+      </p>
+      <p class="honesty">Free beta, not yet notarized by Apple.</p>
+    </div>
+  </header>
+
+  <div class="shot">
+    <div class="wrap">
+      <div class="shot-frame">
+        <img src="app-screenshot.png"
+             alt="Diptychon showing two folders side by side: a Places sidebar, an Inbox of mixed files on the left with logo-final.svg selected in blue, and an organized Website Redesign project folder on the right."
+             width="2880" height="1560" loading="eager">
+      </div>
+      <p class="caption">
+        <b>Two panels, one workspace.</b> Select a file in the left panel, press <kbd>⌥⌘→</kbd>, it lands in the right. No dragging, no new windows.
+      </p>
+    </div>
+  </div>
+
+  <section class="block">
+    <div class="wrap">
+      <p class="label">Why it's different</p>
+      <div class="why-grid">
+        <div class="why">
+          <span class="n">01</span>
+          <h3>Every action has a key.</h3>
+          <p>Chorded gestures for power, plus Finder's own conventions for copy, paste, go-to-folder and Quick Look — so your muscle memory just transfers.</p>
+        </div>
+        <div class="why">
+          <span class="n">02</span>
+          <h3>Undo anything.</h3>
+          <p>Every move, copy, rename and trash is reversible. Multi-level <kbd>⌘Z</kbd>, with a toast that says exactly what was undone.</p>
+        </div>
+        <div class="why">
+          <span class="n">03</span>
+          <h3>Real Finder tags.</h3>
+          <p>Genuine Apple Finder tags that round-trip both ways. Diptychon rides the ecosystem instead of inventing its own.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <p class="label">Keys</p>
+      <div class="shortcuts">
+        <div class="sc-row">
+          <span class="sc-act">Send to other panel</span>
+          <span class="sc-lead"></span>
+          <span class="sc-key"><span class="hl">⌥⌘→</span></span>
+        </div>
+        <div class="sc-row">
+          <span class="sc-act">Undo last action</span>
+          <span class="sc-lead"></span>
+          <span class="sc-key">⌘Z</span>
+        </div>
+        <div class="sc-row">
+          <span class="sc-act">Copy · Paste</span>
+          <span class="sc-lead"></span>
+          <span class="sc-key">⌘C · ⌘V</span>
+        </div>
+        <div class="sc-row">
+          <span class="sc-act">Quick Look</span>
+          <span class="sc-lead"></span>
+          <span class="sc-key">Space</span>
+        </div>
+        <div class="sc-row">
+          <span class="sc-act">Go to folder</span>
+          <span class="sc-lead"></span>
+          <span class="sc-key">⌘⇧G</span>
+        </div>
+        <div class="sc-row">
+          <span class="sc-act">Move to Trash</span>
+          <span class="sc-lead"></span>
+          <span class="sc-key">⌘⌫</span>
+        </div>
+      </div>
+      <p class="sc-note">Finder conventions where they exist; chords where they earn their keep. Nothing to relearn.</p>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap install">
+      <p class="label">Getting it · first launch</p>
+      <p>The build isn't notarized yet, so macOS Gatekeeper will hold it on first open. This takes ten seconds, once.</p>
+      <ol>
+        <li><b>Download</b> the latest <code>.dmg</code> from GitHub Releases and drag Diptychon to Applications.</li>
+        <li><b>Right-click the app</b> and choose <b>Open</b> — then confirm the dialog. (A plain double-click will be blocked the first time.)</li>
+        <li><b>That's it.</b> Every launch after this one opens normally.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2>Give your keyboard the file manager.</h2>
+      <p>1.4&nbsp;MB down, 5&nbsp;MB installed. The footprint is the proof.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download for macOS</a>
+        <a class="btn btn-secondary" href="https://github.com/Tvk-sd/diptychon">Build from source</a>
+      </div>
+      <p class="specline">Apple&nbsp;Silicon&nbsp;&amp;&nbsp;Intel <span class="dot">·</span> macOS&nbsp;13+ <span class="dot">·</span> no&nbsp;Electron</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <span>© Diptychon — native macOS, ~1.4 MB</span>
+    <span class="foot-links">
+      <a href="https://github.com/Tvk-sd/diptychon">Source</a>
+      <a href="https://github.com/Tvk-sd/diptychon/releases/latest">Releases</a>
+      <a href="https://github.com/Tvk-sd/diptychon/issues">Issues</a>
+    </span>
+  </div>
+</footer>

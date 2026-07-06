@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diptychon — move files at the speed of your keyboard</title>
+<meta name="description" content="Diptychon is a fast, keyboard-first dual-panel file manager for macOS. Two folders side by side, move files with one keystroke, undo anything. Native, 1.4 MB download." />
+<link rel="icon" type="image/png" href="icon.png" />
+<style>
+  /* ── Palette derived from the real product: the app icon (charcoal tile + warm off-white
+        pixel monogram) and the app UI's single functional accent, macOS blue. Blue is spent
+        only on actions — buttons, the accent key, links. Everything else is scale + weight. ── */
+  :root {
+    --bg:        #161514;
+    --bg-deep:   #0f0e0d;
+    --surface:   rgba(255,255,255,0.035);
+    --tile:      #262524;
+    --tile-edge: rgba(0,0,0,0.55);
+    --text:      #ece9e3;
+    --muted:     rgba(236,233,227,0.66);
+    --faint:     rgba(236,233,227,0.42);
+    --line:      rgba(255,255,255,0.09);
+    --blue:      #0a84ff;
+    --blue-deep: #045bb0;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --pad: clamp(80px, 12vh, 132px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; letter-spacing: -0.005em; }
+  a { color: inherit; text-decoration: none; }
+
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 5px; }
+  a:focus-visible, .btn:focus-visible { outline-offset: 4px; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Buttons ── */
+  .btn { display: inline-flex; align-items: center; gap: 11px; font-weight: 600; border-radius: 100px; cursor: pointer; transition: transform .14s cubic-bezier(.2,.8,.2,1), background .2s; }
+  .btn:active { transform: translateY(1px); }
+  .btn-blue { background: var(--blue); color: #fff; font-size: 16px; padding: 14px 26px; }
+  .btn-blue:hover { background: #2f97ff; }
+  .btn-blue kbd { font-family: var(--mono); background: rgba(255,255,255,.20); padding: 3px 8px; border-radius: 100px; font-size: 13px; font-weight: 600; }
+  .btn-ghost { font-weight: 550; font-size: 15px; color: var(--text); border-bottom: 1.5px solid var(--faint); padding-bottom: 3px; transition: border-color .2s; }
+  .btn-ghost:hover { border-color: var(--text); }
+  .cta-row { display: flex; gap: 22px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+  /* ── Nav ── */
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+  nav .brand { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+  nav .brand img.logo { width: 26px; height: 26px; border-radius: 7px; display: block; }
+  nav .links { display: flex; gap: 30px; align-items: center; }
+  nav .links a { font-weight: 500; font-size: 14px; color: var(--muted); transition: color .2s; }
+  nav .links a:hover { color: var(--text); }
+  nav .links a.dl { color: #fff; background: var(--blue); padding: 8px 15px; border-radius: 100px; font-weight: 600; transition: background .2s; }
+  nav .links a.dl:hover { background: #2f97ff; }
+
+  /* ── Hero — the one loud moment, carried by scale not colour ── */
+  .hero { text-align: center; padding: clamp(56px, 9vh, 104px) 0 clamp(14px, 2vh, 24px); }
+  .hero h1 { font-size: clamp(2.6rem, 6.6vw, 5rem); line-height: 0.96; letter-spacing: -0.03em; font-weight: 800; margin: clamp(14px, 2vh, 22px) auto 24px; max-width: 15ch; text-wrap: balance; }
+  .hero .sub { font-size: clamp(1.05rem, 2vw, 1.3rem); color: var(--muted); max-width: 50ch; margin: 0 auto 36px; font-weight: 400; line-height: 1.5; text-wrap: pretty; }
+  .meta { margin-top: 22px; font-family: var(--mono); font-size: 12.5px; color: var(--faint); letter-spacing: .03em; }
+  .hero .note { margin-top: 12px; font-size: 13px; color: var(--faint); }
+  .hero .note a { color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 1px; transition: color .2s; }
+  .hero .note a:hover { color: var(--text); }
+
+  /* keycap gesture — echoes the app icon: charcoal tile, warm off-white glyph; accent key is the one blue */
+  .gesture { display: flex; justify-content: center; align-items: center; gap: 16px; margin: clamp(56px, 9vh, 100px) 0 clamp(16px, 2.4vh, 28px); flex-wrap: wrap; }
+  .gesture .cap {
+    display: inline-grid; place-items: center; background: var(--tile); color: var(--text); font-weight: 700;
+    width: clamp(74px, 12vw, 110px); height: clamp(74px, 12vw, 110px); font-size: clamp(1.8rem, 4.2vw, 2.6rem);
+    border-radius: 15px; box-shadow: 0 6px 0 var(--tile-edge), 0 20px 36px -14px rgba(0,0,0,.75);
+  }
+  .gesture .cap.accent { background: var(--blue); color: #fff; box-shadow: 0 6px 0 var(--blue-deep), 0 20px 36px -14px rgba(10,132,255,.45); }
+  .gesture .plus { font-size: 1.8rem; font-weight: 500; color: var(--faint); }
+  .gesture-note { text-align: center; color: var(--muted); font-weight: 400; font-size: 15px; }
+  .gesture-note b { color: var(--text); font-weight: 600; }
+
+  /* ── Section scaffolding ── */
+  section.band { background: var(--bg-deep); }
+  .band-in { padding: var(--pad) 0; }
+  .center-head { text-align: center; max-width: 60ch; margin: 0 auto; }
+  h2.head { font-size: clamp(1.9rem, 4vw, 2.9rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.06; margin-bottom: 16px; text-wrap: balance; }
+  .lead { color: var(--muted); font-size: clamp(1.05rem, 1.9vw, 1.18rem); line-height: 1.6; text-wrap: pretty; }
+
+  /* ── What it is — real screenshot as the framed centerpiece ── */
+  .shot { max-width: 1000px; margin: 56px auto 0; border-radius: 14px; overflow: hidden; box-shadow: 0 60px 120px -50px rgba(0,0,0,.95), 0 0 0 1px var(--line); background: #0c0c0c; }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot-cap { text-align: center; margin-top: 22px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .shot-cap .k { color: var(--blue); }
+
+  /* ── Keyboard — real bindings, flat premium keycaps ── */
+  .kb-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 56px; }
+  .kb-group { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px 6px 12px; }
+  .kb-group h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); padding: 16px 16px 12px; }
+  .kb-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; }
+  .kb-row .act { color: var(--muted); font-size: 13.5px; }
+  .kb-row .keys { display: inline-flex; gap: 5px; flex-shrink: 0; }
+  .key { font-family: var(--mono); font-size: 11.5px; color: var(--text); background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 6px; padding: 4px 7px; min-width: 24px; text-align: center; line-height: 1.1; }
+  .kb-more { text-align: center; margin-top: 44px; }
+  .kb-more a { color: var(--blue); font-weight: 550; font-size: 15px; transition: opacity .2s; }
+  .kb-more a:hover { opacity: .75; }
+
+  /* ── Why ── */
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 52px; }
+  .why-cell h3 { font-size: 1.3rem; font-weight: 650; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .why-cell p { color: var(--muted); line-height: 1.6; font-size: 1rem; text-wrap: pretty; }
+
+  /* ── Status ── */
+  .status { text-align: center; max-width: 64ch; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+  .status .badge { font-family: var(--mono); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 100px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 8px; }
+  .status .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
+  .status p { color: var(--muted); font-size: 1.05rem; line-height: 1.65; text-wrap: pretty; }
+  .status a { color: var(--blue); transition: opacity .2s; }
+  .status a:hover { opacity: .75; }
+  .get-steps { text-align: left; max-width: 44ch; margin: 2px auto 0; display: flex; flex-direction: column; gap: 11px; list-style: none; counter-reset: s; }
+  .get-steps li { position: relative; padding-left: 34px; color: var(--muted); font-size: 14px; line-height: 1.5; counter-increment: s; }
+  .get-steps li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 22px; height: 22px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--text); display: grid; place-items: center; }
+  .get-steps li b { color: var(--text); font-weight: 600; }
+  .get-links { font-size: 15px; margin-top: 2px; }
+
+  /* ── Final CTA ── */
+  .final { text-align: center; padding: var(--pad) 0; }
+  .final h2 { font-size: clamp(2.2rem, 5.6vw, 4rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 32px; text-wrap: balance; }
+
+  /* ── Footer ── */
+  footer { border-top: 1px solid var(--line); }
+  .foot { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; flex-wrap: wrap; gap: 12px; }
+  .foot .small { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  .foot a { color: var(--muted); font-size: 13px; transition: color .2s; }
+  .foot a:hover { color: var(--text); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .gesture .cap { animation: pop .6s cubic-bezier(.2,.85,.25,1) backwards; }
+    .gesture .cap:nth-child(1){animation-delay:.04s;} .gesture .cap:nth-child(3){animation-delay:.12s;} .gesture .cap:nth-child(5){animation-delay:.2s;}
+    @keyframes pop { from { opacity:0; transform: translateY(14px) scale(.92);} }
+  }
+  @media (max-width: 820px){
+    .kb-cols { grid-template-columns: 1fr; }
+    .why-grid { grid-template-columns: 1fr; gap: 32px; }
+    nav .links a:not(.dl) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <div class="brand"><img class="logo" src="icon.png" alt="" /> Diptychon</div>
+    <div class="links">
+      <a href="#what">What</a>
+      <a href="#keyboard">Shortcuts</a>
+      <a href="#why">Why</a>
+      <a class="dl" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download</a>
+    </div>
+  </nav>
+</div>
+
+<!-- ── Hero ── -->
+<header class="hero">
+  <div class="wrap">
+    <h1>Move files at the speed of your keyboard.</h1>
+    <p class="sub">The dual-panel macOS file manager Finder never gave you. Two folders side by side, one keystroke to move between them, and everything is undoable. Native, and small: 1.4&nbsp;MB to download, 5&nbsp;MB installed.</p>
+    <div class="cta-row">
+      <a class="btn btn-blue" id="download" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download for macOS <kbd>D</kbd></a>
+      <a class="btn-ghost" id="source" href="https://github.com/Tvk-sd/diptychon">Build from source</a>
+    </div>
+    <div class="meta">Apple Silicon &amp; Intel · macOS 13+ · no Electron</div>
+    <p class="note">Free beta, not yet notarized by Apple. <a href="#get">How to open it →</a></p>
+
+    <div class="gesture">
+      <span class="cap">⌥</span><span class="plus">+</span>
+      <span class="cap">⌘</span><span class="plus">+</span>
+      <span class="cap accent">→</span>
+    </div>
+    <p class="gesture-note">one gesture · the file <b>jumps to the other panel</b></p>
+  </div>
+</header>
+
+<!-- ── What it is: description + real screenshot ── -->
+<section class="band" id="what">
+  <div class="wrap band-in">
+    <div class="center-head">
+      <h2 class="head">Two directories, side by side.</h2>
+      <p class="lead">The active panel is your source, the inactive one your destination. Move files between them without the copy-paste juggling, and you always see both ends at once. Native Swift, no Electron, one small binary.</p>
+    </div>
+    <figure class="shot">
+      <img src="app-screenshot.png" alt="Diptychon on macOS: a Places sidebar and two directory panels side by side — an active Inbox of mixed downloads on the left with a design file selected ready to move, an organized Website Redesign project folder on the right." />
+    </figure>
+    <p class="shot-cap">The real thing. The active panel (outlined in blue) is the source; <span class="k">⌥⌘→</span> sends the selection to the inactive panel.</p>
+  </div>
+</section>
+
+<!-- ── Keyboard: real bindings (onboarding = the moat) ── -->
+<section id="keyboard">
+  <div class="wrap band-in">
+    <div class="center-head">
+      <h2 class="head">Learn the whole thing in five minutes.</h2>
+      <p class="lead">No manual required. The mental model is two panels and a handful of keys. Here's the essential set. Every binding is real, and every one is rebindable.</p>
+    </div>
+    <div class="kb-cols">
+      <div class="kb-group">
+        <h4>Move around</h4>
+        <div class="kb-row"><span class="act">Switch active panel</span><span class="keys"><span class="key">Tab</span></span></div>
+        <div class="kb-row"><span class="act">Leave folder</span><span class="keys"><span class="key">⌘</span><span class="key">↑</span></span></div>
+        <div class="kb-row"><span class="act">Back / forward</span><span class="keys"><span class="key">⌘[</span><span class="key">⌘]</span></span></div>
+        <div class="kb-row"><span class="act">Go to folder…</span><span class="keys"><span class="key">⇧</span><span class="key">⌘</span><span class="key">G</span></span></div>
+        <div class="kb-row"><span class="act">Command palette</span><span class="keys"><span class="key">⌘K</span></span></div>
+        <div class="kb-row"><span class="act">Toggle sidebar</span><span class="keys"><span class="key">⌘B</span></span></div>
+      </div>
+      <div class="kb-group">
+        <h4>Move files</h4>
+        <div class="kb-row"><span class="act">Copy to other panel</span><span class="keys"><span class="key">⌥</span><span class="key">⌘</span><span class="key">→</span></span></div>
+        <div class="kb-row"><span class="act">Move to other panel</span><span class="keys"><span class="key">⇧</span><span class="key">⌥</span><span class="key">⌘</span><span class="key">→</span></span></div>
+        <div class="kb-row"><span class="act">Copy / paste</span><span class="keys"><span class="key">⌘C</span><span class="key">⌘V</span></span></div>
+        <div class="kb-row"><span class="act">Duplicate</span><span class="keys"><span class="key">⌘D</span></span></div>
+        <div class="kb-row"><span class="act">Rename</span><span class="keys"><span class="key">⌘R</span></span></div>
+        <div class="kb-row"><span class="act">Move to Trash</span><span class="keys"><span class="key">⌘</span><span class="key">⌫</span></span></div>
+      </div>
+      <div class="kb-group">
+        <h4>Look &amp; undo</h4>
+        <div class="kb-row"><span class="act">Quick Look</span><span class="keys"><span class="key">Space</span></span></div>
+        <div class="kb-row"><span class="act">Get Info</span><span class="keys"><span class="key">⌘I</span></span></div>
+        <div class="kb-row"><span class="act">Edit tags</span><span class="keys"><span class="key">⌘T</span></span></div>
+        <div class="kb-row"><span class="act">Reveal in Finder</span><span class="keys"><span class="key">⇧</span><span class="key">⌘</span><span class="key">R</span></span></div>
+        <div class="kb-row"><span class="act">Undo / redo</span><span class="keys"><span class="key">⌘Z</span><span class="key">⇧⌘Z</span></span></div>
+      </div>
+    </div>
+    <div class="kb-more"><a href="https://github.com/Tvk-sd/diptychon#readme">Read the 5-minute guide →</a></div>
+  </div>
+</section>
+
+<!-- ── Why ── -->
+<section class="band" id="why">
+  <div class="wrap band-in">
+    <div class="center-head"><h2 class="head">Why Diptychon.</h2></div>
+    <div class="why-grid">
+      <div class="why-cell">
+        <h3>Every action has a key.</h3>
+        <p>Chorded gestures for power, plus Finder's own conventions for copy, paste, go-to-folder and Quick Look, so your muscle memory just transfers.</p>
+      </div>
+      <div class="why-cell">
+        <h3>Undo anything.</h3>
+        <p>Every move, copy, rename and trash is a reversible operation. Multi-level ⌘Z, with a toast that tells you exactly what was undone.</p>
+      </div>
+      <div class="why-cell">
+        <h3>Real Finder tags.</h3>
+        <p>Tags here are genuine Apple Finder tags, and they round-trip both ways. Diptychon rides the ecosystem instead of inventing a private one.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Get it: honest current-distribution path (ad-hoc build, one-time Gatekeeper step) ── -->
+<section id="get">
+  <div class="wrap band-in">
+    <div class="status">
+      <span class="badge">MVP · free beta</span>
+      <h2 class="head">Getting it onto your Mac.</h2>
+      <p>Native Swift, no telemetry, 1.4&nbsp;MB to download and 5&nbsp;MB installed. Diptychon isn't notarized by Apple yet, so the first launch takes one extra step. You do it once, then never again:</p>
+      <ol class="get-steps">
+        <li>Download, unzip, and move <b>Diptychon</b> to your Applications folder.</li>
+        <li>Right-click the app, choose <b>Open</b>, then <b>Open</b> again in the dialog.</li>
+        <li>If macOS still blocks it: <b>System&nbsp;Settings → Privacy&nbsp;&amp;&nbsp;Security</b>, scroll down, <b>Open&nbsp;Anyway</b>.</li>
+      </ol>
+      <p class="get-links"><a href="https://github.com/Tvk-sd/diptychon/releases/latest">Get the latest build</a> &nbsp;·&nbsp; <a href="https://github.com/Tvk-sd/diptychon">build from source</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Final CTA ── -->
+<section class="final band">
+  <div class="wrap">
+    <h2>Give your files two panels.</h2>
+    <div class="cta-row">
+      <a class="btn btn-blue" href="https://github.com/Tvk-sd/diptychon/releases/latest">Download for macOS <kbd>D</kbd></a>
+      <a class="btn-ghost" href="https://github.com/Tvk-sd/diptychon">Build from source</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span class="small">Diptychon · native macOS file manager</span>
+    <span style="display:flex; gap:20px;">
+      <a href="https://github.com/Tvk-sd/diptychon">GitHub</a>
+      <a href="https://github.com/Tvk-sd/diptychon/releases/latest">Releases</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  // Real shortcuts (steal from Zed): D / C actually work, so the button hint is honest.
+  window.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'd') { e.preventDefault(); location.href = document.getElementById('download').href; }
+    if (k === 'c') { e.preventDefault(); location.href = document.getElementById('source').href; }
+  });
+</script>
+
+</body>
+</html>
