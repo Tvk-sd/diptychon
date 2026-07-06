@@ -1,18 +1,18 @@
 import SwiftUI
 
-/// The unified top bar above both panels (issue 21). It acts on the **Active
-/// Panel**: an Up button and a clickable **breadcrumb** of that panel's path.
-/// Back/forward land in slice 2; search + the hidden/tag controls move here in
-/// slice 3. A view-switcher and time-travel control get clean slots later.
+/// The Active Panel's nav row (issue 21): an Up button, back/forward, a clickable
+/// **breadcrumb** of that panel's path, and a name Filter. It lives in the true top
+/// bar (`WorkspaceView.headerBar`), right of the Search field; its trailing Spacer
+/// pushes the Filter to the far-right window edge. Everything binds to the Active
+/// Panel, so it swaps context when the active panel changes.
 struct TopBarView: View {
     let model: WorkspaceModel
     /// Drives ⌘⇧F: `WorkspaceModel.filterFocusRequest` bumps → focus the Filter field.
     @FocusState private var filterFocused: Bool
 
-    /// The Active Panel's navigation row: up / back / forward + clickable
-    /// breadcrumb + name filter. The app name and the window/view-toggle icons
-    /// live one row up in the full-width header (`WorkspaceView.headerBar`), so
-    /// the sidebar toggle keeps a fixed spot instead of jumping when folded.
+    /// up / back / forward + clickable breadcrumb + name Filter, in a single row
+    /// inside the header. Search sits to the left in its own cell; the window/view
+    /// toggles live on the bottom bar.
     var body: some View {
         HStack(spacing: 8) {
             Button { model.activeModel.navigateUp() } label: {

@@ -70,9 +70,10 @@ struct WorkspaceView: View {
                 EmptyView() // never — collision is the dialog, filtered out by sheetItem
             }
         }
-        .overlay { progressOverlay }
+        .overlay(alignment: .bottomLeading) { activityPanelView }
         .overlay(alignment: .bottom) { activityToastView }
         .animation(.spring(duration: 0.32), value: model.activityToast)
+        .animation(.spring(duration: 0.32), value: showActivityPanel)
     }
 
     /// Transient "Undone — …" / "Redone — …" HUD (issue 18, Tier 1): floats above the
@@ -141,11 +142,12 @@ struct WorkspaceView: View {
             // Seam closing the name cell (sits on the sidebar edge when shown).
             Divider()
 
-            // Free black space on the window — open for future displays.
-            Color.clear
-                .frame(maxWidth: .infinity)
+            // The Active Panel's nav row — up/back/forward + breadcrumb + Filter —
+            // now lives here in the true top bar, right of Search (it used to be a
+            // separate row above the panels). Its trailing Spacer pushes the Filter
+            // to the far-right window edge.
+            TopBarView(model: model)
         }
-        // Match the search/breadcrumb row height below.
         .frame(height: 32)
     }
 
@@ -195,6 +197,14 @@ struct WorkspaceView: View {
                 }
                 .foregroundStyle(model.rightPane == .staging ? Color.accentColor : .secondary)
                 .accessibilityIdentifier("toggle-staging")
+
+                // Activity pane toggle (issue 34, Slice 1) — a list glyph, distinct
+                // from issue 18's clock/history. Accents while pinned or an op runs.
+                headerIcon("list.bullet.rectangle", help: "Show Activity") {
+                    model.activityPanelPinned.toggle()
+                }
+                .foregroundStyle(showActivityPanel ? Color.accentColor : .secondary)
+                .accessibilityIdentifier("toggle-activity")
             }
             .padding(.horizontal, 12)
             .frame(maxWidth: .infinity)
@@ -234,12 +244,9 @@ struct WorkspaceView: View {
                     .frame(width: 200)
                 Divider()
             }
-            VStack(spacing: 0) {
-                // Up/breadcrumb/back-forward on the Active Panel, above the panels.
-                TopBarView(model: model)
-                Divider()
-                panels
-            }
+            // Nav (up/back/forward + breadcrumb + Filter) now lives in the header,
+            // so the panels sit directly under the header divider.
+            panels
             switch model.rightPane {
             case .none:
                 EmptyView()
@@ -300,20 +307,22 @@ struct WorkspaceView: View {
         }
     }
 
+    /// The Activity pane shows while an op is running (auto) or while the user has
+    /// pinned it open (issue 34, Slice 1). Non-blocking — unlike the old modal, the
+    /// rest of the UI stays live so the user can work alongside a running copy.
+    private var showActivityPanel: Bool {
+        model.coordinator.running != nil || model.activityPanelPinned
+    }
+
     @ViewBuilder
-    private var progressOverlay: some View {
-        if let running = model.coordinator.running {
-            ZStack {
-                Color.black.opacity(0.2).ignoresSafeArea()
-                VStack(spacing: 12) {
-                    Text(running.title).font(.headline)
-                    ProgressView(value: running.fraction)
-                        .frame(width: 240)
-                    Button("Cancel") { model.coordinator.cancel() }
-                }
-                .padding(24)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-            }
+    private var activityPanelView: some View {
+        if showActivityPanel {
+            ActivityPanel(
+                running: model.coordinator.running,
+                onCancel: { model.coordinator.cancel() },
+                onClose: { model.activityPanelPinned = false }
+            )
+            .transition(.move(edge: .leading).combined(with: .opacity))
         }
     }
 
@@ -341,15 +350,18 @@ struct WorkspaceView: View {
                 if let window = event.window, let contentView = window.contentView {
                     let x = event.locationInWindow.x
                     let bounds = contentView.bounds
-                    // The unified top bar / sidebar search occupy the top band of the
-                    // content (full-width divider + 36pt bar + divider). Clicks there
-                    // — e.g. the Filter field — must NOT re-activate a panel by their
-                    // x-position, or clicking the Filter would steal the active panel.
+                    // The top bar (Search + the Active Panel's nav row: back/forward,
+                    // breadcrumb, Filter) occupies the single header band at the top of
+                    // the content. Clicks there — e.g. the Filter field — must NOT
+                    // re-activate a panel by their x-position, or clicking the Filter
+                    // would steal the active panel.
                     //
                     // NB: the content view is full-size (spans behind the title bar),
                     // so measure from `contentLayoutRect.maxY` — the top of the usable
                     // area BELOW the title bar — not `bounds.maxY` (the window top).
-                    let topBarBand: CGFloat = 74
+                    // 34 = the 32pt header row + its 1pt divider (was 74 when the nav
+                    // sat in a second row below the header).
+                    let topBarBand: CGFloat = 34
                     let contentTop = window.contentLayoutRect.maxY
                     let inTopBar = event.locationInWindow.y >= contentTop - topBarBand
                     // The panels occupy the space between the sidebar (left, issue 16)

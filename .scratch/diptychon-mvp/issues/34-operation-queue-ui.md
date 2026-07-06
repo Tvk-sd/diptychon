@@ -1,8 +1,33 @@
 # 34 — Operation Queue UI (progress · pause · cancel)
 
-Status: needs-triage (2026-07-02) — drafted from Marta gap analysis
+Status: in-progress (2026-07-06, **Slice 1**) — drafted from Marta gap analysis
 (`context/competitor-benchmark.md` §5). Highest-ROI competitive gap: it extends
 our existing reversible-Operation lead rather than bolting on a new domain.
+
+## Slice plan (scoped 2026-07-06)
+
+Right-sized into a value test first (mirrors #18/#20). Ship Slice 1 alone, learn
+whether the pane earns its place, then decide the rest.
+
+- **Slice 1 — Activity panel (this branch, `feat/34-activity-panel`).** The value
+  test. A **non-blocking** bottom-left pane surfaces the *running* op — title +
+  determinate progress + **Cancel** — replacing today's full-screen **blocking**
+  modal (`progressOverlay`). Toggle from a bottom-bar list-glyph icon (distinct from
+  #18's clock). Delivers the "transfer pane" trust signal (ForkLift praise / Nimble
+  "no transfer pane") at near-zero cost — `coordinator.running` already exists.
+  Covers ACs: live progress (1), running-op cancel w/ consistent state (4, already
+  guaranteed by the spine), toggleable list-glyph panel (7, floating-card form).
+  **Decision:** replace the blocking modal (PM-approved) — ops become non-blocking;
+  a second op fired while busy is still silently dropped (existing behavior), which
+  Slice 2's real queue fixes.
+- **Slice 2 — Real queue.** Enqueue-and-drain instead of drop; list pending +
+  recently-completed rows. Covers ACs 2, 3, 5.
+- **Slice 3 — Pause/resume + per-op cancel + keyboard.** Covers ACs 6 and pause.
+- **Slice 4 — Merge / conflict resolution (W9).** Recursive folder merge. Heaviest;
+  candidate to split into its own issue **#34b**. Covers AC 8.
+
+Out-of-scope-for-Slice-1 (deferred, not dropped): pending-queue list, queued-op
+cancel, keyboard operation, merge, panel-open persistence across launches.
 
 ## Parent
 
