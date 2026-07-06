@@ -1,6 +1,8 @@
 # 41 — Reliable state persistence
 
-Status: **in-progress / core shipped** (2026-07-03, branch `feat/41-state-persistence`)
+Status: **done — merged (PR #41)** (commit `2d00707`); core shipped, drive/remount
++ save-on-quit verified live. Deferred slices tracked separately: split ratio → #45;
+tabs → #38; columns/view-mode → #27/#29/#37 (schema is additive).
 — drafted from netnography finding N1 (`context/netnography/04-diptychon-mapping.md`
 §3, N1) / JTBD-1 (`context/netnography/03-synthese-kundenwuensche.md`). Top-candidate,
 cross-cutting; the recommended slot `40` was taken by load-path-optimization, so `41`.
