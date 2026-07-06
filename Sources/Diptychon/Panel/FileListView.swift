@@ -137,7 +137,7 @@ private struct FolderDropModifier: ViewModifier {
         if item.isDirectory {
             content
                 .background {
-                    RoundedRectangle(cornerRadius: 4)
+                    Rectangle()
                         .fill(Color.accentColor.opacity(targeted ? 0.25 : 0))
                 }
                 .dropDestination(for: URL.self) { urls, _ in
