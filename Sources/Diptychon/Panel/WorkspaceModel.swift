@@ -161,6 +161,12 @@ final class WorkspaceModel {
         didSet { UserDefaults.standard.set(sidebarVisible, forKey: "sidebarVisible") }
     }
 
+    /// Whether the user has *pinned* the Activity pane open (issue 34, Slice 1). The
+    /// pane also auto-shows whenever an op is running (see `WorkspaceView`), so this
+    /// only governs keeping it visible while idle. In-memory for the value test —
+    /// cross-launch persistence is deferred (see issue 34 slice plan).
+    var activityPanelPinned = false
+
     /// Folders the user pinned to the sidebar (issue 16, slice 2). Backed by a
     /// `[String]` of paths in `UserDefaults`; deduped on add via `PinnedFolders`.
     var pinnedFolders: [URL] = PinnedFolders.decode(
