@@ -32,15 +32,22 @@ final class PanelModel {
     /// Show hidden (dot) files. Reloads on change; re-runs an active search so its
     /// results respect the new visibility.
     var showHidden = false { didSet { reload(); if isSearching { scheduleSearch() } } }
-    /// Filter text. Drives a **recursive walk of the current folder** when no global
-    /// Search is active; while a Search *is* active it just narrows those results
-    /// in-memory (a recompute suffices, no re-walk).
+    /// Whether the Filter recurses into subfolders (a `directory` walk) or just
+    /// narrows the loaded rows in-memory. Only true for panes backed by a real
+    /// local directory — a virtual source (e.g. Staging, ADR 0003) has no subtree
+    /// to walk, and walking its nominal `directory` would show unrelated real
+    /// files. Set by `WorkspaceModel` on the two directory panes.
+    var filterSearchesSubfolders = false
+    /// Filter text. When the pane recurses (`filterSearchesSubfolders`) and no
+    /// global Search is active, it drives a scoped recursive walk of the current
+    /// folder; otherwise it just narrows the loaded rows (or Search results)
+    /// in-memory.
     var filter = "" {
         didSet {
-            if searchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
+            if filterSearchesSubfolders && searchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
                 scheduleSearch()          // Filter drives a scoped recursive walk
             } else {
-                recomputeVisible()        // Filter narrows the live Search results
+                recomputeVisible()        // in-memory narrow (loaded rows or Search results)
             }
         }
     }
@@ -58,29 +65,31 @@ final class PanelModel {
     static let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
 
     /// Which subtree the recursive walk covers, and with what query, given both
-    /// input fields. Global **Search** wins when present (root = `home`); otherwise
-    /// the **Filter** drives a walk scoped to the current `directory`. `nil` ⇒ no
-    /// walk (both empty) so the panel shows its plain directory listing.
+    /// input fields. Global **Search** wins when present (root = `home`); otherwise,
+    /// only when the pane recurses (`filterRecurses`), the **Filter** drives a walk
+    /// scoped to the current `directory`. `nil` ⇒ no walk, so the panel shows its
+    /// plain directory listing (the Filter, if any, narrows it in-memory).
     static func searchDriver(searchQuery: String, filter: String,
-                             directory: URL, home: URL) -> (query: String, root: URL)? {
+                             directory: URL, home: URL,
+                             filterRecurses: Bool) -> (query: String, root: URL)? {
         let sq = searchQuery.trimmingCharacters(in: .whitespaces)
         if !sq.isEmpty { return (sq, home) }
+        guard filterRecurses else { return nil }
         let fq = filter.trimmingCharacters(in: .whitespaces)
         if !fq.isEmpty { return (fq, directory) }
         return nil
     }
 
-    /// Whether the panel is showing walk results (Search *or* Filter) rather than
-    /// its plain `directory` listing.
-    var isSearching: Bool {
-        Self.searchDriver(searchQuery: searchQuery, filter: filter,
-                          directory: directory, home: Self.homeDirectory) != nil
+    private func searchDriver() -> (query: String, root: URL)? {
+        Self.searchDriver(searchQuery: searchQuery, filter: filter, directory: directory,
+                          home: Self.homeDirectory, filterRecurses: filterSearchesSubfolders)
     }
+
+    /// Whether the panel is showing walk results (global Search, or a recursive
+    /// Filter) rather than its plain `directory` listing.
+    var isSearching: Bool { searchDriver() != nil }
     /// The query text to show in the "no results" state — whichever field is driving.
-    var searchQueryDisplay: String {
-        Self.searchDriver(searchQuery: searchQuery, filter: filter,
-                          directory: directory, home: Self.homeDirectory)?.query ?? ""
-    }
+    var searchQueryDisplay: String { searchDriver()?.query ?? "" }
     /// True while a search walk is in flight — drives the "Searching…" state so the
     /// panel never shows the stale directory listing under a search header.
     private(set) var isSearchRunning = false
@@ -239,9 +248,8 @@ final class PanelModel {
     private func scheduleSearch() {
         searchTask?.cancel()
         // Root + query depend on which field is active: global Search (Home) wins,
-        // else Filter scopes to the current folder. Nil ⇒ nothing to search.
-        guard let driver = Self.searchDriver(searchQuery: searchQuery, filter: filter,
-                                             directory: directory, home: Self.homeDirectory) else {
+        // else a recursing Filter scopes to the current folder. Nil ⇒ nothing to walk.
+        guard let driver = searchDriver() else {
             isSearchRunning = false
             searchResults = []
             recomputeVisible()

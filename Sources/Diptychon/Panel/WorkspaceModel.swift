@@ -227,6 +227,10 @@ final class WorkspaceModel {
 
         left = PanelModel(directory: leftPlan.directory)
         right = PanelModel(directory: rightPlan.directory)
+        // The two directory panes recurse into subfolders when filtered (a real
+        // subtree to walk); the staging pane below keeps its in-memory narrow.
+        left.filterSearchesSubfolders = true
+        right.filterSearchesSubfolders = true
         // The staging pane is a panel whose source is the staging set (ADR 0003) —
         // `StagingSource` reads the current URLs on each load.
         stagingPanel = PanelModel(directory: .startDirectory,

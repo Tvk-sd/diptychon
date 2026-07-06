@@ -10,20 +10,27 @@ final class SearchDriverTests: XCTestCase {
 
     func testSearchWinsAndRootsAtHome() {
         let d = PanelModel.searchDriver(searchQuery: "digital", filter: "cv",
-                                        directory: folder, home: home)
+                                        directory: folder, home: home, filterRecurses: true)
         XCTAssertEqual(d?.query, "digital")   // Search text drives the walk
         XCTAssertEqual(d?.root, home)         // …rooted globally at Home
     }
 
-    func testFilterScopesToCurrentFolderWhenNoSearch() {
+    func testFilterScopesToCurrentFolderWhenRecursing() {
         let d = PanelModel.searchDriver(searchQuery: "  ", filter: "invoice",
-                                        directory: folder, home: home)
+                                        directory: folder, home: home, filterRecurses: true)
         XCTAssertEqual(d?.query, "invoice")
         XCTAssertEqual(d?.root, folder)       // scoped to the current folder
     }
 
+    func testFilterDoesNotWalkWhenPaneDoesNotRecurse() {
+        // Virtual sources (staging) narrow in-memory — the Filter must not drive a
+        // filesystem walk of their nominal directory.
+        XCTAssertNil(PanelModel.searchDriver(searchQuery: "", filter: "invoice",
+                                             directory: folder, home: home, filterRecurses: false))
+    }
+
     func testBothEmptyMeansNoWalk() {
         XCTAssertNil(PanelModel.searchDriver(searchQuery: "", filter: "   ",
-                                             directory: folder, home: home))
+                                             directory: folder, home: home, filterRecurses: true))
     }
 }
