@@ -1,6 +1,11 @@
 # 44 — Customizable hotkeys (user-remappable keymap)
 
-Status: ready-for-agent (triaged 2026-07-06) — agent brief at bottom
+Status: done (2026-07-06, branch `feat/44-customizable-hotkeys`, commit `d05727e`) —
+user-remappable keymap: rebind/clear any action, steal-and-unbind on conflict, structural
+keys locked, overrides persist, Reset to Defaults. Editor lives in a new Settings window
+(⌘,) Shortcuts tab; Full Disk Access moved to a sibling tab (Settings now owns ⌘,).
+Effective map (defaults+overrides) read by both dispatch sites + the live palette hint.
+145 tests green; real-app verified. See agent brief below for original spec.
 
 ## Parent
 
