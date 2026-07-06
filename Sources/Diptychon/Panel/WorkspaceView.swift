@@ -118,9 +118,10 @@ struct WorkspaceView: View {
 
     /// Top band, same height as the search/breadcrumb row below it. Plain on the
     /// window (same black as the rest), decoupled from the sidebar tint: a
-    /// traffic-light divider caps the dots into their own cell, then the app name,
-    /// then the seam that closes the name cell (aligned with the sidebar edge when
-    /// shown). The remaining width is free space, open for future displays.
+    /// traffic-light divider caps the dots into their own cell, then the recursive
+    /// Search field (promoted here from the sidebar), then the seam that closes the
+    /// cell (aligned with the sidebar edge when shown). The remaining width is free
+    /// space, open for future displays.
     private var headerBar: some View {
         HStack(spacing: 0) {
             HStack(spacing: 0) {
@@ -128,9 +129,11 @@ struct WorkspaceView: View {
                 // the gap to the window edge on their left, capped by a divider.
                 Color.clear.frame(width: 84)
                 Divider()
-                Text("Diptychon").font(.headline).offset(y: 0)
-                    .padding(.leading, 12)
-                Spacer(minLength: 0)
+                // Recursive Search now holds the app's prime top-left cell (was the
+                // app name). Living in the header keeps it reachable when the sidebar
+                // is folded. ~100px wide — the traffic lights take the left 84.
+                SearchFieldView(model: model)
+                    .padding(.horizontal, 12)
             }
             .frame(width: 200)
             .frame(maxHeight: .infinity)
@@ -449,5 +452,37 @@ extension URL {
             return URL(fileURLWithPath: override, isDirectory: true)
         }
         return URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+    }
+}
+
+/// The recursive Search field (issue 21), promoted into the header's left cell
+/// where the app name used to sit. Binds to the Active Panel's `searchQuery`, so it
+/// swaps context when the active panel changes; a clear (✕) button cancels the
+/// search. ⌘F focuses it via `WorkspaceModel.searchFocusRequest`. Owns its own
+/// `@FocusState` so the header row stays a plain layout container.
+private struct SearchFieldView: View {
+    let model: WorkspaceModel
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Search…", text: Binding(
+                get: { model.activeModel.searchQuery },
+                set: { model.activeModel.searchQuery = $0 }
+            ))
+            .textFieldStyle(.plain)
+            .accessibilityIdentifier("sidebar-search")
+            .focused($focused)
+            if !model.activeModel.searchQuery.isEmpty {
+                Button { model.activeModel.searchQuery = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+                .help("Clear search")
+            }
+        }
+        .onChange(of: model.searchFocusRequest) { focused = true }
     }
 }

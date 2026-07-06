@@ -99,14 +99,11 @@ final class WorkspaceModel {
     private(set) var filterFocusRequest = UUID()
     func focusFilter() { filterFocusRequest = UUID() }
 
-    /// Bumped by ⌘F to focus the sidebar's recursive Search field (Finder
-    /// convention: ⌘F = find/navigate, not narrow). Reveals the sidebar first so
-    /// the field exists to receive focus; `SidebarView` watches this request.
+    /// Bumped by ⌘F to focus the recursive Search field (Finder convention: ⌘F =
+    /// find/navigate, not narrow). The field lives in the header now — always
+    /// visible, so no sidebar reveal is needed; `SearchFieldView` watches this.
     private(set) var searchFocusRequest = UUID()
-    func focusSearch() {
-        sidebarVisible = true
-        searchFocusRequest = UUID()
-    }
+    func focusSearch() { searchFocusRequest = UUID() }
 
     /// The collision dialog's data, when that's the presented modal (drives the
     /// `confirmationDialog`).
