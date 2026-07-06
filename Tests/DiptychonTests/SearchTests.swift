@@ -53,6 +53,47 @@ final class SearchTests: XCTestCase {
         XCTAssertTrue(withHidden.map(\.name).contains(".secret_invoice"))
     }
 
+    func testFuzzyFindsNestedPartialAndPunctuatedQuery() async throws {
+        // The reported job: `digital-` on a parent surfaces a nested folder named
+        // `digitalservice` — the trailing dash must not break the match.
+        try FileManager.default.createDirectory(
+            at: root.appendingPathComponent("bewerbungen/digitalservice"),
+            withIntermediateDirectories: true)
+        let hit = await RecursiveSearch.run(query: "digital-", in: root, includeHidden: false)
+        XCTAssertTrue(hit.map(\.name).contains("digitalservice"))
+        XCTAssertEqual(hit.first { $0.name == "digitalservice" }?.subtitle, "bewerbungen")
+
+        // Acronym subsequence reaches it too.
+        let acronym = await RecursiveSearch.run(query: "digserv", in: root, includeHidden: false)
+        XCTAssertTrue(acronym.map(\.name).contains("digitalservice"))
+    }
+
+    func testDoesNotDescendIntoHiddenOrJunkDirs() async throws {
+        let fm = FileManager.default
+        // A hidden dir (dot-prefixed) and a dev-junk dir, each holding a match.
+        try fm.createDirectory(at: root.appendingPathComponent(".cache"), withIntermediateDirectories: true)
+        try fm.createDirectory(at: root.appendingPathComponent("node_modules/pkg"), withIntermediateDirectories: true)
+        try "".write(to: root.appendingPathComponent(".cache/invoice_hidden.txt"), atomically: true, encoding: .utf8)
+        try "".write(to: root.appendingPathComponent("node_modules/pkg/invoice_dep.txt"), atomically: true, encoding: .utf8)
+
+        let names = Set(await RecursiveSearch.run(query: "invoice", in: root, includeHidden: false).map(\.name))
+        XCTAssertFalse(names.contains("invoice_hidden.txt"))   // hidden dir pruned
+        XCTAssertFalse(names.contains("invoice_dep.txt"))      // node_modules pruned
+        XCTAssertTrue(names.contains("invoice.txt"))           // real match still found
+    }
+
+    func testResultsAreRankedByRelevance() async throws {
+        // A clean prefix/word-start hit must outrank one where the query only
+        // appears mid-word, regardless of filesystem walk order.
+        try "".write(to: root.appendingPathComponent("digital.txt"), atomically: true, encoding: .utf8)
+        try "".write(to: root.appendingPathComponent("zzzzdigital.txt"), atomically: true, encoding: .utf8)
+        let names = await RecursiveSearch.run(query: "digital", in: root, includeHidden: false).map(\.name)
+        let clean = names.firstIndex(of: "digital.txt")
+        let buried = names.firstIndex(of: "zzzzdigital.txt")
+        XCTAssertNotNil(clean); XCTAssertNotNil(buried)
+        XCTAssertLessThan(clean!, buried!, "prefix hit ranks above the mid-word one")
+    }
+
     func testEmptyQueryReturnsNothing() async throws {
         let results = await RecursiveSearch.run(query: "   ", in: root, includeHidden: false)
         XCTAssertTrue(results.isEmpty)

@@ -32,19 +32,55 @@ final class PanelModel {
     /// Show hidden (dot) files. Reloads on change; re-runs an active search so its
     /// results respect the new visibility.
     var showHidden = false { didSet { reload(); if isSearching { scheduleSearch() } } }
-    /// Type-ahead filter text; narrows the visible entries.
-    var filter = "" { didSet { recomputeVisible() } }
+    /// Filter text. Drives a **recursive walk of the current folder** when no global
+    /// Search is active; while a Search *is* active it just narrows those results
+    /// in-memory (a recompute suffices, no re-walk).
+    var filter = "" {
+        didSet {
+            if searchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
+                scheduleSearch()          // Filter drives a scoped recursive walk
+            } else {
+                recomputeVisible()        // Filter narrows the live Search results
+            }
+        }
+    }
     /// Optional tag filter (by name): when set, show only files carrying it.
     var tagFilter: String? = nil { didSet { recomputeVisible() } }
-    /// Recursive search query (issue 21 slice 3). Non-empty ⇒ the panel shows
-    /// matches from the subtree under `directory` instead of its direct contents.
+    /// Global search query. Non-empty ⇒ the panel shows matches from the whole
+    /// **Home** subtree (not just `directory`), so search works from any folder.
     /// Debounced; cancels the prior walk on each change.
     var searchQuery = "" { didSet { scheduleSearch() } }
-    /// Matches from the last/in-flight search — the base set for `visibleItems`
+    /// Matches from the last/in-flight walk — the base set for `visibleItems`
     /// while `isSearching`.
     private(set) var searchResults: [FileItem] = []
-    /// Whether the panel is currently showing search results rather than `directory`.
-    var isSearching: Bool { !searchQuery.trimmingCharacters(in: .whitespaces).isEmpty }
+
+    /// The user's Home dir — the root for global Search. Computed once.
+    static let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
+
+    /// Which subtree the recursive walk covers, and with what query, given both
+    /// input fields. Global **Search** wins when present (root = `home`); otherwise
+    /// the **Filter** drives a walk scoped to the current `directory`. `nil` ⇒ no
+    /// walk (both empty) so the panel shows its plain directory listing.
+    static func searchDriver(searchQuery: String, filter: String,
+                             directory: URL, home: URL) -> (query: String, root: URL)? {
+        let sq = searchQuery.trimmingCharacters(in: .whitespaces)
+        if !sq.isEmpty { return (sq, home) }
+        let fq = filter.trimmingCharacters(in: .whitespaces)
+        if !fq.isEmpty { return (fq, directory) }
+        return nil
+    }
+
+    /// Whether the panel is showing walk results (Search *or* Filter) rather than
+    /// its plain `directory` listing.
+    var isSearching: Bool {
+        Self.searchDriver(searchQuery: searchQuery, filter: filter,
+                          directory: directory, home: Self.homeDirectory) != nil
+    }
+    /// The query text to show in the "no results" state — whichever field is driving.
+    var searchQueryDisplay: String {
+        Self.searchDriver(searchQuery: searchQuery, filter: filter,
+                          directory: directory, home: Self.homeDirectory)?.query ?? ""
+    }
     /// True while a search walk is in flight — drives the "Searching…" state so the
     /// panel never shows the stale directory listing under a search header.
     private(set) var isSearchRunning = false
@@ -202,8 +238,10 @@ final class PanelModel {
     /// results and returns to the normal directory listing.
     private func scheduleSearch() {
         searchTask?.cancel()
-        let query = searchQuery.trimmingCharacters(in: .whitespaces)
-        guard !query.isEmpty else {
+        // Root + query depend on which field is active: global Search (Home) wins,
+        // else Filter scopes to the current folder. Nil ⇒ nothing to search.
+        guard let driver = Self.searchDriver(searchQuery: searchQuery, filter: filter,
+                                             directory: directory, home: Self.homeDirectory) else {
             isSearchRunning = false
             searchResults = []
             recomputeVisible()
@@ -213,12 +251,11 @@ final class PanelModel {
         // dropped immediately (the header already reads `isSearching` live).
         isSearchRunning = true
         recomputeVisible()
-        let root = directory
         let includeHidden = showHidden
         searchTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(250))   // debounce
             if Task.isCancelled { return }
-            let results = await RecursiveSearch.run(query: query, in: root, includeHidden: includeHidden)
+            let results = await RecursiveSearch.run(query: driver.query, in: driver.root, includeHidden: includeHidden)
             if Task.isCancelled { return }
             self?.searchResults = results
             self?.isSearchRunning = false
@@ -285,7 +322,10 @@ final class PanelModel {
                                filter: String, tagName: String?,
                                sort: [KeyPathComparator<FileItem>]) -> [FileItem] {
         let base = isSearching ? searchResults : loaded
-        return applyFilters(base, text: filter, tagName: tagName).sorted(using: sort)
+        let filtered = applyFilters(base, text: filter, tagName: tagName)
+        // In search mode keep the relevance order the walk produced (best matches
+        // first); only the plain directory listing obeys the column sort.
+        return isSearching ? filtered : filtered.sorted(using: sort)
     }
 
     /// Pure filter step (type-ahead text + optional tag), factored out so it's
@@ -294,7 +334,10 @@ final class PanelModel {
         let trimmed = text.trimmingCharacters(in: .whitespaces)
         var result = items
         if !trimmed.isEmpty {
-            result = result.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
+            // Fuzzy (normalized subsequence), same matcher as recursive Search so
+            // both fields behave identically. Needle normalized once, not per row.
+            let needle = FuzzyMatch.normalize(trimmed)
+            result = result.filter { FuzzyMatch.matches(needle: needle, candidate: $0.name) }
         }
         if let tagName {
             result = result.filter { $0.tags.contains { $0.name == tagName } }

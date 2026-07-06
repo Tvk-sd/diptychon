@@ -84,7 +84,7 @@ struct PanelView: View {
                         ProgressView("Searching…")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        ContentUnavailableView.search(text: model.searchQuery)
+                        ContentUnavailableView.search(text: model.searchQueryDisplay)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 } else {

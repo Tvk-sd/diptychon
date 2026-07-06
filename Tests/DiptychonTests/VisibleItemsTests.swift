@@ -20,11 +20,13 @@ final class VisibleItemsTests: XCTestCase {
         XCTAssertEqual(out.map(\.name), ["a", "b"], "uses loaded items, sorted by name")
     }
 
-    func testSearchingUsesSearchResults() {
+    func testSearchingKeepsRelevanceOrderNotColumnSort() {
+        // Search results arrive pre-ranked by relevance; compileVisible must NOT
+        // re-sort them by the column comparator, or the best match would sink.
         let out = PanelModel.compileVisible(
             loaded: [item("a")], searchResults: [item("hit2"), item("hit1")],
             isSearching: true, filter: "", tagName: nil, sort: byName)
-        XCTAssertEqual(out.map(\.name), ["hit1", "hit2"], "uses search results, not the loaded dir")
+        XCTAssertEqual(out.map(\.name), ["hit2", "hit1"], "preserves the walk's relevance order")
     }
 
     func testFilterAppliesOverTheChosenBase() {
