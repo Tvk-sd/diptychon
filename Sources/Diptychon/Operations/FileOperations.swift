@@ -23,7 +23,7 @@ final class MoveOperation: Operation {
 
     func apply(progress: @escaping (Double) -> Void) async throws {
         let sources = self.sources, destDir = self.destinationDirectory, resolution = self.resolution
-        try await Task.detached(priority: .userInitiated) { [weak self] in
+        try await runOffMainCancellable { [weak self] in
             let fm = FileManager.default
             let total = max(sources.count, 1)
             for (index, src) in sources.enumerated() {
@@ -44,7 +44,7 @@ final class MoveOperation: Operation {
                 self?.moves.append((from: src, to: dest))
                 progress(Double(index + 1) / Double(total))
             }
-        }.value
+        }
     }
 
     func revert() async throws {
@@ -75,7 +75,7 @@ final class TrashOperation: Operation {
 
     func apply(progress: @escaping (Double) -> Void) async throws {
         let sources = self.sources
-        try await Task.detached(priority: .userInitiated) { [weak self] in
+        try await runOffMainCancellable { [weak self] in
             let fm = FileManager.default
             let total = max(sources.count, 1)
             for (index, src) in sources.enumerated() {
@@ -87,7 +87,7 @@ final class TrashOperation: Operation {
                 }
                 progress(Double(index + 1) / Double(total))
             }
-        }.value
+        }
     }
 
     func revert() async throws {
@@ -119,9 +119,9 @@ final class RenameOperation: Operation {
 
     func apply(progress: @escaping (Double) -> Void) async throws {
         let pairs = renames
-        try await Task.detached(priority: .userInitiated) {
+        try await runOffMainCancellable {
             try Self.run(pairs, progress: progress)
-        }.value
+        }
     }
 
     func revert() async throws {

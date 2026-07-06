@@ -21,6 +21,25 @@ enum CollisionResolution {
     case skip      // leave the existing file, don't copy this source.
 }
 
+/// Run blocking filesystem work off the main thread **while still honoring the
+/// caller's cancellation.** `Task.detached` deliberately inherits nothing from its
+/// parent — priority, task-locals, *and cancellation* — so a bare
+/// `Task.detached { … Task.checkCancellation() … }.value` can never be stopped by the
+/// coordinator: cancelling the awaiting parent leaves the detached loop running to
+/// completion (the "Cancel does nothing" bug, issue 34).
+/// `withTaskCancellationHandler` bridges the gap: when the awaiting parent is
+/// cancelled it forwards the cancel to the detached task, so the loop's existing
+/// `Task.checkCancellation()` finally throws `CancellationError` — which the
+/// `OperationCoordinator` catches to `revert()` the partial work.
+func runOffMainCancellable(_ work: @escaping @Sendable () throws -> Void) async throws {
+    let task = Task.detached(priority: .userInitiated, operation: work)
+    try await withTaskCancellationHandler {
+        try await task.value
+    } onCancel: {
+        task.cancel()
+    }
+}
+
 /// Copy a set of sources into a destination directory (the Commander gesture).
 /// Records the URLs it newly created so `revert` can delete exactly those.
 final class CopyOperation: Operation {
@@ -51,7 +70,7 @@ final class CopyOperation: Operation {
         let destDir = self.destinationDirectory
         let resolution = self.resolution
 
-        try await Task.detached(priority: .userInitiated) { [weak self] in
+        try await runOffMainCancellable { [weak self] in
             let fm = FileManager.default
             let total = max(sources.count, 1)
             for (index, src) in sources.enumerated() {
@@ -82,7 +101,7 @@ final class CopyOperation: Operation {
                 self?.createdURLs.append(dest)
                 progress(Double(index + 1) / Double(total))
             }
-        }.value
+        }
     }
 
     func revert() async throws {

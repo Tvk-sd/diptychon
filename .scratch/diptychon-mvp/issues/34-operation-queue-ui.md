@@ -33,8 +33,11 @@ whether the pane earns its place, then decide the rest.
   modal (`progressOverlay`). Toggle from a bottom-bar list-glyph icon (distinct from
   #18's clock). Delivers the "transfer pane" trust signal (ForkLift praise / Nimble
   "no transfer pane") at near-zero cost — `coordinator.running` already exists.
-  Covers ACs: live progress (1), running-op cancel w/ consistent state (4, already
-  guaranteed by the spine), toggleable list-glyph panel (7, floating-card form).
+  Covers ACs: live progress (1), running-op cancel w/ consistent state (4 — surfaced
+  and **fixed a latent spine bug**: every Operation ran its loop in `Task.detached`,
+  which ignores parent cancellation, so Cancel was a silent no-op until the old modal
+  hid it; `runOffMainCancellable` now bridges cancellation via
+  `withTaskCancellationHandler`), toggleable list-glyph panel (7, floating-card form).
   **Decision:** replace the blocking modal (PM-approved) — ops become non-blocking;
   a second op fired while busy is still silently dropped (existing behavior), which
   Slice 2's real queue fixes.
