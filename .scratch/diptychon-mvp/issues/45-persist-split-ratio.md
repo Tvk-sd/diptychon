@@ -1,6 +1,12 @@
 # 45 — Persist the pane split ratio
 
-Status: ready-for-agent (triaged 2026-07-06) — agent brief at bottom. Split off from issue 41 (state persistence), the
+Status: done (2026-07-06, branch `feat/45-persist-split-ratio`, commit `3629835`) —
+split ratio persists across quit/relaunch; real-app verified (drag → quit → reopen
+restores ratio + both pane folders). Also fixed a pre-existing #41 quit-clobber bug
+(duplicate `@State` model instances double-registered `willTerminate` → the throwaway
+saved defaults on quit, wiping folder/sort too; moved save-side registration to the
+view's `.onAppear` via `startPersistence()`). 134 unit tests green.
+Split off from issue 41 (state persistence), the
 one AC item deferred there. Number 45 (44 was the previous max across all branches).
 
 ## Parent
@@ -42,13 +48,14 @@ tested panel container (issue 13) for the least-valuable restored item.
 
 ## Acceptance criteria
 
-- [ ] Dragging the divider, quitting, and relaunching restores the same split.
-- [ ] The right-panel-hidden layout (issue 13) still works — left pane full width, no
+- [x] Dragging the divider, quitting, and relaunching restores the same split. (real-app verified)
+- [x] The right-panel-hidden layout (issue 13) still works — left pane full width, no
       stray divider; toggling back restores the divider.
-- [ ] A restored fraction that would violate a pane's min width at the current window
-      size is clamped, never applied broken.
-- [ ] No regression to divider drag feel / min widths vs the current `HSplitView`.
-- [ ] Flips issue 41's "window layout (split ratio…) restored" AC to done.
+- [x] A restored fraction that would violate a pane's min width at the current window
+      size is clamped, never applied broken. (`SplitPane.clampLeft`, unit-tested)
+- [x] No regression to divider drag feel / min widths vs the current `HSplitView`.
+      (drag reads absolute pointer x in a fixed coordinate space — smoother than before)
+- [x] Flips issue 41's "window layout (split ratio…) restored" AC to done.
 
 ## Out of scope
 
