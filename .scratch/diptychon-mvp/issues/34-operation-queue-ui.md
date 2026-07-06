@@ -1,22 +1,43 @@
 # 34 — Operation Queue UI (progress · pause · cancel)
 
-Status: in-progress (2026-07-06, **Slice 1**) — drafted from Marta gap analysis
+Status: **Slice 1 shipped — awaiting evaluation** (2026-07-06, merged `main` PR #47,
+commit `5fa3683`). The value test is live; **do not start Slice 2 until we know the
+pane is actually wanted.** Drafted from Marta gap analysis
 (`context/competitor-benchmark.md` §5). Highest-ROI competitive gap: it extends
 our existing reversible-Operation lead rather than bolting on a new domain.
+
+## Evaluation gate (before Slice 2)
+
+Slice 1 is a **value test**, not a committed roadmap. The remaining slices (queue,
+pause, merge) are on hold until we have a signal that the Activity pane earns its
+place. Decide **continue vs. stop** on:
+
+- **Is it liked / used?** Does the pane get opened deliberately (the toggle), and do
+  users feel more in control during copies — or is it ignored / in the way? Real-app
+  usage, not assumption. (Instrumentation for this is drafted as issue **48 —
+  usage-insight-instrumentation**.)
+- **Signals to *continue* to Slice 2:** users open the pane, want to see *pending*
+  ops, or hit the silent-drop of a second op fired while busy.
+- **Signals to *stop*:** the non-blocking progress + Cancel is enough; nobody misses a
+  queue. Then #34 closes at Slice 1 and Merge/W9 (Slice 4) can still be reconsidered
+  on its own as #34b.
 
 ## Slice plan (scoped 2026-07-06)
 
 Right-sized into a value test first (mirrors #18/#20). Ship Slice 1 alone, learn
 whether the pane earns its place, then decide the rest.
 
-- **Slice 1 — Activity panel (this branch, `feat/34-activity-panel`).** The value
-  test. A **non-blocking** bottom-left pane surfaces the *running* op — title +
+- **Slice 1 — Activity panel — ✅ shipped (PR #47, `5fa3683`), user-verified.** The
+  value test. A **non-blocking** bottom-left pane surfaces the *running* op — title +
   determinate progress + **Cancel** — replacing today's full-screen **blocking**
   modal (`progressOverlay`). Toggle from a bottom-bar list-glyph icon (distinct from
   #18's clock). Delivers the "transfer pane" trust signal (ForkLift praise / Nimble
   "no transfer pane") at near-zero cost — `coordinator.running` already exists.
-  Covers ACs: live progress (1), running-op cancel w/ consistent state (4, already
-  guaranteed by the spine), toggleable list-glyph panel (7, floating-card form).
+  Covers ACs: live progress (1), running-op cancel w/ consistent state (4 — surfaced
+  and **fixed a latent spine bug**: every Operation ran its loop in `Task.detached`,
+  which ignores parent cancellation, so Cancel was a silent no-op until the old modal
+  hid it; `runOffMainCancellable` now bridges cancellation via
+  `withTaskCancellationHandler`), toggleable list-glyph panel (7, floating-card form).
   **Decision:** replace the blocking modal (PM-approved) — ops become non-blocking;
   a second op fired while busy is still silently dropped (existing behavior), which
   Slice 2's real queue fixes.
