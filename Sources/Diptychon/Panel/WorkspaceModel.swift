@@ -93,11 +93,20 @@ final class WorkspaceModel {
         }
     }
 
-    /// Bumped by ⌘F to ask the Filter field to take focus (issue 28). `TopBarView`
+    /// Bumped by ⌘⇧F to ask the Filter field to take focus (issue 28). `TopBarView`
     /// watches it and drives its `@FocusState` — the key monitor can't set SwiftUI
     /// focus directly.
     private(set) var filterFocusRequest = UUID()
     func focusFilter() { filterFocusRequest = UUID() }
+
+    /// Bumped by ⌘F to focus the sidebar's recursive Search field (Finder
+    /// convention: ⌘F = find/navigate, not narrow). Reveals the sidebar first so
+    /// the field exists to receive focus; `SidebarView` watches this request.
+    private(set) var searchFocusRequest = UUID()
+    func focusSearch() {
+        sidebarVisible = true
+        searchFocusRequest = UUID()
+    }
 
     /// The collision dialog's data, when that's the presented modal (drives the
     /// `confirmationDialog`).
@@ -505,6 +514,7 @@ final class WorkspaceModel {
         case .selectAll: activeModel.selectAll()
         case .selectNone: activeModel.selectNone()
         case .invertSelection: activeModel.invertSelection()
+        case .focusSearch: focusSearch()
         case .focusFilter: focusFilter()
         case .revealInFinder: revealInFinder()
         case .copyPaths: copyPaths()

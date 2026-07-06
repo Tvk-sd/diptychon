@@ -73,7 +73,8 @@ enum CommandCatalog {
         cmd(.showInfo, "Get Info", "Open", enabled: hasSelection),
         // View
         cmd(.toggleHidden, "Show/Hide Hidden Files", "View"),
-        cmd(.focusFilter, "Find in Folder", "View"),
+        cmd(.focusSearch, "Search Subtree", "View"),
+        cmd(.focusFilter, "Filter Folder", "View"),
         toggle("togglePreview", "Toggle Preview Pane", shortcut: "⇧⌘P") { $0.togglePreviewPane() },
         toggle("toggleStaging", "Toggle Staging Pane", shortcut: "⌘⇧B") { $0.toggleStaging() },
         cmd(.toggleSidebar, "Toggle Sidebar", "View"),

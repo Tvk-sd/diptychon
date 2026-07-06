@@ -56,6 +56,8 @@ struct SidebarView: View {
     let model: WorkspaceModel
     /// True while a drag hovers the sidebar — highlights the drop zone.
     @State private var dropTargeted = false
+    /// Drives ⌘F: `WorkspaceModel.searchFocusRequest` bumps → focus the Search field.
+    @FocusState private var searchFocused: Bool
 
     private let places = SidebarPlace.standard
 
@@ -122,6 +124,7 @@ struct SidebarView: View {
             return !folders.isEmpty
         } isTargeted: { dropTargeted = $0 }
         .accessibilityIdentifier("sidebar")
+        .onChange(of: model.searchFocusRequest) { searchFocused = true }
     }
 
     /// Recursive Search field (issue 21 slice 3): finds files in the subtree under
@@ -138,6 +141,7 @@ struct SidebarView: View {
             ))
             .textFieldStyle(.plain)
             .accessibilityIdentifier("sidebar-search")
+            .focused($searchFocused)
             if !model.activeModel.searchQuery.isEmpty {
                 Button { model.activeModel.searchQuery = "" } label: {
                     Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
