@@ -70,6 +70,7 @@ extension AppAction {
         case .selectAll:        return "Select All"
         case .selectNone:       return "Clear Selection"
         case .invertSelection:  return "Invert Selection"
+        case .focusSearch:      return "Focus Search"
         case .focusFilter:      return "Focus Filter"
         case .revealInFinder:   return "Reveal in Finder"
         case .copyPaths:        return "Copy Path(s)"
