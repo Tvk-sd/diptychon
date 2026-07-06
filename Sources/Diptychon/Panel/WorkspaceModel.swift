@@ -637,9 +637,11 @@ final class WorkspaceModel {
         NSWorkspace.shared.activateFileViewerSelecting(urls)
     }
 
-    /// Copy the selection's absolute path(s) as plain text, one per line.
+    /// Copy the selection's absolute path(s) as plain text, one per line. With no
+    /// selection, falls back to the active panel's current folder path.
     private func copyPaths() {
-        let urls = activeModel.selectionURLs
+        let selected = activeModel.selectionURLs
+        let urls = selected.isEmpty ? [activeModel.directory] : selected
         guard !urls.isEmpty else { return }
         let pb = NSPasteboard.general
         pb.clearContents()
