@@ -495,6 +495,9 @@ private struct SearchFieldView: View {
             .textFieldStyle(.plain)
             .accessibilityIdentifier("sidebar-search")
             .focused($focused)
+            // Enter on an absolute/`~` path jumps there instead of fuzzy-searching
+            // (paste a path → go). Falls through to search when it isn't a path.
+            .onSubmit { model.activeModel.navigateIfPath(model.activeModel.searchQuery) }
             if !model.activeModel.searchQuery.isEmpty {
                 Button { model.activeModel.searchQuery = "" } label: {
                     Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)

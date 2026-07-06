@@ -82,6 +82,19 @@ final class SearchTests: XCTestCase {
         XCTAssertTrue(names.contains("invoice.txt"))           // real match still found
     }
 
+    func testSearchesDotFoldersWhenHiddenShown() async throws {
+        let fm = FileManager.default
+        try fm.createDirectory(at: root.appendingPathComponent(".notes"), withIntermediateDirectories: true)
+        try fm.createDirectory(at: root.appendingPathComponent("node_modules/pkg"), withIntermediateDirectories: true)
+        try "".write(to: root.appendingPathComponent(".notes/invoice_dot.txt"), atomically: true, encoding: .utf8)
+        try "".write(to: root.appendingPathComponent("node_modules/pkg/invoice_dep.txt"), atomically: true, encoding: .utf8)
+
+        // With hidden shown, a dot-folder is searched — but dev junk stays pruned.
+        let names = Set(await RecursiveSearch.run(query: "invoice", in: root, includeHidden: true).map(\.name))
+        XCTAssertTrue(names.contains("invoice_dot.txt"))    // .notes now searched
+        XCTAssertFalse(names.contains("invoice_dep.txt"))   // node_modules still pruned
+    }
+
     func testResultsAreRankedByRelevance() async throws {
         // A clean prefix/word-start hit must outrank one where the query only
         // appears mid-word, regardless of filesystem walk order.
@@ -92,6 +105,26 @@ final class SearchTests: XCTestCase {
         let buried = names.firstIndex(of: "zzzzdigital.txt")
         XCTAssertNotNil(clean); XCTAssertNotNil(buried)
         XCTAssertLessThan(clean!, buried!, "prefix hit ranks above the mid-word one")
+    }
+
+    func testPathSearchSpansFolders() async throws {
+        // A query that spans a parent folder + filename matches via the path tier.
+        // `sub/invoice.txt` — name "invoice.txt" alone doesn't contain "subinvoice".
+        let names = await RecursiveSearch.run(query: "sub invoice", in: root, includeHidden: false).map(\.name)
+        XCTAssertTrue(names.contains("invoice.txt"))
+    }
+
+    func testFilenameMatchOutranksFolderOnlyMatch() async throws {
+        let fm = FileManager.default
+        try fm.createDirectory(at: root.appendingPathComponent("digital-stuff"), withIntermediateDirectories: true)
+        try "".write(to: root.appendingPathComponent("digital-stuff/report.txt"), atomically: true, encoding: .utf8)
+        try "".write(to: root.appendingPathComponent("cv-digital.txt"), atomically: true, encoding: .utf8)
+
+        let names = await RecursiveSearch.run(query: "digital", in: root, includeHidden: false).map(\.name)
+        let nameHit = names.firstIndex(of: "cv-digital.txt")   // matches in the filename
+        let pathHit = names.firstIndex(of: "report.txt")       // matches only in the folder
+        XCTAssertNotNil(nameHit); XCTAssertNotNil(pathHit)
+        XCTAssertLessThan(nameHit!, pathHit!, "a filename hit ranks above a folder-only hit")
     }
 
     func testEmptyQueryReturnsNothing() async throws {

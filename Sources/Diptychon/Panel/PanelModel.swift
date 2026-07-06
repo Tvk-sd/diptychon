@@ -56,7 +56,16 @@ final class PanelModel {
     /// Global search query. Non-empty ⇒ the panel shows matches from the whole
     /// **Home** subtree (not just `directory`), so search works from any folder.
     /// Debounced; cancels the prior walk on each change.
-    var searchQuery = "" { didSet { scheduleSearch() } }
+    var searchQuery = "" {
+        didSet {
+            // A pasted/typed absolute or `~` path jumps straight there — done live,
+            // not on Enter, because the app's key monitor swallows Return before
+            // SwiftUI's onSubmit. Only fires when the path actually resolves, so a
+            // normal query (never starts with `/` or `~`) falls through to search.
+            if navigateIfPath(searchQuery) { return }
+            scheduleSearch()
+        }
+    }
     /// Matches from the last/in-flight walk — the base set for `visibleItems`
     /// while `isSearching`.
     private(set) var searchResults: [FileItem] = []
@@ -192,6 +201,24 @@ final class PanelModel {
     /// Jump directly to a directory (path bar / Go to Folder / breadcrumb).
     func go(to url: URL) {
         pushHistoryAndGo(to: url)
+    }
+
+    /// If `raw` is an absolute (`/…`) or tilde (`~/…`) path to something that
+    /// exists, navigate there (a file lands in its containing folder) and clear
+    /// the search. Lets the user paste a full path into Search and jump to it.
+    /// Returns whether it was handled, so the caller can fall through to searching.
+    @discardableResult
+    func navigateIfPath(_ raw: String) -> Bool {
+        let trimmed = raw.trimmingCharacters(in: .whitespaces)
+        guard trimmed.hasPrefix("/") || trimmed.hasPrefix("~") else { return false }
+        let expanded = (trimmed as NSString).expandingTildeInPath
+        var isDir: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: expanded, isDirectory: &isDir) else { return false }
+        let url = URL(fileURLWithPath: expanded)
+        let target = isDir.boolValue ? url : url.deletingLastPathComponent()
+        searchQuery = ""            // leave search mode; go(to:) also clears filters
+        go(to: target)
+        return true
     }
 
     func navigateUp() {
