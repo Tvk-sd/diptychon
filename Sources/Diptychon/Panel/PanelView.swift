@@ -100,6 +100,7 @@ struct PanelView: View {
                         onRename: onRename,
                         accessibilityID: tableIdentifier
                     )
+                    .highlightingTarget(model.highlightedTargetURL)
                 }
             case .failed(let message):
                 if model.accessDenied {

@@ -24,6 +24,9 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     let onActivate: ((_ item: FileItem) -> Void)?
     let renameRequest: UUID?
     let onRename: (_ item: FileItem, _ newName: String) -> Bool
+    /// A row to weakly grey-highlight and scroll into view (a path-paste jump's
+    /// landing file). Distinct from selection; `nil` in normal use.
+    var highlightedTargetID: FileItem.ID? = nil
     /// Stable accessibility identifier for the table (e.g. `panel-left`), so UI
     /// tests target a panel by id rather than a positional `boundBy:` index — the
     /// sidebar `List` also surfaces as a `table`, breaking index assumptions
@@ -54,6 +57,14 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         self.renameRequest = renameRequest
         self.onRename = onRename
         self.accessibilityID = accessibilityID
+    }
+
+    /// Fluent setter for the path-paste landing highlight, kept off the protocol
+    /// `init` (ADR 0002) so the swap-point signature stays minimal.
+    func highlightingTarget(_ id: FileItem.ID?) -> Self {
+        var copy = self
+        copy.highlightedTargetID = id
+        return copy
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -118,6 +129,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         guard let table = scroll.documentView as? NSTableView else { return }
         context.coordinator.syncContents(table)
         context.coordinator.syncSelection(table)
+        context.coordinator.syncTargetHighlight(table)
         context.coordinator.handleRenameRequest(table)
     }
 
@@ -186,13 +198,38 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             }
         }
 
+        /// Reflect the path-paste landing highlight: grey the target row (visible
+        /// rows are updated in place; off-screen ones get it via `rowViewForRow`)
+        /// and scroll it into view once, when it first appears.
+        private var lastScrolledTarget: FileItem.ID?
+        func syncTargetHighlight(_ table: NSTableView) {
+            let targetRow = parent.highlightedTargetID.flatMap { id in
+                parent.items.firstIndex { $0.id == id }
+            }
+            table.enumerateAvailableRowViews { rowView, index in
+                (rowView as? HoverRowView)?.isTarget = (index == targetRow)
+            }
+            if let targetRow, parent.highlightedTargetID != lastScrolledTarget {
+                lastScrolledTarget = parent.highlightedTargetID
+                table.scrollRowToVisible(targetRow)
+            } else if parent.highlightedTargetID == nil {
+                lastScrolledTarget = nil
+            }
+        }
+
         // MARK: Data
 
         func numberOfRows(in tableView: NSTableView) -> Int { parent.items.count }
 
         /// Custom row view so the table can paint a hover background under the pointer.
         func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
-            HoverRowView()
+            let view = HoverRowView()
+            // Seed the landing highlight on creation so an off-screen target already
+            // reads as highlighted the moment it's scrolled into view.
+            if row < parent.items.count, parent.items[row].id == parent.highlightedTargetID {
+                view.isTarget = true
+            }
+            return view
         }
 
         func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
@@ -642,6 +679,11 @@ final class HoverRowView: NSTableRowView {
     var isHovered = false {
         didSet { if isHovered != oldValue { updateOverlay() } }
     }
+    /// A path-paste jump landed on this row — show the same weak grey as hover, but
+    /// persistently, so the user can spot where they arrived.
+    var isTarget = false {
+        didSet { if isTarget != oldValue { updateOverlay() } }
+    }
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -665,7 +707,7 @@ final class HoverRowView: NSTableRowView {
             addSubview(overlay, positioned: .below, relativeTo: nil)
         }
         overlay.frame = bounds
-        overlay.isHidden = !(isHovered && !isSelected)
+        overlay.isHidden = !((isHovered || isTarget) && !isSelected)
     }
 }
 

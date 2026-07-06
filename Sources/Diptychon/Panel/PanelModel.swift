@@ -106,7 +106,14 @@ final class PanelModel {
     /// modified first (newest at top), the standard file-manager view (issue 29).
     var sortOrder = [KeyPathComparator(\FileItem.dateForSort, order: .reverse)] { didSet { recomputeVisible() } }
     /// Current row selection (lifted here so the Commander gesture can act on it).
-    var selection = Set<FileItem.ID>()
+    /// A user selection dismisses the transient "you landed here" target highlight.
+    var selection = Set<FileItem.ID>() {
+        didSet { if !selection.isEmpty { highlightedTargetURL = nil } }
+    }
+    /// The file a path-paste jump landed on (see `navigateIfPath`): weakly grey-
+    /// highlighted and scrolled into view once its folder finishes loading, then
+    /// cleared on the next selection, navigation, or search. `nil` normally.
+    var highlightedTargetURL: URL? = nil
     /// Bumped to ask the list to begin an inline rename on the selected row (issue
     /// 11). The `NSTableView` watches this token and calls `editColumn`.
     var inlineRenameRequest: UUID?
@@ -217,7 +224,10 @@ final class PanelModel {
         let url = URL(fileURLWithPath: expanded)
         let target = isDir.boolValue ? url : url.deletingLastPathComponent()
         searchQuery = ""            // leave search mode; go(to:) also clears filters
-        go(to: target)
+        go(to: target)             // clears highlightedTargetURL via afterNavigation…
+        // …so set it *after*: a file jump marks the file (a dir jump marks nothing —
+        // we're now inside it). The list highlights + scrolls to it once loaded.
+        highlightedTargetURL = isDir.boolValue ? nil : url
         return true
     }
 
@@ -266,6 +276,8 @@ final class PanelModel {
         filter = ""
         tagFilter = nil
         selection = []
+        highlightedTargetURL = nil   // a fresh navigation drops any landing marker
+
         reload()
     }
 

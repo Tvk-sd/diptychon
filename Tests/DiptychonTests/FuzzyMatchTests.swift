@@ -56,6 +56,17 @@ final class FuzzyMatchTests: XCTestCase {
         XCTAssertGreaterThan(boundary!, midword!)
     }
 
+    func testQualityFloorCutsScatteredMidWordMatches() {
+        // Letters present but scattered mid-word, no boundary, no run → dropped.
+        XCTAssertFalse(FuzzyMatch.matches("ace", in: "zaxcxe"))
+        // A boundary start rescues it…
+        XCTAssertTrue(FuzzyMatch.matches("ace", in: "ace-report"))
+        // …as does a contiguous run.
+        XCTAssertTrue(FuzzyMatch.matches("ace", in: "xxaceyy"))
+        // Very short queries (≤2) aren't gated — inherently loose, ranking handles it.
+        XCTAssertTrue(FuzzyMatch.matches("ab", in: "zaxb"))
+    }
+
     func testEmptyOrPunctuationOnlyQueryMatchesNothing() {
         XCTAssertFalse(FuzzyMatch.matches("", in: "anything"))
         XCTAssertFalse(FuzzyMatch.matches("-", in: "anything"))

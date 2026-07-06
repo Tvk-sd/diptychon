@@ -43,12 +43,21 @@ enum FuzzyMatch {
     /// - **+5** for a contiguous run (this char matched right after the last).
     /// - small penalties for how far in the first match sits, and for long names,
     ///   so tighter/earlier matches win ties.
+    ///
+    /// **Quality floor:** past 2 chars, a match must either start at a word boundary
+    /// or land a contiguous run of at least half the query — otherwise it's a
+    /// coincidental scatter (the query's letters merely sprinkled across the name,
+    /// e.g. "digital" in "Corpid Light Italic") and returns `nil`. Cuts the noisy
+    /// tail without a magnitude threshold to tune.
     static func score(needle: [Character], candidate: String) -> Int? {
         guard !needle.isEmpty else { return nil }
         var ni = 0
         var score = 0
         var firstMatch: Int? = nil
+        var firstMatchAtBoundary = false
         var prevMatched = false
+        var run = 0
+        var longestRun = 0
         var atBoundary = true          // start-of-string is a boundary
         var prevLower = false
         var index = 0
@@ -56,20 +65,27 @@ enum FuzzyMatch {
             let isAlnum = ch.isLetter || ch.isNumber
             let boundary = atBoundary || (ch.isUppercase && prevLower)
             if isAlnum, ni < needle.count, Character(ch.lowercased()) == needle[ni] {
-                if firstMatch == nil { firstMatch = index }
+                if firstMatch == nil { firstMatch = index; firstMatchAtBoundary = boundary }
                 score += 1
                 if boundary { score += 10 }
                 if prevMatched { score += 5 }
+                run += 1
+                longestRun = max(longestRun, run)
                 ni += 1
                 prevMatched = true
             } else {
                 prevMatched = false
+                run = 0
             }
             atBoundary = !isAlnum        // next alnum after a separator is a word start
             prevLower = ch.isLowercase
             index += 1
         }
         guard ni == needle.count else { return nil }
+        // Quality floor (see doc above). Short queries (≤2) are always noisy, so we
+        // don't gate them; longer ones must anchor structurally.
+        let minRun = (needle.count + 1) / 2
+        guard needle.count <= 2 || firstMatchAtBoundary || longestRun >= minRun else { return nil }
         score -= min(firstMatch ?? 0, 10)   // reward matching near the start
         score -= candidate.count / 20       // gently prefer shorter names
         return score

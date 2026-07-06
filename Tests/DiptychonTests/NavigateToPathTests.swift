@@ -36,6 +36,29 @@ final class NavigateToPathTests: XCTestCase {
         XCTAssertEqual(m.searchQuery, "", "search is cleared after the jump")
     }
 
+    func testFileJumpMarksTargetAndSelectionClearsIt() throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("navtest-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let file = dir.appendingPathComponent("x.txt")
+        try "".write(to: file, atomically: true, encoding: .utf8)
+
+        let m = model()
+        m.navigateIfPath(file.path)
+        XCTAssertEqual(m.highlightedTargetURL?.standardizedFileURL, file.standardizedFileURL,
+                       "a file jump marks the landed-on file")
+
+        m.selection = [file]            // any user selection dismisses the marker
+        XCTAssertNil(m.highlightedTargetURL)
+    }
+
+    func testDirJumpMarksNothing() {
+        let m = model()
+        m.navigateIfPath(NSTemporaryDirectory())
+        XCTAssertNil(m.highlightedTargetURL, "landing inside a folder has nothing to mark")
+    }
+
     func testNonPathOrMissingPathIsNotHandled() {
         let m = model()
         XCTAssertFalse(m.navigateIfPath("digital"))                        // not a path → search
