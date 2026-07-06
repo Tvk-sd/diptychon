@@ -6,7 +6,7 @@ import SwiftUI
 /// slice 3. A view-switcher and time-travel control get clean slots later.
 struct TopBarView: View {
     let model: WorkspaceModel
-    /// Drives ⌘F: `WorkspaceModel.filterFocusRequest` bumps → focus the Filter field.
+    /// Drives ⌘⇧F: `WorkspaceModel.filterFocusRequest` bumps → focus the Filter field.
     @FocusState private var filterFocused: Bool
 
     /// The Active Panel's navigation row: up / back / forward + clickable
@@ -55,7 +55,7 @@ struct TopBarView: View {
                 .frame(width: 140)
                 .focused($filterFocused)
             }
-            .help("Filter the active panel by name (⌘F)")
+            .help("Filter the active panel by name (⌘⇧F)")
         }
         .padding(.horizontal, 12)
         .frame(height: 32)

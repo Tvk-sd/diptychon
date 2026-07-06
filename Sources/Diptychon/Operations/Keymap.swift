@@ -28,7 +28,8 @@ enum AppAction: Equatable, Hashable {
     case selectAll       // ⌘A  — select every visible row
     case selectNone      // ⎋   — clear the selection (only when no modal is up)
     case invertSelection // ⌘⇧I — flip selected ↔ unselected
-    case focusFilter     // ⌘F  — focus the Active Panel's Filter field
+    case focusSearch     // ⌘F  — focus the sidebar's recursive Search field (Finder convention)
+    case focusFilter     // ⌘⇧F — focus the Active Panel's Filter field
     case revealInFinder  // ⇧⌘R — reveal the selection in Finder
     case copyPaths       // ⌥⌘C — copy the selection's path(s) to the clipboard
     case showInfo        // ⌘I  — Finder "Get Info" on the selection
@@ -112,7 +113,8 @@ enum Keymap {
         (KeyChord(.character("a"), command: true), .selectAll),  // ⌘A select all
         (KeyChord(.code(Key.escape)), .selectNone),             // ⎋ clear selection
         (KeyChord(.character("i"), command: true, shift: true), .invertSelection), // ⌘⇧I invert
-        (KeyChord(.character("f"), command: true), .focusFilter), // ⌘F focus Filter
+        (KeyChord(.character("f"), command: true), .focusSearch), // ⌘F focus Search (Finder convention)
+        (KeyChord(.character("f"), command: true, shift: true), .focusFilter), // ⌘⇧F focus Filter
         (KeyChord(.character("r"), command: true, shift: true), .revealInFinder),  // ⇧⌘R reveal
         (KeyChord(.character("c"), command: true, option: true), .copyPaths),      // ⌥⌘C copy path
         (KeyChord(.character("i"), command: true), .showInfo),   // ⌘I Get Info
