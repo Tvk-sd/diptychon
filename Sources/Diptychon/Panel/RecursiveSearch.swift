@@ -58,10 +58,13 @@ enum RecursiveSearch {
             options: options
         ) else { return [] }
 
-        var results: [FileItem] = []
+        // Collected with their relevance score, sorted at the end so the best
+        // matches lead (a prefix hit like `cv-digitalservice` above a name where
+        // the query's letters merely appear scattered).
+        var results: [(item: FileItem, score: Int)] = []
         var scanned = 0
         for case let url as URL in enumerator {
-            if Task.isCancelled { return results }
+            if Task.isCancelled { break }
             scanned += 1
             if scanned > scanCap { break }
 
@@ -77,14 +80,14 @@ enum RecursiveSearch {
                 }
             }
 
-            guard FuzzyMatch.matches(needle: needle, candidate: url.lastPathComponent) else { continue }
+            guard let score = FuzzyMatch.score(needle: needle, candidate: url.lastPathComponent) else { continue }
 
             let values = try? url.resourceValues(forKeys: Set(resourceKeys))
             let isDir = values?.isDirectory ?? false
             // Only pay the per-file xattr read (for colors) when the batched
             // tagNames says this file is actually tagged.
             let tags = (values?.tagNames?.isEmpty == false) ? FinderTag.read(from: url) : []
-            results.append(FileItem(
+            results.append((FileItem(
                 url: url,
                 name: values?.localizedName ?? values?.name ?? url.lastPathComponent,
                 size: isDir ? nil : values?.fileSize.map(Int64.init),
@@ -93,10 +96,12 @@ enum RecursiveSearch {
                 isHidden: values?.isHidden ?? false,
                 tags: tags,
                 subtitle: relativeParent(of: url, under: rootPath)
-            ))
+            ), score))
             if results.count >= resultCap { break }
         }
-        return results
+        // Highest score first; stable on ties (keeps the walk's discovery order,
+        // which is roughly shallow-before-deep).
+        return results.sorted { $0.score > $1.score }.map(\.item)
     }
 
     /// The match's containing folder relative to the search root, for the result's

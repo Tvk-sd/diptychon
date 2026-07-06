@@ -82,6 +82,18 @@ final class SearchTests: XCTestCase {
         XCTAssertTrue(names.contains("invoice.txt"))           // real match still found
     }
 
+    func testResultsAreRankedByRelevance() async throws {
+        // A clean prefix/word-start hit must outrank one where the query only
+        // appears mid-word, regardless of filesystem walk order.
+        try "".write(to: root.appendingPathComponent("digital.txt"), atomically: true, encoding: .utf8)
+        try "".write(to: root.appendingPathComponent("zzzzdigital.txt"), atomically: true, encoding: .utf8)
+        let names = await RecursiveSearch.run(query: "digital", in: root, includeHidden: false).map(\.name)
+        let clean = names.firstIndex(of: "digital.txt")
+        let buried = names.firstIndex(of: "zzzzdigital.txt")
+        XCTAssertNotNil(clean); XCTAssertNotNil(buried)
+        XCTAssertLessThan(clean!, buried!, "prefix hit ranks above the mid-word one")
+    }
+
     func testEmptyQueryReturnsNothing() async throws {
         let results = await RecursiveSearch.run(query: "   ", in: root, includeHidden: false)
         XCTAssertTrue(results.isEmpty)

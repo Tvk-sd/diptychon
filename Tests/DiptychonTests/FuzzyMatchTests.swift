@@ -35,6 +35,27 @@ final class FuzzyMatchTests: XCTestCase {
         XCTAssertFalse(FuzzyMatch.matches("digitalx", in: "digitalservice"))
     }
 
+    func testScoreRanksObviousMatchesAboveScattered() {
+        let needle = FuzzyMatch.normalize("digital")
+        let prefix = FuzzyMatch.score(needle: needle, candidate: "cv-digitalservice.html")
+        let scattered = FuzzyMatch.score(needle: needle, candidate: "Corpid Light Italic")
+        XCTAssertNotNil(prefix)
+        // The scattered font name may or may not match; if it does, it must rank
+        // strictly below the clean prefix hit.
+        if let scattered { XCTAssertGreaterThan(prefix!, scattered) }
+    }
+
+    func testWordBoundaryBeatsMidWord() {
+        // Identical except the separator before "service" — isolates the
+        // word-boundary bonus (same match position and length otherwise).
+        let needle = FuzzyMatch.normalize("service")
+        let boundary = FuzzyMatch.score(needle: needle, candidate: "abc-service")
+        let midword = FuzzyMatch.score(needle: needle, candidate: "abcxservice")
+        XCTAssertNotNil(boundary)
+        XCTAssertNotNil(midword)
+        XCTAssertGreaterThan(boundary!, midword!)
+    }
+
     func testEmptyOrPunctuationOnlyQueryMatchesNothing() {
         XCTAssertFalse(FuzzyMatch.matches("", in: "anything"))
         XCTAssertFalse(FuzzyMatch.matches("-", in: "anything"))

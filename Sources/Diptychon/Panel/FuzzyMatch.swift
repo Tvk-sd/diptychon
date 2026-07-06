@@ -30,24 +30,59 @@ enum FuzzyMatch {
         s.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 
+    /// Relevance score for a `candidate` against the pre-normalized `needle`, or
+    /// `nil` when the needle isn't an ordered subsequence of it (no match). Higher
+    /// is better — used to rank results so the *obvious* hits (`cv-digitalservice`
+    /// for "digital") float above scattered ones (`Corpid Light Italic`, whose
+    /// d-i-g-i-t-a-l happen to appear spread across the name).
+    ///
+    /// Walks the **original** candidate (not the normalized form) so word
+    /// boundaries survive — the scoring signal lives in *where* a char matches:
+    /// - **+10** at a word boundary: start of name, or after a separator
+    ///   (`-_. space`), or a camelCase hump (`S` in `DigitalService`).
+    /// - **+5** for a contiguous run (this char matched right after the last).
+    /// - small penalties for how far in the first match sits, and for long names,
+    ///   so tighter/earlier matches win ties.
+    static func score(needle: [Character], candidate: String) -> Int? {
+        guard !needle.isEmpty else { return nil }
+        var ni = 0
+        var score = 0
+        var firstMatch: Int? = nil
+        var prevMatched = false
+        var atBoundary = true          // start-of-string is a boundary
+        var prevLower = false
+        var index = 0
+        for ch in candidate {
+            let isAlnum = ch.isLetter || ch.isNumber
+            let boundary = atBoundary || (ch.isUppercase && prevLower)
+            if isAlnum, ni < needle.count, Character(ch.lowercased()) == needle[ni] {
+                if firstMatch == nil { firstMatch = index }
+                score += 1
+                if boundary { score += 10 }
+                if prevMatched { score += 5 }
+                ni += 1
+                prevMatched = true
+            } else {
+                prevMatched = false
+            }
+            atBoundary = !isAlnum        // next alnum after a separator is a word start
+            prevLower = ch.isLowercase
+            index += 1
+        }
+        guard ni == needle.count else { return nil }
+        score -= min(firstMatch ?? 0, 10)   // reward matching near the start
+        score -= candidate.count / 20       // gently prefer shorter names
+        return score
+    }
+
     /// Does the pre-normalized `needle` appear as an ordered subsequence of
-    /// `candidate`? Callers normalize the query **once** and reuse `needle`
-    /// across the whole walk/list — the candidate is normalized inline here so
-    /// no throwaway String is built per entry beyond the lowercasing the old
-    /// substring path already paid.
+    /// `candidate`? (Inclusion only; use `score` when ranking.) Callers normalize
+    /// the query **once** and reuse `needle` across the whole list.
     ///
     /// An empty needle matches nothing: a query that normalizes away (e.g. just
     /// `-`) shows no results rather than dumping the entire tree.
     static func matches(needle: [Character], candidate: String) -> Bool {
-        guard !needle.isEmpty else { return false }
-        var i = 0
-        for ch in candidate.lowercased() where ch.isLetter || ch.isNumber {
-            if ch == needle[i] {
-                i += 1
-                if i == needle.count { return true }
-            }
-        }
-        return false
+        score(needle: needle, candidate: candidate) != nil
     }
 
     /// Convenience for single calls and tests — normalizes the query for you.

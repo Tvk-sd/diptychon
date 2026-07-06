@@ -322,7 +322,10 @@ final class PanelModel {
                                filter: String, tagName: String?,
                                sort: [KeyPathComparator<FileItem>]) -> [FileItem] {
         let base = isSearching ? searchResults : loaded
-        return applyFilters(base, text: filter, tagName: tagName).sorted(using: sort)
+        let filtered = applyFilters(base, text: filter, tagName: tagName)
+        // In search mode keep the relevance order the walk produced (best matches
+        // first); only the plain directory listing obeys the column sort.
+        return isSearching ? filtered : filtered.sorted(using: sort)
     }
 
     /// Pure filter step (type-ahead text + optional tag), factored out so it's
