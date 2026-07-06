@@ -56,15 +56,14 @@ struct SidebarView: View {
     let model: WorkspaceModel
     /// True while a drag hovers the sidebar — highlights the drop zone.
     @State private var dropTargeted = false
-    /// Drives ⌘F: `WorkspaceModel.searchFocusRequest` bumps → focus the Search field.
-    @FocusState private var searchFocused: Bool
 
     private let places = SidebarPlace.standard
 
     var body: some View {
         VStack(spacing: 0) {
-            searchField
-            Divider()
+            // Search moved to the header (WorkspaceView.headerBar) so it stays
+            // visible when the sidebar is folded. The sidebar now opens straight
+            // into its navigation sections.
             ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 section(header: "Places") {
@@ -124,36 +123,6 @@ struct SidebarView: View {
             return !folders.isEmpty
         } isTargeted: { dropTargeted = $0 }
         .accessibilityIdentifier("sidebar")
-        .onChange(of: model.searchFocusRequest) { searchFocused = true }
-    }
-
-    /// Recursive Search field (issue 21 slice 3): finds files in the subtree under
-    /// the Active Panel's folder; results render in that panel. Binds to the active
-    /// panel so it swaps context when the active panel changes. Go-to-Folder lives
-    /// on ⇧⌘G. A clear (✕) button cancels the search and restores the listing.
-    private var searchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-            TextField("Search…", text: Binding(
-                get: { model.activeModel.searchQuery },
-                set: { model.activeModel.searchQuery = $0 }
-            ))
-            .textFieldStyle(.plain)
-            .accessibilityIdentifier("sidebar-search")
-            .focused($searchFocused)
-            if !model.activeModel.searchQuery.isEmpty {
-                Button { model.activeModel.searchQuery = "" } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
-                }
-                .buttonStyle(.plain)
-                .help("Clear search")
-            }
-        }
-        .padding(.horizontal, 12)
-        // Match TopBarView's 32pt height so this field's bottom divider lines up
-        // with the top bar's divider across the sidebar/panel seam (issue 21).
-        .frame(height: 32)
     }
 
     /// A pinned-folder row. If the folder no longer exists it's greyed and
