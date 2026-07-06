@@ -2,17 +2,20 @@
 
 _No active task._
 
-Last task: **issue 45 — Persist the pane split ratio** — ✅ done + real-app verified,
-branch `feat/45-persist-split-ratio` (`3629835`, not pushed/merged). Outcome folded into
-`PROJECT-TRACKER.md` (rows 41/45) and the issue file.
+Last task: **issue 44 — Customizable hotkeys** — ✅ done + user-verified, branch
+`feat/44-customizable-hotkeys` (`d05727e`, not pushed/merged). Outcome folded into
+`PROJECT-TRACKER.md` (row 44) and the issue file.
 
-- `SplitPane` (bindable divider fraction, absolute-pointer drag, min-width clamp) replaces
-  `HSplitView`; split ratio round-trips via `WorkspaceState.splitRatio`. Completes #41's
-  last deferred AC.
-- **Also fixed a latent #41 quit-clobber**: SwiftUI evaluates the `@State` `WorkspaceModel`
-  initializer twice; both instances registered a `willTerminate` save in `init()`, so on
-  quit the discarded throwaway wrote its untouched defaults last — wiping folder/sort **and**
-  ratio to home/0.5. Fix: save-side registration (`trackChangesForSave` + terminate flush)
-  moved out of `init()` into `startPersistence()`, called once from the view's `.onAppear`;
-  only the rendered instance arms saves.
-- 134 unit tests green (129 + 5 `SplitPane` clamp tests).
+- `HotkeyManager` (@Observable singleton): effective map = `Keymap.default` + per-action
+  overrides, persisted as one JSON blob in `UserDefaults`; steal-and-unbind on conflict;
+  structural keys locked + non-stealable; unknown/corrupt store falls back to defaults.
+- `AppAction` → String raw id + `CaseIterable` + `displayName`; `KeyChord`/`KeyTrigger`
+  `Codable`+`Equatable`. All consumers (2 dispatch sites + palette hint) read the
+  effective map; palette hint made a live closure.
+- New Settings window (⌘,): Shortcuts recorder tab (a `ChordRecorder` reference type owns
+  the NSEvent monitor — mutating `@State` from an AppKit closure went stale) + Full Disk
+  Access tab (FDA moved off the ⌘, app-menu slot the Settings scene now owns).
+- 11 `HotkeyManagerTests`; 145 total green.
+
+Carry-over: `feat/46-sidebar-devices` still needs a rebase on `main` to inherit the
+#45 quit-clobber fix (see [[swiftui-state-init-runs-twice]]).

@@ -82,7 +82,7 @@ struct CommandPaletteSheet: View {
                 Text(command.category)
                     .font(.caption)
                     .foregroundStyle(.tertiary)
-                if let shortcut = command.shortcut {
+                if let shortcut = command.shortcut() {
                     Text(shortcut)
                         .font(.callout)
                         .monospaced()
