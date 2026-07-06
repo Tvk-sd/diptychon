@@ -684,6 +684,86 @@ and §14/§10 — aim the cheap probe at the real risk.)
 
 ---
 
+## 21. Depth is discovered by use, not specified up front — put the thin working slice in the hand and let it name the next layer
+
+*Captured 2026-07-06.*
+
+**Diptychon moment.** A request that started as "make search fuzzy" became nine
+layers deep — and **none of them were foreseeable from the layer before**. Each one
+only became legible once the previous one worked and got exercised on real files:
+fuzzy match → *nothing found* (a >120k-entry `~/Library` ate the scan budget) →
+*junk results* (needed relevance ranking) → *works in Home only* (scope: Search=global,
+Filter=recursive-in-folder) → *path search* → *paste an absolute path* → *hidden
+folders* → *noise* (a structural score floor) → *"where did I land?"* (a weak
+highlight on the jump's target). The through-line: **"search" was never the job** —
+"find and re-orient to my file" was, and each use-cycle peeled the proxy (matching)
+back toward the real job (orientation). We only *touched* the real job at layer nine.
+
+**Principle.** You cannot spec the depth of a feature before it exists, because each
+layer's requirement is only visible once the layer beneath it works *in the hand*.
+Planning the whole stack up front is a category error: it forecasts requirements that
+only use can surface, so it predicts wrong at exactly the layers that matter. The
+move is the opposite of a big spec — ship the **thinnest legible slice**, put it in a
+real hand on real data, and let the friction name the next layer. Corollary: every
+"it works, but…" is use doing its job, prying the feature name off the real job.
+
+**Where it transfers.**
+*Classical PM.* A roadmap that fully specifies a feature's depth is forecasting
+requirements that don't exist yet; the honest unit is *thin slice + a usage loop*, not
+the finished spec. Sequence by "what did using the last slice reveal?" not by a
+pre-drawn feature list — and treat each "but…" as signal, not scope-creep. (Pairs with
+§16 — the thin *working* slice finds the wrong surfacing in the hand — and §15 — JTBD
+names the proxy-vs-real-job gap this rule keeps peeling.)
+*AI lookout.* Agent-built features make this both cheap and dangerous: an agent can
+ship a slice in minutes, so the use→reveal→next-slice loop can spin fast — *but only
+if a human actually uses each slice against real data between turns.* Batch-speccing
+"the whole search feature" to an agent up front buys a plausible artifact that is
+wrong at layers 3–9, invisibly. Keep the human-in-the-hand loop; that's where the
+depth lives, not in the prompt.
+
+---
+
+## 22. The faster the action, the louder its status must be — seamless actions incur an evaluation debt
+
+*Captured 2026-07-06.*
+
+**Diptychon moment.** The last search layer. Pasting an absolute path into Search now
+*jumps* the pane straight to that file's folder — instant, no animation. It worked,
+and it felt broken: the PM landed and couldn't tell *where*, because the jump erased
+its own trace. The fix wasn't more speed — it was a **weak grey highlight** on the
+landed-on file that scrolls into view and fades on the next interaction. The PM named
+the underlying job: a search isn't done when results appear; it's done when the user
+is *re-oriented*.
+
+**Principle.** Every action has two gulfs (Norman): *execution* ("how do I do it?")
+and *evaluation* ("did it work, and where am I now?"). Speed and seamlessness attack
+the first gulf but **widen** the second — a slow action narrates itself; an instant
+one deletes its own evidence, so the eye can't follow it. So feedback should scale
+*inversely* with an action's visible duration: **the more magical the move, the more
+deliberate the status cue.** But calibrate — feedback must be proportional to the
+confusion it resolves; a cue that lingers, or fires where there's no disorientation,
+becomes noise (status-illegibility by over-signaling). The shape we chose — weak,
+transient, self-clearing — *is* that proportionality made concrete. And legibility is
+**temporal**, not just static: not "can you read the screen," but "can you follow what
+just happened."
+
+**Where it transfers.**
+*Classical PM.* When you make a flow faster or more automatic, budget for the
+evaluation debt it creates — the delight of *instant* is a loan against orientation,
+repaid with a status cue. "Visibility of system status" (Nielsen #1) isn't a
+static-screen property; it's about rendering *causality* legible, especially for
+actions too fast to witness. Define "done" by the user's orientation, not the
+system's output: results on screen ≠ the job; the job is the user knowing where they
+now stand. (Pairs with §2/§3 — presentation matched to the decision the data serves.)
+*AI lookout.* Agentic systems are the extreme case — they act fast, invisibly, often
+in bulk, maximally widening the gulf of evaluation. Every autonomous action needs a
+legible trace proportional to its consequence: what changed, where, how to undo. Same
+inverse law (the more seamless/autonomous, the louder the status), same caveat
+(proportional, not blanket — or the trace log becomes its own fog). (Pairs with §1 —
+consequential actions need a legible, reversible handoff to whoever evaluates them.)
+
+---
+
 ## How to use this doc
 - **When starting a new product:** read §1 and §5 *before* you design the second
   pane or hand consequential actions to any operator (a user or an agent). They're
@@ -721,6 +801,12 @@ and §14/§10 — aim the cheap probe at the real risk.)
   counterfactual before you assign a cause.
 - **When status / docs / benchmarks feel "probably still true":** §19 — records drift
   optimistic; pick one source of truth per fact and date every measured claim.
+- **When scoping how deep to plan a feature (or handing one to an agent):** §21 —
+  you can't spec depth up front; ship the thin working slice, use it on real data,
+  and let each "it works, but…" name the next layer (and the real job under the name).
+- **When you make an action faster / more automatic / more autonomous:** §22 — speed
+  widens the gulf of evaluation; budget a status cue proportional to the confusion the
+  now-invisible action creates. Done = the user is re-oriented, not "output shown."
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).
