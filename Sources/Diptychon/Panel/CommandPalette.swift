@@ -65,7 +65,7 @@ enum CommandCatalog {
         cmd(.selectAll, "Select All", "Selection"),
         cmd(.selectNone, "Deselect All", "Selection", enabled: hasSelection),
         cmd(.invertSelection, "Invert Selection", "Selection"),
-        cmd(.copyPaths, "Copy Path", "Selection", enabled: hasSelection),
+        cmd(.copyPaths, "Copy Path", "Selection"),   // no selection → current folder
         cmd(.showTags, "Tags…", "Selection", enabled: hasSelection),
         // Open
         cmd(.openSelection, "Open", "Open", enabled: hasSelection),
