@@ -8,7 +8,9 @@ struct PaletteCommand: Identifiable {
     let title: String
     let category: String
     /// Chord glyphs (e.g. "⇧⌘R"), shown right-aligned. Nil for commands with no key.
-    let shortcut: String?
+    /// A closure (like `isEnabled`) so the hint reflects the user's current override
+    /// live — evaluated per render, not frozen when the static list is built (issue 44).
+    let shortcut: @MainActor () -> String?
     /// Whether the command applies right now (e.g. needs a selection). Disabled
     /// commands are shown greyed, not hidden — discoverability over a clean list.
     let isEnabled: @MainActor (WorkspaceModel) -> Bool
@@ -33,14 +35,14 @@ enum CommandCatalog {
     private static func cmd(_ action: AppAction, _ title: String, _ category: String,
                             enabled: @escaping @MainActor (WorkspaceModel) -> Bool = { _ in true }) -> PaletteCommand {
         PaletteCommand(id: "\(action)", title: title, category: category,
-                       shortcut: Keymap.glyphs(for: action),
+                       shortcut: { HotkeyManager.shared.glyphs(for: action) },
                        isEnabled: enabled, run: { $0.perform(action) })
     }
 
     /// A UI toggle (no `AppAction`): runs the same mutation the toolbar button does.
     private static func toggle(_ id: String, _ title: String, shortcut: String?,
                                _ run: @escaping @MainActor (WorkspaceModel) -> Void) -> PaletteCommand {
-        PaletteCommand(id: id, title: title, category: "View", shortcut: shortcut,
+        PaletteCommand(id: id, title: title, category: "View", shortcut: { shortcut },
                        isEnabled: { _ in true }, run: run)
     }
 

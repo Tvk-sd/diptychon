@@ -33,13 +33,12 @@ struct DiptychonApp: App {
         // (TopBarView). hiddenTitleBar also lets content rise full-height so the
         // sidebar/panel seams run up through the title-bar band.
         .windowStyle(.hiddenTitleBar)
-        .commands {
-            // App menu → standard Preferences slot (⌘,). FDA can't be requested
-            // in code (ADR 0001); this just deep-links to the right Settings pane.
-            CommandGroup(replacing: .appSettings) {
-                Button("Full Disk Access…") { FullDiskAccess.openSettings() }
-                    .keyboardShortcut(",", modifiers: .command)
-            }
+
+        // Settings window (⌘,) — the shortcut editor (issue 44) plus the Full Disk
+        // Access deep-link (issue 10), which used to live on ⌘, in the app menu but
+        // now shares this window as a tab.
+        Settings {
+            SettingsRootView()
         }
     }
 }

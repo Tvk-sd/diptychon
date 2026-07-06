@@ -320,7 +320,7 @@ struct WorkspaceView: View {
                 // ⌘K is the universal entry point — it opens/closes the command
                 // palette even while a text field is focused (issue 19), unlike the
                 // other chords. Checked before the text-field guard below.
-                if case .openPalette? = Keymap.action(for: event) {
+                if case .openPalette? = HotkeyManager.shared.action(for: event) {
                     model.perform(.openPalette)
                     return nil
                 }

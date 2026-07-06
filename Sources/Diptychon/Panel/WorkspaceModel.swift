@@ -476,7 +476,7 @@ final class WorkspaceModel {
 
     /// Handle a raw key event (from the local monitor). Returns true if consumed.
     func handleKeyDown(_ event: NSEvent) -> Bool {
-        guard let action = Keymap.action(for: event) else { return false }
+        guard let action = HotkeyManager.shared.action(for: event) else { return false }
         // ⎋ clears the selection, but only when nothing modal is up — otherwise leave
         // Esc for the open sheet/dialog to consume (close on Esc). Don't swallow it.
         if case .selectNone = action, presentedSheet != nil { return false }
