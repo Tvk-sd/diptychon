@@ -142,11 +142,19 @@ struct WorkspaceView: View {
             // Seam closing the name cell (sits on the sidebar edge when shown).
             Divider()
 
-            // The Active Panel's nav row — up/back/forward + breadcrumb + Filter —
-            // now lives here in the true top bar, right of Search (it used to be a
-            // separate row above the panels). Its trailing Spacer pushes the Filter
-            // to the far-right window edge.
+            // The Active Panel's nav row — up/back/forward + breadcrumb — lives here
+            // in the true top bar, right of Search. Its trailing Spacer fills the gap
+            // so the Filter cell can cap the far edge.
             TopBarView(model: model)
+
+            // The Filter caps the trailing edge, mirroring how Search caps the left
+            // and always carrying its own seam (like the sidebar toggle keeps a seam
+            // even when the sidebar is folded). When an aux pane (preview/staging) is
+            // open it widens to a 300px cell so the seam lines up flush with that pane
+            // below; otherwise it narrows and hugs the right window edge.
+            Divider()
+            FilterFieldView(model: model)
+                .frame(width: model.rightPane == .none ? 180 : 300)
         }
         .frame(height: 32)
     }

@@ -1,18 +1,16 @@
 import SwiftUI
 
-/// The Active Panel's nav row (issue 21): an Up button, back/forward, a clickable
-/// **breadcrumb** of that panel's path, and a name Filter. It lives in the true top
-/// bar (`WorkspaceView.headerBar`), right of the Search field; its trailing Spacer
-/// pushes the Filter to the far-right window edge. Everything binds to the Active
-/// Panel, so it swaps context when the active panel changes.
+/// The Active Panel's nav row (issue 21): an Up button, back/forward, and a clickable
+/// **breadcrumb** of that panel's path. It lives in the true top bar
+/// (`WorkspaceView.headerBar`), right of the Search field; a trailing Spacer fills the
+/// remaining width so the Filter cell can cap the far edge. Everything binds to the
+/// Active Panel, so it swaps context when the active panel changes.
 struct TopBarView: View {
     let model: WorkspaceModel
-    /// Drives ⌘⇧F: `WorkspaceModel.filterFocusRequest` bumps → focus the Filter field.
-    @FocusState private var filterFocused: Bool
 
-    /// up / back / forward + clickable breadcrumb + name Filter, in a single row
-    /// inside the header. Search sits to the left in its own cell; the window/view
-    /// toggles live on the bottom bar.
+    /// up / back / forward + clickable breadcrumb, in a single row inside the header.
+    /// Search sits to the left in its own cell; the Filter caps the trailing edge;
+    /// the window/view toggles live on the bottom bar.
     var body: some View {
         HStack(spacing: 8) {
             Button { model.activeModel.navigateUp() } label: {
@@ -21,6 +19,10 @@ struct TopBarView: View {
             .buttonStyle(.borderless)
             .disabled(!model.activeModel.canGoUp)
             .help("Go up (⌘↑)")
+
+            // Full-height seam splitting the go-to-top button off from the
+            // back/forward pair.
+            Divider()
 
             Button { model.activeModel.goBack() } label: {
                 Image(systemName: "chevron.left")
@@ -36,30 +38,14 @@ struct TopBarView: View {
             .disabled(!model.activeModel.canGoForward)
             .help("Forward (⌘])")
 
-            Divider().frame(height: 16)
+            Divider()
 
             breadcrumb
 
             Spacer(minLength: 8)
-
-            // Name filter for the Active Panel (issue 21). Binds straight to the
-            // active PanelModel so it swaps context when the active panel changes.
-            HStack(spacing: 4) {
-                Image(systemName: "line.3.horizontal.decrease.circle")
-                    .foregroundStyle(.secondary)
-                TextField("Filter", text: Binding(
-                    get: { model.activeModel.filter },
-                    set: { model.activeModel.filter = $0 }
-                ))
-                .textFieldStyle(.plain)
-                .frame(width: 140)
-                .focused($filterFocused)
-            }
-            .help("Search inside the current folder, recursively (⌘⇧F). Use Search for everything.")
         }
         .padding(.horizontal, 12)
         .frame(height: 32)
-        .onChange(of: model.filterFocusRequest) { filterFocused = true }
     }
 
     /// The active panel's path as clickable segments. Deep paths show a leading "…"
@@ -110,5 +96,34 @@ struct TopBarView: View {
             result.append(url)
         }
         return result
+    }
+}
+
+/// The Active Panel's name filter (issue 21), extracted from the nav row so the header
+/// can position it as its own trailing cell — one that lines up flush with the
+/// preview/aux pane below it (mirroring how Search caps the sidebar column). Binds
+/// straight to the active PanelModel so it swaps context with the active panel, and
+/// owns the ⌘⇧F focus plumbing. The field fills whatever width its parent cell gives.
+struct FilterFieldView: View {
+    let model: WorkspaceModel
+    /// Drives ⌘⇧F: `WorkspaceModel.filterFocusRequest` bumps → focus the Filter field.
+    @FocusState private var filterFocused: Bool
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "line.3.horizontal.decrease.circle")
+                .foregroundStyle(.secondary)
+            TextField("Filter", text: Binding(
+                get: { model.activeModel.filter },
+                set: { model.activeModel.filter = $0 }
+            ))
+            .textFieldStyle(.plain)
+            .frame(maxWidth: .infinity)
+            .focused($filterFocused)
+        }
+        .padding(.horizontal, 12)
+        .frame(maxHeight: .infinity)
+        .help("Search inside the current folder, recursively (⌘⇧F). Use Search for everything.")
+        .onChange(of: model.filterFocusRequest) { filterFocused = true }
     }
 }
