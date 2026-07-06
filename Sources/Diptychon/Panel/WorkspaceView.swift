@@ -27,7 +27,7 @@ struct WorkspaceView: View {
         @Bindable var model = model
         content
         .background(WindowMinWidth(minWidth: minContentWidth))
-        .onAppear(perform: installMonitors)
+        .onAppear { installMonitors(); model.startPersistence() }
         .onDisappear(perform: removeMonitors)
         // User may have just granted access in System Settings → if a panel was
         // blocked and access is now there, re-list it (no restart, AC3).
@@ -259,12 +259,13 @@ struct WorkspaceView: View {
     @ViewBuilder
     private var panels: some View {
         @Bindable var model = model
-        // Issue 13: when both panels show, an HSplitView gives a draggable divider.
+        // Issue 13: when both panels show, a draggable divider splits them. Issue 45:
+        // `SplitPane` binds the divider fraction to `model.splitRatio` (persisted state)
+        // — SwiftUI's `HSplitView` exposed no readable fraction to save/restore.
         // When the right panel is hidden the container is swapped for the left panel
-        // alone — HSplitView can't drop a conditional child, so we toggle the whole
-        // container instead.
+        // alone (a conditional child can't be dropped from the split).
         if model.rightPanelVisible {
-            HSplitView {
+            SplitPane(fraction: $model.splitRatio) {
                 PanelView(model: model.left, isActive: model.active == .left,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
                           onGoToFolder: { model.active = .left; model.presentedSheet = .goToFolder },
@@ -273,7 +274,7 @@ struct WorkspaceView: View {
                           onAddToStaging: { model.addToStaging($0) },
                           onActivate: { model.activate($0, in: model.left) },
                           tableIdentifier: "panel-left")
-                .frame(minWidth: 180)
+            } right: {
                 PanelView(model: model.right, isActive: model.active == .right,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
                           onGoToFolder: { model.active = .right; model.presentedSheet = .goToFolder },
@@ -282,7 +283,6 @@ struct WorkspaceView: View {
                           onAddToStaging: { model.addToStaging($0) },
                           onActivate: { model.activate($0, in: model.right) },
                           tableIdentifier: "panel-right")
-                .frame(minWidth: 180)
             }
         } else {
             PanelView(model: model.left, isActive: true,
