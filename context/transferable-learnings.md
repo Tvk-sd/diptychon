@@ -639,6 +639,51 @@ Reconcile the map to the territory on a cadence, or it quietly becomes fiction.
 
 ---
 
+## 20. Scout the solution space before naming the job and the tools become the lens — every "need" is a solution in disguise
+
+*Captured 2026-07-06.*
+
+**Diptychon moment.** A request to explore "AI file sorters + lightweight agent
+tasks" started with web research into the *solution* space (local CLIP, Apple Vision
+feature-prints, MobileCLIP). When I then listed candidate Jobs-to-be-Done for
+Diptychon, **all of them were about image content** — semantic search, auto-pairing,
+dedup — because I'd reverse-engineered jobs to fit the vision tech I'd just loaded.
+The PM caught it in four words: *"why are they all just about images?"* The non-pixel
+jobs (metadata rename, caption drafting, workspace automation) only surfaced *after*
+that correction. Two more receipts compounded it: the whole "does this segment even
+want AI?" question was **already answered in our own `netnography/`** — Trend T-E,
+*"KI (noch) kein Thema,"* no AI demand in the corpus — and the one metadata feature
+that survived (#3, sort-by-metadata) died in a **10-minute data spike on a real
+folder** (Desktop: 97% screenshots, dead EXIF), cheaper than any argument.
+
+**Principle.** Researching *how* before naming *what* quietly promotes the toolkit
+into the lens: you stop asking "what job needs doing?" and start asking "what could
+this tech do?", then dress each capability as a need. The **tell is homogeneity** —
+when every candidate "need" shares the flavour of the thing you just researched,
+they're solutions in job costumes, not jobs. Two guards: (a) **name the job cold,
+before you scout solutions** — or scout, then deliberately re-derive the jobs from
+the user with the tech menu shut; and (b) **before commissioning new evidence, check
+whether the disqualifying answer is already in your own files** — prior research rots
+into being un-re-read, and the cheapest test is often a real artifact you can grab in
+ten minutes, not a build.
+
+**Where it transfers.**
+*Classical PM.* The classic "solution in search of a problem," sharpened to a
+*sequencing* rule: the corruption enters the moment discovery of *how* precedes
+definition of *what*. Any roadmap seeded by "we have this new capability / vendor /
+model — where can we use it?" inherits it; every use case will smell like the
+capability. Name the customer problem with the tool drawer shut, *then* open it. And
+run the cheapest evidence first — a real record you already own beats a new study,
+and the answer is often already written down in research nobody re-opened (here, T-E).
+*AI lookout.* The dominant failure mode of AI product work right now — "we have an
+LLM / agent, what should it do?" makes *every* feature look justified because the tech
+is genuinely general. The homogeneity tell is loud: if every proposed feature is
+"…but with a chatbot," the model has become the lens. Force the job first; let demand,
+not capability, nominate the build. (Pairs with §15 — JTBD as the forcing function —
+and §14/§10 — aim the cheap probe at the real risk.)
+
+---
+
 ## How to use this doc
 - **When starting a new product:** read §1 and §5 *before* you design the second
   pane or hand consequential actions to any operator (a user or an agent). They're
@@ -661,6 +706,10 @@ Reconcile the map to the territory on a cadence, or it quietly becomes fiction.
 - **When scoping a new feature / bet (or steering an AI to build one):** §15 — state
   the JTBD first; it splits solved-from-new, names demand-vs-feasibility risk, and
   hands you the smallest test. Ship the thinnest legible version before the heavy one.
+- **When a request starts from a technology ("we have X — where can we use it?") or
+  right after you've researched the solution space:** §20 — name the job with the tool
+  drawer shut, distrust candidate "needs" that all smell like the tech, and check
+  whether the disqualifying evidence already sits in your own research before commissioning more.
 - **When the interaction shape is the real unknown:** §16 — ship a thin *working*
   slice to find the wrong surfacing in the hand, with the core split from the surface
   so the pivot is cheap.
