@@ -2,7 +2,8 @@ import Foundation
 
 /// Bounded, cancellable recursive name search under a root directory (issue 21
 /// slice 3). Walks the subtree off the main thread, matching file/folder names
-/// (case-insensitive substring), and **stops at `resultCap` matches** so searching
+/// (fuzzy — normalized subsequence, see `FuzzyMatch`), and **stops at `resultCap`
+/// matches** so searching
 /// a huge tree (e.g. Home) can't peg CPU / balloon RAM — the exact runaway shape
 /// `context/transferable-learnings.md` §10 warns about. Cancellation is honoured on
 /// every step, so a new keystroke abandons the in-flight walk immediately.
@@ -23,24 +24,37 @@ enum RecursiveSearch {
         .contentModificationDateKey, .isDirectoryKey, .isHiddenKey, .tagNamesKey,
     ]
 
+    /// Directory names we never recurse into — dev/system noise that would burn the
+    /// scan budget without holding anything the user searches for. `~/Library` is
+    /// *not* here: it carries the `hidden` chflag (not a dot-prefix), so it's pruned
+    /// by the hidden-directory check below, which `.skipsHiddenFiles` misses.
+    private static let prunedDirNames: Set<String> = [
+        "node_modules", ".git", "Pods", ".Trash",
+    ]
+
     /// Run the search. `nonisolated`/`async` (no actor isolation), so awaiting it
     /// from the `@MainActor` model runs the blocking enumeration on a background
     /// cooperative thread while still observing the calling task's cancellation.
     static func run(query: String, in root: URL, includeHidden: Bool) async -> [FileItem] {
-        let needle = query.trimmingCharacters(in: .whitespaces).lowercased()
+        // Normalize the query once (lowercase, letters/digits only); reused for
+        // every candidate below. Empty after normalizing (e.g. a lone "-") ⇒
+        // nothing to match, so bail rather than walk the whole tree.
+        let needle = FuzzyMatch.normalize(query)
         guard !needle.isEmpty else { return [] }
 
         let fm = FileManager.default
         let rootPath = root.standardizedFileURL.path
-        // No prefetch keys: the walk is a cheap name-only `readdir`, and we fetch
-        // resource values lazily for matches alone (below). Prefetching for every
-        // entry — especially the tag xattr — is what made searching Home crawl.
+        // Prefetch only the two cheap `stat` flags the walk itself needs to decide
+        // whether to recurse (isDirectory) and whether to prune (isHidden). Batched
+        // by the enumerator, so no extra syscall per entry. The expensive keys
+        // (tags/size/dates) are still fetched lazily for matches alone, below —
+        // prefetching the tag xattr for every entry is what made Home crawl.
         // Skip package descendants so we don't dive into every .app bundle.
         var options: FileManager.DirectoryEnumerationOptions = [.skipsPackageDescendants]
         if !includeHidden { options.insert(.skipsHiddenFiles) }
         guard let enumerator = fm.enumerator(
             at: root,
-            includingPropertiesForKeys: nil,
+            includingPropertiesForKeys: [.isDirectoryKey, .isHiddenKey],
             options: options
         ) else { return [] }
 
@@ -50,7 +64,20 @@ enum RecursiveSearch {
             if Task.isCancelled { return results }
             scanned += 1
             if scanned > scanCap { break }
-            guard url.lastPathComponent.lowercased().contains(needle) else { continue }
+
+            // Prune noise subtrees *before* spending budget on them. `~/Library`
+            // alone exceeds `scanCap`; without this the walk starves inside it and
+            // never reaches the user's documents (the reported "digital" bug).
+            let flags = try? url.resourceValues(forKeys: [.isDirectoryKey, .isHiddenKey])
+            if flags?.isDirectory == true {
+                let hiddenDir = !includeHidden && (flags?.isHidden ?? false)
+                if hiddenDir || prunedDirNames.contains(url.lastPathComponent) {
+                    enumerator.skipDescendants()
+                    continue
+                }
+            }
+
+            guard FuzzyMatch.matches(needle: needle, candidate: url.lastPathComponent) else { continue }
 
             let values = try? url.resourceValues(forKeys: Set(resourceKeys))
             let isDir = values?.isDirectory ?? false

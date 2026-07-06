@@ -55,7 +55,7 @@ struct TopBarView: View {
                 .frame(width: 140)
                 .focused($filterFocused)
             }
-            .help("Filter the active panel by name (⌘⇧F)")
+            .help("Search inside the current folder, recursively (⌘⇧F). Use Search for everything.")
         }
         .padding(.horizontal, 12)
         .frame(height: 32)
