@@ -188,6 +188,11 @@ final class WorkspaceModel {
         }
     }
 
+    /// Left/right pane split fraction (0…1), restored from the snapshot (issue 45).
+    /// Persisted via `WorkspaceState.splitRatio`; `SplitPane` clamps it to valid pane
+    /// widths at layout time, so an out-of-range value can never open a broken pane.
+    var splitRatio: Double = WorkspaceModel.defaultSplitRatio
+
     init() {
         let staging = StagingStore()
         self.staging = staging
@@ -225,6 +230,11 @@ final class WorkspaceModel {
         if let paths = saved?.staging, !paths.isEmpty {
             staging.add(paths.map { URL(fileURLWithPath: $0) })
         }
+        // Restore the split ratio (issue 45). A stored value outside a sane range is
+        // ignored; `SplitPane` does the final window-aware clamp at layout time.
+        if let ratio = saved?.splitRatio, (0...1).contains(ratio) {
+            splitRatio = ratio
+        }
 
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
@@ -233,13 +243,13 @@ final class WorkspaceModel {
         coordinator.onUndoRedoToast = { [weak self] text, image in
             self?.showActivityToast(text, systemImage: image)
         }
-        // Persist folder/sort/staging changes (debounced), plus a synchronous flush on
-        // quit so a graceful quit loses nothing; an unclean exit loses at most the
-        // debounce window.
-        if persistenceEnabled {
-            trackChangesForSave()
-            observeTerminationForSave()
-        }
+        // NOTE: save-side persistence (debounced change tracking + terminate flush) is
+        // NOT started here — it's started from the view's `.onAppear` via
+        // `startPersistence()`. SwiftUI evaluates the `@State` model initializer more
+        // than once and keeps only the rendered instance; a discarded throwaway that
+        // registered a terminate-save would fire on quit and clobber the real snapshot
+        // with its untouched defaults. Only the instance that actually renders (appears)
+        // should own the save path. Restore-on-launch above stays in init (read-only).
         // Drive eject/return handling runs regardless of persistence: it keeps a pane
         // from going broken when its volume ejects mid-session, and restores a folder
         // remembered at launch (pendingRemount) when its drive comes back.
@@ -250,6 +260,9 @@ final class WorkspaceModel {
 
     /// False under a `DIPTYCHON_DIR` launch override (tests/dev): don't restore or save.
     private let persistenceEnabled: Bool
+    /// Guards `startPersistence()` so the save path arms once, only for the rendered
+    /// instance (see `startPersistence`). `@ObservationIgnored`: never a view dependency.
+    @ObservationIgnored private var persistenceStarted = false
     /// Saved folders on a currently-unmounted drive, awaiting remount (step 5).
     private var pendingRemount: [Side: URL] = [:]
     private var saveTask: Task<Void, Never>?
@@ -316,14 +329,28 @@ final class WorkspaceModel {
     /// mount/unmount/rename so the sidebar tracks inserts and ejects without relaunch.
     private func refreshDevices() { devices = Self.mountedDeviceVolumes() }
 
+    /// Even split — the default when there's no snapshot (issue 45).
+    static let defaultSplitRatio = 0.5
+
     /// Build and persist the current snapshot. Cheap; called on quit and (debounced)
-    /// on change. `splitRatio` stays nil until the split view is wired (step 6).
+    /// on change.
+    /// Start the save path exactly once, from the rendered view's `.onAppear`. Guarded
+    /// so only the instance SwiftUI actually shows arms the debounced tracking and the
+    /// terminate flush — a discarded `@State` throwaway never appears, so it never saves
+    /// (and can't clobber the real snapshot on quit). Idempotent: re-appear is a no-op.
+    func startPersistence() {
+        guard persistenceEnabled, !persistenceStarted else { return }
+        persistenceStarted = true
+        trackChangesForSave()
+        observeTerminationForSave()
+    }
+
     func saveState() {
         guard persistenceEnabled else { return }
         let state = WorkspaceState(
             left: left.paneState,
             right: right.paneState,
-            splitRatio: nil,
+            splitRatio: splitRatio,
             staging: staging.urls.map(\.path)
         )
         WorkspaceStateStore.save(state)
@@ -416,6 +443,7 @@ final class WorkspaceModel {
             _ = right.directory
             _ = right.sortOrder
             _ = staging.urls
+            _ = splitRatio
         } onChange: { [weak self] in
             Task { @MainActor in
                 self?.scheduleSave()
