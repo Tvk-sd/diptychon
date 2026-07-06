@@ -61,7 +61,7 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     func makeNSView(context: Context) -> NSScrollView {
         let table = FileTableView()
         table.setAccessibilityIdentifier(accessibilityID)
-        table.style = .inset
+        table.style = .fullWidth
         table.usesAlternatingRowBackgroundColors = true
         table.allowsMultipleSelection = true
         table.dataSource = context.coordinator
@@ -633,7 +633,7 @@ final class HoverRowView: NSTableRowView {
     private let overlay: NSView = {
         let view = NSView()
         view.wantsLayer = true
-        view.layer?.cornerRadius = 5
+        view.layer?.cornerRadius = 0
         view.layer?.backgroundColor = NSColor.secondaryLabelColor.withAlphaComponent(0.16).cgColor
         view.isHidden = true
         return view
@@ -655,7 +655,7 @@ final class HoverRowView: NSTableRowView {
 
     override func layout() {
         super.layout()
-        overlay.frame = bounds.insetBy(dx: 2, dy: 1)
+        overlay.frame = bounds
     }
 
     private func updateOverlay() {
@@ -664,7 +664,7 @@ final class HoverRowView: NSTableRowView {
         if overlay.superview !== self {
             addSubview(overlay, positioned: .below, relativeTo: nil)
         }
-        overlay.frame = bounds.insetBy(dx: 2, dy: 1)
+        overlay.frame = bounds
         overlay.isHidden = !(isHovered && !isSelected)
     }
 }

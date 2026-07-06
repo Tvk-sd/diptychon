@@ -89,18 +89,16 @@ struct CommandPaletteSheet: View {
                         .foregroundStyle(enabled ? .secondary : Color.secondary.opacity(0.4))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 5))
+                        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 0))
                 }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(idx == highlighted ? Color.accentColor.opacity(0.18) : .clear)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 6)
         .onHover { hovering in
             // Mouse and keyboard share one highlight; hover never scrolls the list.
             if hovering, Date() >= suppressHoverUntil { highlighted = idx }

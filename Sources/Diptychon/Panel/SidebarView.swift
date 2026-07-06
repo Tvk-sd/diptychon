@@ -111,7 +111,7 @@ struct SidebarView: View {
         // Drop a folder anywhere on the sidebar to pin it (issue 16, slice 3).
         // Files are ignored — the sidebar is a navigation surface.
         .overlay {
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 0)
                 .strokeBorder(Color.accentColor, lineWidth: 2)
                 .padding(4)
                 .opacity(dropTargeted ? 1 : 0)
@@ -181,12 +181,11 @@ struct SidebarView: View {
             .padding(.vertical, 4)
             .contentShape(Rectangle())
             .background(
-                RoundedRectangle(cornerRadius: 6)
+                Rectangle()
                     .fill(selected ? Color.accentColor.opacity(0.15) : Color.clear)
             )
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 6)
         .help(missing ? "“\(name)” can’t be found — remove it from the sidebar" : url.path)
     }
 
