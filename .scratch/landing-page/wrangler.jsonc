@@ -1,0 +1,22 @@
+{
+  "name": "jolly-sky-ef76",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-07-06",
+  // Access on diptychon.com doesn't cover *.workers.dev — close that side door
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "diptychon.com", "custom_domain": true },
+    { "pattern": "www.diptychon.com", "custom_domain": true }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "DOWNLOADS",
+      "id": "160a04f881a84f6fb116fc1d2e6870ef"
+    }
+  ]
+}
