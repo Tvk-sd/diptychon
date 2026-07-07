@@ -6,6 +6,18 @@
 > before publishing a specific number publicly.** Pairs with `positioning-note.md` +
 > `netnography/`.
 
+## Vendor check (2026-07-07) — the two that mattered
+
+- **Path Finder** — vendor page (cocoatech.io) shows **$32.95 · "1 Year License"** → yearly
+  recurring (not perpetual one-time). Review sites said $29.95/yr; **vendor $32.95 wins.**
+  The anti-abo contrast (netnography T-A) holds — this is the sharpest wedge on the /vs page.
+- **ForkLift 4** — MacUpdate lists **$19.95, Monetization: One-Time Purchase, v4.7.1, 16.3 MB**
+  (updated Jul 1 2026). Binarynights' own store is JS-rendered (no price in raw HTML), but the
+  one-time $19.95 + ~16 MB footprint are confirmed. The ~16 MB vs Diptychon's ~1.4 MB is a
+  clean, verifiable contrast.
+
+The `/vs` page (live at diptychon.com/vs) uses these vendor-checked numbers.
+
 ## Summary table (verified 2026-07-07, directional)
 
 | | **Diptychon** | Marta | ForkLift 4 | Nimble Commander | Path Finder |
