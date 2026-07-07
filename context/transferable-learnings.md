@@ -764,6 +764,54 @@ consequential actions need a legible, reversible handoff to whoever evaluates th
 
 ---
 
+## 23. In a mature category the MVP bar is table-stakes-high — but retire the *unknown* risk (reach), not the comfortable one (feasibility)
+
+*Captured 2026-07-07.*
+
+**Diptychon moment.** The product was built *far* — a near-complete keyboard-first file
+manager (search, operations, staging, tags, undo, persistence) — before demand or reach
+was ever tested. The PM named it honestly: slid into the build trap. But he half-defended
+it: file managers compete with mature products, so a bare dual-pane wouldn't be a fair
+test of a demanding segment. **Both true and a rationalization.** The netnography had
+validated *latent interest*; but *reach + switching* stayed untested until a capture page
+went up this week — a probe that never needed the finished product. The tell: effort went
+into the risk that was already low (feasibility — a capable builder building) while the
+genuinely unknown risk (will reachable users *switch*) sat untouched the whole time.
+
+**Principle.** Two lessons that only *look* like they conflict:
+1. **MVP scope is set by the category's table stakes, not your feature's novelty.** In a
+   greenfield, one feature can be an MVP; in a crowded category the minimum viable is
+   *"table stakes + your wedge."* A thinner build fails for reasons unrelated to your
+   differentiator (here: missing persistence, keyboard reliability, undo — the segment's
+   own JTBDs), so it isn't a clean test. Building to table stakes is defensible.
+2. **But that is not a licence to defer the demand/reach probe.** The build trap is most
+   expensive when you retire the risk you're *good* at (feasibility) while the genuinely
+   unknown risk (desirability / reach / switching) stays untouched. Build-to-table-stakes
+   and validate-reach are **parallel, not sequential** — the error is treating "the
+   category needs a complete product" as permission to postpone the reach question until
+   the product is done.
+
+**The guard.** *Before the next big build push, name the single riskiest assumption and
+the cheapest test of it. If the cheapest test doesn't require the product, run it in
+parallel — never let the build itself be the test.*
+
+**Where it transfers.**
+*Classical PM.* This is feasibility-vs-desirability risk (Cagan): effort should retire the
+biggest *unknown*, and for a capable team feasibility rarely is it — desirability/viability
+usually is. "MVP = smallest feature" is category-blind; calibrate the MVP to the incumbent
+bar, but run the desirability probe (landing + waitlist, interviews, a reach test) *along*
+the build, paced by signal, not after it. The tell of the trap is the sentence "I need to
+build more before I can test demand" — almost always false.
+*AI lookout.* Acute for AI/agent products: building is now so cheap that retiring
+feasibility ("can the model do X") is trivial and seductive, while the real risk (does
+anyone want this, will they adopt/switch, does it hold on real inputs) goes untested. The
+faster you *can* build, the more disciplined you must be about probing demand in parallel —
+or you ship a technically-impressive thing nobody asked for, just faster. (Pairs with §15 —
+JTBD as the forcing function; §20 — name the job, not the tool; §14/§10 — aim the cheap
+probe at the real risk.)
+
+---
+
 ## How to use this doc
 - **When starting a new product:** read §1 and §5 *before* you design the second
   pane or hand consequential actions to any operator (a user or an agent). They're
@@ -807,6 +855,10 @@ consequential actions need a legible, reversible handoff to whoever evaluates th
 - **When you make an action faster / more automatic / more autonomous:** §22 — speed
   widens the gulf of evaluation; budget a status cue proportional to the confusion the
   now-invisible action creates. Done = the user is re-oriented, not "output shown."
+- **Before a big build push (or when you catch yourself building toward validation):** §23 —
+  set the MVP bar by the category's table stakes, but retire the *unknown* risk (demand/reach),
+  not the comfortable one (feasibility); name the riskiest assumption + its cheapest test, and
+  if that test doesn't need the product, run it in parallel — never let the build be the test.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).
