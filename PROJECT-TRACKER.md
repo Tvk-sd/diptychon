@@ -135,6 +135,8 @@ Split out: inline single-file rename → issue 11 (Finder-style click/Return).
 | 41 | Reliable state persistence | ✅ **done — merged (PR #41, `2d00707`)** — versioned `Codable` snapshot; restore-on-launch w/ unmounted-vs-gone fallback; debounced save + sync flush on quit; drive unmount/remount. Persists per-pane **folder + sort** and **staging** (path refs). Real-app verified. 129 unit tests. **Deferred:** tabs (#38), columns/view-mode (#27/29/37) — unbuilt. `DIPTYCHON_DIR` disables persistence for tests. Split-ratio → **done in #45**. |
 | 45 | Persist pane split ratio | ✅ **done** on branch `feat/45-persist-split-ratio` (`3629835`) — `SplitPane` (bindable divider fraction, absolute-pointer drag, min-width clamp) replaces `HSplitView`; ratio round-trips via `WorkspaceState.splitRatio`. Completes #41's last AC. Real-app verified (drag→quit→reopen restores ratio + folders). **Also fixed a latent #41 quit-clobber**: duplicate `@State` model instances double-registered `willTerminate` → throwaway saved defaults on quit, wiping folder/sort too. Fix: save-side registration moved to the view's `.onAppear` (`startPersistence()`). 134 unit tests. |
 | 44 | Customizable hotkeys | ✅ **done** on branch `feat/44-customizable-hotkeys` (`d05727e`) — rebind/clear any `AppAction`, persisted overrides, Reset to Defaults. `HotkeyManager` (@Observable singleton) resolves an effective map = `Keymap.default` + overrides; **steal-and-unbind** on conflict; structural keys (Tab/↩/␣/⌫/⎋) locked + non-stealable. All consumers read the effective map (2 dispatch sites + a now-live palette hint). New Settings window (⌘,): Shortcuts recorder tab + Full Disk Access tab (FDA moved off the ⌘, menu slot). 145 tests; real-app verified. |
+| 34 | Operation Queue UI → Activity pane | 🟡 **Slice 1 done, merged** (PR #47, `5fa3683`) — non-blocking Activity pane (authored by a parallel session; further slices open, backlog Prio 2) |
+| — | **Top bar → header** — nav row (up/back/forward + breadcrumb + Filter) moved into the true top bar, right of Search | ✅ **done, merged** (PR #47, `50d1382` + WorkspaceView portion in `5fa3683`), user-verified — Filter pinned far-right; panels sit directly under the header; `topBarBand` 74→34 so top file rows still activate their panel |
 
 ---
 
@@ -148,7 +150,7 @@ are `needs-triage` unless noted.
 | Prio | Issue | Title | Rationale (evidence) |
 |------|-------|-------|----------------------|
 | 1 | 41 | Reliable state persistence | Rank-1 opportunity; underserved, no rival advertises it (N1/JTBD-1) |
-| 2 | 34 | Operation Queue UI (+ Merge/W9, bottom-left panel) | Trust feature; builds on the undo spine; Nimble gap (P5/W9) |
+| 2 | 34 | Operation Queue UI (+ Merge/W9, bottom-left panel) | Trust feature; builds on the undo spine; Nimble gap (P5/W9) — 🟡 **Slice 1 (Activity pane) merged, PR #47** |
 | 3 | 38 | Per-pane tabs | Enabler for 41's tab persistence; heaviest refactor (`PanelModel`) → do after/with 41 |
 | 4 | 42 | Text-first docs & first-run onboarding | Cheapest real moat vs Marta/Path Finder; adoption track (N3/T4) |
 | 5 | 07+ | Regex/EXIF batch-rename (extend shipped #07) | Wish W3, named "differentiator" |
@@ -724,3 +726,67 @@ All merged to `main`; merged branches deleted, `build/` gitignored (183 MB Xcode
 **Note:** PR #39 (`feat/toggle-sidebar-hotkey`) was a superset branch of #37+#38 and also merged;
 its content is fully represented by #37/#38. All four topic branches deleted post-merge.
 
+### Top bar → header + Activity pane Slice 1 (2026-07-06, PR #47 merged, `9a77399`)
+Two features shipped together in one PR — they fused when a parallel session committed
+`WorkspaceView.swift` mid-edit (see memory `concurrent-sessions-fuse-edits`).
+
+**Top bar → header (chrome).** The Active Panel's nav row — Up / back / forward + clickable
+breadcrumb + name Filter — moved out of `TopBarView`'s own row (which sat above the panels)
+into the true top bar (`WorkspaceView.headerBar`), right of the Search field. Search unchanged
+in its far-left cell; the Filter is pinned to the far-right window edge (its trailing `Spacer`).
+The panel column now sits directly under the header divider (the old second row + its divider
+removed); `TopBarView` is now a header subview. **Mouse-monitor fix:** `topBarBand` 74 → 34 —
+with one top row instead of two, the hit-test band that excludes panel re-activation shrinks to
+`header (32) + divider (1)`, so clicking the top file rows still activates their panel (a stale
+74 would have swallowed them). Build passes; new single-row top bar verified in the running app.
+Files: `WorkspaceView.swift`, `TopBarView.swift`.
+
+**Activity pane — Slice 1 (#34).** Non-blocking Activity pane, authored by a parallel session
+(commit `5fa3683`): `ActivityPanel.swift` (new), `WorkspaceModel.swift`, issue-34 doc. Merged
+here; further slices remain open (backlog Prio 2).
+
+**Process note:** the two features were inseparable by merge time because git commits by path,
+not by which session made which edit — one session's commit swept up the other's uncommitted
+work. PR #47's body flags both. Prevent with separate git worktrees for parallel sessions.
+
+
+### Landing page — redesign to Direction B (2026-07-06)
+Marketing page lives at `.scratch/landing-page/index.html` (self-contained HTML, not in git yet).
+- **Hero screenshot** rebuilt with crafted test data (Inbox → Website Redesign, `logo-final.svg`
+  selected) → `app-screenshot.png`. Harness documented in memory [[diptychon-demo-screenshot-harness]].
+- **Redesign:** current page felt like "a wild mix." Verified the two suspected layout bugs were
+  headless-screenshot artifacts (page is responsive + coherent); only real fix was bounding the
+  hero `vh` spacing. Real ask was fewer visual "gadgets" + a new direction. Explored 3 directions
+  (A light editorial / B honest-mono-utility / C bold-graphic) → **Till picked B.** Built B to
+  production: mono-forward, product-shot-first, one blue accent, gadget-consolidated (dropped the
+  keycap trio, numbered tiles, badge; removed non-sequential `01/02/03` markers).
+- Prev dark design backed up at `.scratch/landing-page/index-prev-dark.html`. A/C prototypes kept.
+- **Distribution pivot (2026-07-06):** dropped all GitHub links (source/releases/issues). Download
+  now points at a local **`Diptychon.zip`** (the ad-hoc-signed `.app` zipped, 1.44 MB) sitting next
+  to `index.html` — must be deployed alongside. All commands moved up top. Zero-backend feedback =
+  a `mailto:` compose form.
+- **Domain:** Till bought **diptychon.com** (2026-07-06; caught a `dyptichon` misspelling in the
+  registrar search first). Feedback form now wired to `feedback@diptychon.com`, **assembled in JS**
+  (no plaintext in source → scraper-resistant). Personal Gmail removed.
+- **Open:** (1) set up **Cloudflare Email Routing** on diptychon.com → `feedback@…` forwards to Till's
+  inbox (until then the address bounces); (2) deploy the page + `Diptychon.zip` to a host
+  (Cloudflare/GitHub/Netlify Pages, free HTTPS). Zip is **not notarized** (right-click-Open documented).
+  Page still not committed to git.
+  → both closed 2026-07-06/07: Email Routing live, site deployed as Worker `jolly-sky-ef76`,
+  page committed @ `a482271`. See next section + memory [[diptychon-landing-deploy]].
+
+
+### Landing page — download counter + staging wall (2026-07-07, commit `9e289e3`)
+JS analytics can't see file downloads (a zip click is a plain GET, no beacon fires), so the
+counter is server-side: page buttons point to **`/download`**, the worker increments Workers KV
+(`total` + `day:YYYY-MM-DD`, UTC) and 302s to `Diptychon.zip`. Raw GET counts, no dedupe/bot
+filter (v1); hotlinks straight to the zip bypass it. Read counts:
+`npx wrangler kv key get total --binding DOWNLOADS --remote`. Feeds **issue #48** as the
+top-of-funnel demand signal — downloads, not the request/visit noise in the CF traffic dashboard
+(day-1 "75 visits" ≈ CT-log scanner bots + own testing).
+- Deploy is now config-driven: bare `npx wrangler deploy`, config in `wrangler.jsonc`. Gotcha
+  logged: flag-only/route-less deploys **drop the www custom domain** (hit + fixed same day).
+- **Staging invisibility (Till's pick: Cloudflare Access):** dashboard-only setup on his login —
+  Zero Trust self-hosted app over both hostnames, allow-policy = his email. `workers_dev` +
+  preview URLs disabled in config so the wall can't be bypassed. Delete the Access app on launch
+  day to go public. **Open:** Till clicks this through; counter KV reset to 0 and waiting.
