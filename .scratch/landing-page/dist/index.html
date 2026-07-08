@@ -225,6 +225,29 @@
     font-size:14px;
     color:var(--ink-dim);
   }
+  .sc-groups{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  .sc-groups .shortcuts{max-width:none}
+  @media (max-width:760px){.sc-groups{grid-template-columns:1fr}}
+  .sc-h{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    padding:16px 0 8px;
+    border-bottom:1px dashed var(--line);
+  }
+  .sc-subnote{
+    font-size:12.5px;
+    color:var(--ink-faint);
+    padding:12px 0 8px;
+    line-height:1.55;
+  }
 
   /* ---------- screenshot ---------- */
   .shot{
@@ -336,28 +359,6 @@
   }
   .install li b{color:var(--ink);font-weight:500}
 
-  /* ---------- feedback ---------- */
-  .fb{margin-top:22px;max-width:560px}
-  .fb textarea{
-    width:100%;
-    font-family:var(--sans);
-    font-size:15px;
-    color:var(--ink);
-    background:var(--bg-raise);
-    border:1px solid var(--line);
-    border-radius:10px;
-    padding:12px 14px;
-    line-height:1.5;
-    resize:vertical;
-    min-height:104px;
-  }
-  .fb textarea::placeholder{color:var(--ink-faint)}
-  .fb textarea:focus{outline:none;border-color:var(--accent)}
-  .fb-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px}
-  .fb-alt{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
-  .fb-alt a{color:var(--ink-dim)}
-  .fb-alt a:hover{color:var(--accent)}
-
   /* ---------- final cta ---------- */
   .final{
     text-align:center;
@@ -410,6 +411,42 @@
     .wrap{padding-inline:18px}
     .specline{font-size:11.5px}
   }
+
+  /* ---------- notify / capture (interest signup) ---------- */
+  #notify{max-width:560px;margin-bottom:8px}
+  #notify button{font-family:var(--sans);cursor:pointer;border:1px solid transparent;background:transparent}
+  #notify .field{display:flex;gap:10px;flex-wrap:wrap}
+  #notify input[type=email]{
+    flex:1 1 240px;min-width:0;background:var(--bg-raise);border:1px solid var(--line);
+    color:var(--ink);font-family:var(--sans);font-size:15.5px;padding:13px 15px;
+    border-radius:9px;outline:none;transition:border-color .15s ease;
+  }
+  #notify input[type=email]::placeholder{color:var(--ink-faint)}
+  #notify input[type=email]:focus{border-color:var(--accent)}
+  #notify .err{color:#ff7a6b;font-family:var(--mono);font-size:12.5px;margin-top:10px;min-height:1em}
+  #notify .step{display:none}
+  #notify .step.on{display:block}
+  #notify .tick{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:13px;color:var(--accent);margin-bottom:10px}
+  #notify .ask{font-size:18px;color:var(--ink);margin:0 0 4px}
+  #notify .ask em{font-style:normal;color:var(--accent)}
+  #notify .ask-sub{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);margin:0 0 18px}
+  #notify .wishes{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--bg-raise);overflow:hidden;margin-bottom:18px}
+  #notify .wish{display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;border-top:1px solid var(--line-soft);transition:background .12s ease}
+  #notify .wish:first-child{border-top:none}
+  #notify .wish:hover{background:#17171b}
+  #notify .wish input{position:absolute;opacity:0;width:0;height:0}
+  #notify .box{width:18px;height:18px;border:1px solid #33333a;border-radius:5px;flex:none;display:grid;place-items:center;transition:border-color .12s ease}
+  #notify .box::after{content:"";width:9px;height:9px;border-radius:2px;background:var(--accent);transform:scale(0);transition:transform .12s ease}
+  #notify .wish input:checked + .box{border-color:var(--accent)}
+  #notify .wish input:checked + .box::after{transform:scale(1)}
+  #notify .wish input:focus-visible + .box{outline:2px solid var(--accent);outline-offset:2px}
+  #notify .wish-label{font-size:14.5px;color:var(--ink)}
+  #notify .wish-label .tag{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-left:8px}
+  #notify .wish.out .wish-label .tag{color:#c9803a}
+  #notify .nfy-row{display:flex;align-items:center;gap:16px}
+  #notify .skip{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
+  #notify .skip:hover{color:var(--ink-dim)}
+  #notify .done p{color:var(--ink-dim);font-size:15px;margin:0}
 </style>
 </head>
 <body>
@@ -420,7 +457,7 @@
       <img src="icon.png" alt="" width="26" height="26">
       <span>diptychon</span>
     </a>
-    <a class="nav-cta" href="/download" download>Download</a>
+    <a class="nav-cta" href="#notify">Notify me</a>
   </div>
 </nav>
 
@@ -435,14 +472,47 @@
         side by side, one keystroke to move between them, and everything is
         undoable. <strong>Native, and small: 1.4&nbsp;MB to download, 5&nbsp;MB installed.</strong>
       </p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="/download" download>Download for macOS</a>
-        <a class="btn btn-secondary" href="#feedback">Report a bug</a>
+      <div id="notify">
+        <!-- step 1 · email -->
+        <div class="step on" data-step="1">
+          <form id="notify-form" novalidate>
+            <div class="field">
+              <input type="email" id="notify-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address">
+              <button class="btn btn-primary" type="submit">Notify me at launch</button>
+            </div>
+            <div class="err" id="notify-err" role="alert"></div>
+          </form>
+        </div>
+        <!-- step 2 · wishes -->
+        <div class="step" data-step="2">
+          <div class="tick">✓&nbsp; You're on the list.</div>
+          <p class="ask">One quick thing — what would make this a <em>must-have</em> for you?</p>
+          <p class="ask-sub">Optional. Pick any. It shapes what I build next.</p>
+          <form id="notify-wishes">
+            <div class="wishes">
+              <label class="wish"><input type="checkbox" name="wish" value="persistence"><span class="box"></span><span class="wish-label">Remembers my layout &amp; sort between launches</span></label>
+              <label class="wish"><input type="checkbox" name="wish" value="keyboard"><span class="box"></span><span class="wish-label">Instant, reliable keyboard control</span></label>
+              <label class="wish"><input type="checkbox" name="wish" value="transfers"><span class="box"></span><span class="wish-label">Copy/move queue I can pause &amp; watch</span></label>
+              <label class="wish"><input type="checkbox" name="wish" value="preview"><span class="box"></span><span class="wish-label">Real file preview without opening</span></label>
+              <label class="wish"><input type="checkbox" name="wish" value="rename"><span class="box"></span><span class="wish-label">Batch rename (regex / EXIF)</span></label>
+              <label class="wish"><input type="checkbox" name="wish" value="search"><span class="box"></span><span class="wish-label">Instant local search (not Spotlight)</span></label>
+              <label class="wish out"><input type="checkbox" name="wish" value="remote"><span class="box"></span><span class="wish-label">Remote drives (SFTP / WebDAV)<span class="tag">// not planned</span></span></label>
+            </div>
+            <div class="nfy-row">
+              <button class="btn btn-secondary" type="submit">Send</button>
+              <a class="skip" href="#" id="notify-skip">skip</a>
+            </div>
+          </form>
+        </div>
+        <!-- step 3 · done -->
+        <div class="step" data-step="3">
+          <div class="tick">✓&nbsp; Got it — thank you.</div>
+          <div class="done"><p>I'll email you once, the day Diptychon is ready. Talk soon.</p></div>
+        </div>
       </div>
       <p class="specline">
         Apple&nbsp;Silicon&nbsp;&amp;&nbsp;Intel <span class="dot">·</span> macOS&nbsp;13+ <span class="dot">·</span> native&nbsp;Swift
       </p>
-      <p class="honesty">Free beta, not yet notarized by Apple.</p>
     </div>
   </header>
 
@@ -479,88 +549,68 @@
     </div>
   </section>
 
-  <section class="block">
+  <section class="block" id="shortcuts">
     <div class="wrap">
       <p class="label">Every command, one place</p>
-      <div class="shortcuts">
-        <div class="sc-row">
-          <span class="sc-act">Send to other panel</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key"><span class="hl">⌥⌘→</span></span>
+      <div class="sc-groups">
+
+        <div class="shortcuts">
+          <div class="sc-h">Panels &amp; navigation</div>
+          <div class="sc-row"><span class="sc-act">Switch active panel</span><span class="sc-lead"></span><span class="sc-key">Tab</span></div>
+          <div class="sc-row"><span class="sc-act">Open folder / file</span><span class="sc-lead"></span><span class="sc-key">Return</span></div>
+          <div class="sc-row"><span class="sc-act">Go up</span><span class="sc-lead"></span><span class="sc-key">⌘↑</span></div>
+          <div class="sc-row"><span class="sc-act">Back · Forward</span><span class="sc-lead"></span><span class="sc-key">⌘[ · ⌘]</span></div>
+          <div class="sc-row"><span class="sc-act">Go to folder</span><span class="sc-lead"></span><span class="sc-key">⌘⇧G</span></div>
+          <div class="sc-row"><span class="sc-act">Type-ahead filter</span><span class="sc-lead"></span><span class="sc-key">⌘F</span></div>
+          <div class="sc-row"><span class="sc-act">Show hidden files</span><span class="sc-lead"></span><span class="sc-key">⌘⇧.</span></div>
+          <div class="sc-row"><span class="sc-act">Show sidebar</span><span class="sc-lead"></span><span class="sc-key">⌘B</span></div>
         </div>
-        <div class="sc-row">
-          <span class="sc-act">Switch active panel</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">Tab</span>
+
+        <div class="shortcuts">
+          <div class="sc-h">File operations</div>
+          <div class="sc-row"><span class="sc-act">Copy · Paste</span><span class="sc-lead"></span><span class="sc-key">⌘C · ⌘V</span></div>
+          <div class="sc-row"><span class="sc-act">Paste as move</span><span class="sc-lead"></span><span class="sc-key">⌥⌘V</span></div>
+          <div class="sc-row"><span class="sc-act">Duplicate · Rename</span><span class="sc-lead"></span><span class="sc-key">⌘D · ⌘R</span></div>
+          <div class="sc-row"><span class="sc-act">New folder · New file</span><span class="sc-lead"></span><span class="sc-key">⌘⇧N · ⌃⌘N</span></div>
+          <div class="sc-row"><span class="sc-act">Move to Trash</span><span class="sc-lead"></span><span class="sc-key">⌘⌫</span></div>
+          <div class="sc-row"><span class="sc-act">Undo · Redo</span><span class="sc-lead"></span><span class="sc-key">⌘Z · ⇧⌘Z</span></div>
+          <div class="sc-subnote">Undo is multi-level across move, copy, trash and rename. Overwrites are the exception — Diptychon says so instead of faking an undo.</div>
         </div>
-        <div class="sc-row">
-          <span class="sc-act">Copy · Paste</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">⌘C · ⌘V</span>
+
+        <div class="shortcuts">
+          <div class="sc-h">Across panels</div>
+          <div class="sc-row"><span class="sc-act">Copy to other panel</span><span class="sc-lead"></span><span class="sc-key"><span class="hl">⌥⌘→</span> · <span class="hl">⌥⌘←</span></span></div>
+          <div class="sc-row"><span class="sc-act">Move to other panel</span><span class="sc-lead"></span><span class="sc-key"><span class="hl">⌥⇧⌘→</span> · <span class="hl">⌥⇧⌘←</span></span></div>
+          <div class="sc-subnote">The active panel is the source, the inactive one is the destination — the arrow is simply which side is inactive.</div>
         </div>
-        <div class="sc-row">
-          <span class="sc-act">Duplicate · Rename</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">⌘D · ⌘R</span>
+
+        <div class="shortcuts">
+          <div class="sc-h">Selection</div>
+          <div class="sc-row"><span class="sc-act">Select all</span><span class="sc-lead"></span><span class="sc-key">⌘A</span></div>
+          <div class="sc-row"><span class="sc-act">Clear selection</span><span class="sc-lead"></span><span class="sc-key">Esc</span></div>
+          <div class="sc-row"><span class="sc-act">Invert selection</span><span class="sc-lead"></span><span class="sc-key">⌘⇧I</span></div>
         </div>
-        <div class="sc-row">
-          <span class="sc-act">Undo · Redo</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">⌘Z · ⇧⌘Z</span>
+
+        <div class="shortcuts">
+          <div class="sc-h">Tags &amp; staging</div>
+          <div class="sc-row"><span class="sc-act">Edit Finder tags</span><span class="sc-lead"></span><span class="sc-key">⌘T</span></div>
+          <div class="sc-row"><span class="sc-act">Add to Staging</span><span class="sc-lead"></span><span class="sc-key">⌘⇧S</span></div>
+          <div class="sc-row"><span class="sc-act">Show Staging panel</span><span class="sc-lead"></span><span class="sc-key">⌘⇧B</span></div>
+          <div class="sc-row"><span class="sc-act">Remove from Staging</span><span class="sc-lead"></span><span class="sc-key">⌫</span></div>
         </div>
-        <div class="sc-row">
-          <span class="sc-act">Quick Look</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">Space</span>
+
+        <div class="shortcuts">
+          <div class="sc-h">View &amp; tools</div>
+          <div class="sc-row"><span class="sc-act">Quick Look</span><span class="sc-lead"></span><span class="sc-key">Space</span></div>
+          <div class="sc-row"><span class="sc-act">Get Info</span><span class="sc-lead"></span><span class="sc-key">⌘I</span></div>
+          <div class="sc-row"><span class="sc-act">Open With…</span><span class="sc-lead"></span><span class="sc-key">⌘Return</span></div>
+          <div class="sc-row"><span class="sc-act">Reveal in Finder</span><span class="sc-lead"></span><span class="sc-key">⇧⌘R</span></div>
+          <div class="sc-row"><span class="sc-act">Copy path</span><span class="sc-lead"></span><span class="sc-key">⌥⌘C</span></div>
+          <div class="sc-row"><span class="sc-act">Command palette</span><span class="sc-lead"></span><span class="sc-key">⌘K</span></div>
         </div>
-        <div class="sc-row">
-          <span class="sc-act">Get Info · Edit tags</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">⌘I · ⌘T</span>
-        </div>
-        <div class="sc-row">
-          <span class="sc-act">Go to folder</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">⌘⇧G</span>
-        </div>
-        <div class="sc-row">
-          <span class="sc-act">Command palette</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">⌘K</span>
-        </div>
-        <div class="sc-row">
-          <span class="sc-act">Move to Trash</span>
-          <span class="sc-lead"></span>
-          <span class="sc-key">⌘⌫</span>
-        </div>
+
       </div>
       <p class="sc-note">Finder conventions where they exist; chords where they earn their keep. Every key is rebindable — nothing to relearn.</p>
-    </div>
-  </section>
-
-  <section class="block">
-    <div class="wrap install">
-      <p class="label">Getting it · first launch</p>
-      <p>The build isn't notarized yet, so macOS Gatekeeper will hold it on first open. This takes ten seconds, once.</p>
-      <ol>
-        <li><b>Download the zip</b> and unzip it — Finder does this on double-click. Drag <b>Diptychon</b> to your Applications folder.</li>
-        <li><b>Right-click the app</b> and choose <b>Open</b> — then confirm the dialog. (A plain double-click will be blocked the first time.)</li>
-        <li><b>That's it.</b> Every launch after this one opens normally.</li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="block" id="feedback">
-    <div class="wrap install">
-      <p class="label">Found a bug?</p>
-      <p>It's an early beta, so telling me what broke is genuinely the most useful thing you can do. No account, no sign-up — it opens your mail app with the details filled in.</p>
-      <form class="fb" onsubmit="return composeFeedback(event)">
-        <textarea id="fb-text" rows="4" placeholder="What happened? What did you expect instead?" required></textarea>
-        <div class="fb-row">
-          <button type="submit" class="btn btn-primary">Write the email</button>
-          <span class="fb-alt">or reach me <a id="fb-addr" href="#">directly</a></span>
-        </div>
-      </form>
     </div>
   </section>
 
@@ -568,7 +618,7 @@
     <div class="wrap">
       <h2>Give your keyboard the file manager.</h2>
       <div class="cta-row">
-        <a class="btn btn-primary" href="/download" download>Download for macOS</a>
+        <a class="btn btn-primary" href="#notify">Notify me at launch</a>
       </div>
       <p class="specline">Apple&nbsp;Silicon&nbsp;&amp;&nbsp;Intel <span class="dot">·</span> macOS&nbsp;13+ <span class="dot">·</span> native&nbsp;Swift</p>
     </div>
@@ -580,31 +630,58 @@
   <div class="wrap foot-in">
     <span>© Diptychon — native macOS, ~1.4 MB</span>
     <span class="foot-links">
-      <a href="#feedback">Report a bug</a>
+      <a href="#shortcuts">Keyboard shortcuts</a>
       <a href="#top">Back to top</a>
     </span>
   </div>
 </footer>
 
 <script>
-  // Feedback address is assembled at runtime so the plaintext string never sits in
-  // the page source for scrapers. Zero-backend: opens the visitor's own mail app.
-  var fbUser = 'feedback', fbDomain = 'diptychon' + '.' + 'com';
-  function fbAddress(){ return fbUser + '@' + fbDomain; }
-  function composeFeedback(e){
-    e.preventDefault();
-    var body = document.getElementById('fb-text').value;
-    var url = 'mailto:' + fbAddress()
-      + '?subject=' + encodeURIComponent('Diptychon feedback')
-      + '&body=' + encodeURIComponent(body);
-    window.location.href = url;
-    return false;
-  }
-  // Fill the fallback link on load, without writing the address into static HTML.
-  document.addEventListener('DOMContentLoaded', function(){
-    var a = document.getElementById('fb-addr');
-    if (a){ a.href = 'mailto:' + fbAddress(); a.textContent = fbAddress(); }
-  });
+  // Interest capture — email now, wishes optional. Posts same-origin to the
+  // Worker's /api/notify (KV). Optimistic UI: the signup lands even if the
+  // network hiccups after we advance the step.
+  (function(){
+    var notify = document.getElementById('notify');
+    if (!notify) return;
+    var steps = notify.querySelectorAll('.step');
+    var emailEl = document.getElementById('notify-email');
+    var errEl = document.getElementById('notify-err');
+    var saved = '';
+    // Channel attribution: ?src=gads / ?src=xda / … sanitized, defaulting to 'direct'.
+    var src = ((new URLSearchParams(location.search).get('src') || 'direct')
+                .toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 40)) || 'direct';
+    function show(n){
+      steps.forEach(function(s){ s.classList.toggle('on', s.getAttribute('data-step') === String(n)); });
+    }
+    function post(payload){
+      return fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+    document.getElementById('notify-form').addEventListener('submit', function(e){
+      e.preventDefault();
+      var v = (emailEl.value || '').trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) {
+        errEl.textContent = 'That email doesn’t look right — mind checking it?';
+        emailEl.focus();
+        return;
+      }
+      errEl.textContent = ''; saved = v;
+      show(2);
+      post({ email: v, src: src }).catch(function(){});
+    });
+    document.getElementById('notify-wishes').addEventListener('submit', function(e){
+      e.preventDefault();
+      var wishes = Array.prototype.map.call(
+        notify.querySelectorAll('input[name=wish]:checked'), function(i){ return i.value; }
+      );
+      post({ email: saved, wishes: wishes }).catch(function(){});
+      show(3);
+    });
+    document.getElementById('notify-skip').addEventListener('click', function(e){ e.preventDefault(); show(3); });
+  })();
 </script>
 
 </body>

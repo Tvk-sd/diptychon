@@ -2,12 +2,30 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // Canonical host: everything funnels to the apex, which carries the
+    // Access wall — www must never serve content of its own
+    if (url.hostname === "www.diptychon.com") {
+      url.hostname = "diptychon.com";
+      return Response.redirect(url.toString(), 301);
+    }
+
     if (url.pathname === "/download") {
       if (request.method === "GET") {
         // Don't make the user wait for the bookkeeping
         ctx.waitUntil(recordDownload(env));
       }
-      return Response.redirect(new URL("/Diptychon.zip", url).toString(), 302);
+      // Serve the zip directly (no redirect hop) so an Access login
+      // round-trip can land back here and still end in the download
+      const asset = await env.ASSETS.fetch(new URL("/Diptychon.zip", url));
+      const headers = new Headers(asset.headers);
+      headers.set("content-disposition", 'attachment; filename="Diptychon.zip"');
+      return new Response(asset.body, { status: asset.status, headers });
+    }
+
+    // Interest capture (reach test): email + optional wishes → KV, keyed by
+    // email so a follow-up wishes POST updates the same signup record.
+    if (url.pathname === "/api/notify" && request.method === "POST") {
+      return handleNotify(request, env);
     }
 
     return env.ASSETS.fetch(request);
@@ -20,4 +38,47 @@ async function recordDownload(env) {
     const current = parseInt((await env.DOWNLOADS.get(key)) ?? "0", 10);
     await env.DOWNLOADS.put(key, String(current + 1));
   }
+}
+
+async function handleNotify(request, env) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ ok: false, error: "bad request" }, 400);
+  }
+  const email = String(body.email ?? "").trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254) {
+    return json({ ok: false, error: "invalid email" }, 400);
+  }
+  const key = `signup:${email}`;
+  const existing = await env.DOWNLOADS.get(key, "json");
+  const wishes = Array.isArray(body.wishes)
+    ? [...new Set(body.wishes.map((w) => String(w).slice(0, 40)))].slice(0, 12)
+    : existing?.wishes ?? [];
+  // Channel of the *first* touch wins — a later wishes POST never rewrites it.
+  const src =
+    existing?.src ??
+    (String(body.src ?? "direct").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 40) || "direct");
+  await env.DOWNLOADS.put(
+    key,
+    JSON.stringify({ ts: existing?.ts ?? new Date().toISOString(), wishes, src })
+  );
+  if (!existing) {
+    await bump(env, "signups:total");
+    await bump(env, `signups:src:${src}`);
+  }
+  return json({ ok: true });
+}
+
+async function bump(env, key) {
+  const n = parseInt((await env.DOWNLOADS.get(key)) ?? "0", 10);
+  await env.DOWNLOADS.put(key, String(n + 1));
+}
+
+function json(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 }

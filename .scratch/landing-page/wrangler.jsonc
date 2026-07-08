@@ -11,7 +11,10 @@
   ],
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    // Assets are normally served before the worker runs — that would let
+    // www bypass the canonical-host redirect for /, the zip, images
+    "run_worker_first": true
   },
   "kv_namespaces": [
     {

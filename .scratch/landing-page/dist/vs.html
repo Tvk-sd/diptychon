@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diptychon vs Marta, ForkLift, Nimble Commander &amp; Path Finder — Mac file managers compared</title>
+<meta name="description" content="An honest comparison of Diptychon against Marta, ForkLift, Nimble Commander and Path Finder: footprint, price model (one-time vs subscription), remote support, and who each dual-pane Mac file manager is really for." />
+<link rel="icon" type="image/png" href="icon.png" />
+<style>
+  :root{
+    --bg:#0b0b0d;--bg-raise:#131316;--line:#232327;--line-soft:#1b1b1f;
+    --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
+    --accent:#0a84ff;--accent-hover:#3a9bff;--good:#3fb98f;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    --maxw:940px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:var(--accent);text-decoration:none}a:hover{color:var(--accent-hover)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+  .in{max-width:var(--maxw);margin-inline:auto;padding-inline:24px}
+
+  nav{border-bottom:1px solid var(--line-soft)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:11px;color:var(--ink);font-family:var(--mono);font-size:15px}
+  .brand img{width:26px;height:26px;border-radius:7px;display:block}
+  .nav-cta{font-family:var(--mono);font-size:13.5px;color:var(--ink);border:1px solid var(--line);background:var(--bg-raise);padding:8px 15px;border-radius:8px}
+  .nav-cta:hover{border-color:var(--accent);color:var(--ink)}
+
+  header{padding:72px 0 8px}
+  .label{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 18px}
+  h1{font-size:clamp(30px,5vw,46px);line-height:1.07;letter-spacing:-.02em;font-weight:600;margin:0 0 18px;text-wrap:balance;max-width:22ch}
+  .lede{font-size:18px;color:var(--ink-dim);max-width:66ch;margin:0 0 10px}
+  .lede2{font-size:16px;color:var(--ink-faint);max-width:66ch;margin:0 0 40px}
+
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+  th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+  thead th{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);background:#101013}
+  thead th.me{color:var(--accent)}
+  tbody tr:last-child td{border-bottom:none}
+  td.row-h{font-weight:500;color:var(--ink);white-space:normal}
+  td.me{color:var(--ink);background:rgba(10,132,255,.06);font-weight:500}
+  .yes{color:var(--good)}.no{color:var(--ink-faint)}.dim{color:var(--ink-dim)}.sub{color:#d98a3d}
+  caption{caption-side:bottom;text-align:left;font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);padding:12px 2px 0;line-height:1.5}
+
+  h2{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:52px 0 4px}
+  .peer{border-top:1px solid var(--line-soft);padding:22px 0}
+  .peer h3{font-size:17px;font-weight:600;margin:0 0 6px}
+  .peer p{margin:0;color:var(--ink-dim);font-size:15px;max-width:72ch}
+  .peer .win{color:var(--good);font-family:var(--mono);font-size:12.5px}
+  .peer .edge{color:var(--ink);font-family:var(--mono);font-size:12.5px}
+
+  .forwho{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:12px;overflow:hidden;margin:44px 0 0}
+  .forwho > div{background:var(--bg);padding:24px}
+  .forwho h4{margin:0 0 12px;font-size:13px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+  .forwho .yeshead{color:var(--good)}.forwho .nohead{color:var(--ink-faint)}
+  .forwho ul{margin:0;padding-left:18px;color:var(--ink-dim);font-size:14.5px}
+  .forwho li{margin:6px 0}
+  @media(max-width:620px){.forwho{grid-template-columns:1fr}}
+
+  .cta{margin:52px 0 0;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;font-size:15.5px;font-weight:500;border-radius:9px;padding:13px 22px;background:var(--accent);color:#fff}
+  .btn:hover{background:var(--accent-hover);color:#fff}
+  .honesty{margin-top:18px;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);max-width:66ch}
+  .honesty::before{content:"//";color:#3a3a40;margin-right:8px}
+
+  footer{border-top:1px solid var(--line-soft);padding:34px 0 48px;margin-top:64px}
+  .foot-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
+  .foot-in a{color:var(--ink-dim)}.foot-in a:hover{color:var(--accent)}
+  .foot-links{display:flex;gap:22px;flex-wrap:wrap}
+  @media(max-width:760px){body{font-size:16px}header{padding:52px 0 4px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="in nav-in">
+    <a class="brand" href="/"><img src="icon.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <a class="nav-cta" href="/?src=vs">Notify me at launch</a>
+  </div>
+</nav>
+
+<header>
+  <div class="in">
+    <p class="label">Compare · macOS file managers</p>
+    <h1>Diptychon vs Marta, ForkLift, Nimble &amp; Path Finder</h1>
+    <p class="lede">There's no clear winner among Mac file managers — this segment tool-hops for a reason. Here's an honest read of where Diptychon fits, and where these (genuinely good) tools still beat it.</p>
+    <p class="lede2">Diptychon is a fast, keyboard-first dual-panel file manager: native, ~1.4&nbsp;MB, one-time purchase, no telemetry, undo anything. It's pre-launch — this page is about fit, not a claim that it's finished.</p>
+  </div>
+</header>
+
+<div class="in">
+  <div class="tablewrap">
+    <table>
+      <caption>Objective axes, verified 2026-07-07 (vendor / MacUpdate). Prices change — check the vendor before you buy. Feature nuances are in the notes below, not asserted as a grid.</caption>
+      <thead>
+        <tr><th>&nbsp;</th><th class="me">Diptychon</th><th>Marta</th><th>ForkLift&nbsp;4</th><th>Nimble&nbsp;Commander</th><th>Path&nbsp;Finder</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="row-h">Price model</td><td class="me">one-time <span class="dim">(planned)</span></td><td class="yes">free</td><td class="dim">one-time $19.95</td><td class="dim">free / $29.99 one-time Pro</td><td class="sub">subscription ~$32.95/yr</td></tr>
+        <tr><td class="row-h">Footprint</td><td class="me">~1.4 MB</td><td class="dim">small</td><td class="dim">~16.3 MB</td><td class="dim">small</td><td class="dim">heavier</td></tr>
+        <tr><td class="row-h">Native / open-source</td><td class="me">Swift, native</td><td class="dim">Swift, native</td><td class="dim">Swift, native</td><td class="dim">C++, open-source</td><td class="dim">native</td></tr>
+        <tr><td class="row-h">Dual-pane</td><td class="me yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+        <tr><td class="row-h">Remote (SFTP / WebDAV)</td><td class="me no">No — by design</td><td class="no">No</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="dim">limited</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Where each one wins (honestly)</h2>
+  <div class="peer">
+    <h3>Marta</h3>
+    <p><span class="win">Wins:</span> free, keyboard-cult-favorite, native and plain-fast. <span class="edge">Diptychon's edge:</span> undo-anything and real Finder tags, plus an actively-shipped roadmap — Marta's recurring community worry is single-developer continuity, not capability.</p>
+  </div>
+  <div class="peer">
+    <h3>ForkLift 4</h3>
+    <p><span class="win">Wins:</span> the remote powerhouse (SFTP/FTP/WebDAV/S3/cloud/SMB), folder sync, multi-rename — and a fair one-time $19.95. <span class="edge">Diptychon's edge:</span> ~1.4 MB vs ~16 MB and keyboard-first — if all you need is local, ForkLift is a lot of app.</p>
+  </div>
+  <div class="peer">
+    <h3>Nimble Commander</h3>
+    <p><span class="win">Wins:</span> blazing C++ speed, 100+ hotkeys, remote mounts, open-source. <span class="edge">Diptychon's edge:</span> gentler to learn (Nimble's curve is steep), no feature paywall in the free build, undo, native Finder tags.</p>
+  </div>
+  <div class="peer">
+    <h3>Path Finder</h3>
+    <p><span class="win">Wins:</span> the deepest, kitchen-sink power-feature set, still actively maintained. <span class="edge">Diptychon's edge:</span> Path Finder now runs on a <strong>yearly subscription</strong> (~$32.95/yr) — Diptychon's planned one-time purchase and tiny footprint is the clean contrast if you're done renting software.</p>
+  </div>
+
+  <div class="forwho">
+    <div>
+      <h4 class="yeshead">Diptychon is for you if…</h4>
+      <ul>
+        <li>You live in the keyboard and Finder feels slow.</li>
+        <li>You want native + tiny, not a web wrapper.</li>
+        <li>One-time purchase, no telemetry matters to you.</li>
+        <li>You mostly work on local (or mounted) drives.</li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="nohead">Look elsewhere if…</h4>
+      <ul>
+        <li>Your core job is remote servers → ForkLift or Nimble.</li>
+        <li>You want the deepest feature set → Path Finder.</li>
+        <li>Free-forever is a hard requirement → Marta.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cta">
+    <a class="btn" href="/?src=vs">Notify me at launch →</a>
+  </div>
+  <p class="honesty">Made by one person, not a company. This page cedes what the others do better on purpose — if it fits, leave your email and I'll ping you the day it's ready.</p>
+</div>
+
+<footer>
+  <div class="in foot-in">
+    <span>© Diptychon — native macOS, ~1.4 MB</span>
+    <span class="foot-links">
+      <a href="/">Home</a>
+      <a href="/?src=vs">Notify me</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>

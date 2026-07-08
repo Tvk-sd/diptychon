@@ -30,16 +30,21 @@ Not for: casual Finder users who don't feel the pain. The page should *filter*, 
 **Goal:** visitor tries Diptychon.
 **One primary CTA.** Everything else is secondary.
 
-**✅ CTA decided (D1 = option b):** a real **"Download for macOS"** button →
-a signed/notarized `.dmg` published on **GitHub Releases**. Low friction, honest,
-matches the "try it" goal.
+**🔄 CTA superseded (D1 revised 2026-07-07 — see `context/reach-test.md`):** the primary
+CTA is now **"Notify me at launch"** — an email capture + optional wishes micro-survey,
+**not** a download. Reason: the un-notarized `.dmg`/`.zip` is `spctl: rejected` and modern
+macOS *trashes* it on open, so a download CTA would burn traffic (and the one-shot
+r/macapps + HN channels) on a broken funnel. We capture convertible interest + build a
+warm list now, and switch back to a real download **after** notarization. Implemented in
+`index.html` (`#notify`) + `src/worker.js` (`/api/notify` → KV `signup:` keys).
 
-### ⚠️ Prerequisite this CTA depends on (see §7 D1)
-A `.dmg` must actually exist on GitHub Releases, and it should be **signed + notarized**
-(Apple Developer account, ~$99/yr) so Gatekeeper opens it cleanly. Un-notarized still
-works but forces a right-click→Open workaround — which dents the "simple" promise.
-**This build/release work is the real blocker, not the page.** Page ships the moment
-the `.dmg` link is live.
+### ⚠️ Prerequisites for the capture CTA
+- **Cloudflare Access wall must come off** the apex (or a bypass policy added) — a gated
+  page has zero reach and blocks `/api/notify`.
+- The old download path (`/download`, notarized `.dmg`) is **deferred, not deleted** — the
+  Worker still serves `/download` for direct-link testers; the page just no longer features
+  it. Restore it as the primary CTA once the $99 notarization ships (that's still the real
+  blocker for a *download* launch — but it no longer blocks the *reach test*).
 
 ## 4. Page structure (single scroll, ~5 blocks)
 
@@ -95,8 +100,8 @@ the **learning curve**. So the page must actively *defuse* it, not just claim "w
 
 ## 7. Open decisions (need Till)
 
-**D1 — Primary CTA / how to "try it". ✅ DECIDED = (b).**
-  Real **"Download for macOS"** button → signed/notarized `.dmg` on GitHub Releases.
+**D1 — Primary CTA / how to "try it". 🔄 REVISED 2026-07-07 → now (c) capture** (see top of doc + `context/reach-test.md`). The download can't ship un-notarized (macOS trashes it), so the page's job is temporarily "capture convertible interest," reverting to "try/download" post-notarization. Original (b) decision, kept for the record:
+  ~~Real **"Download for macOS"** button → signed/notarized `.dmg` on GitHub Releases.~~
   - **Depends on:** a packaged build existing on GitHub Releases. Signing + notarization
     (Apple Developer account, ~$99/yr) strongly recommended so Gatekeeper opens it cleanly.
   - **Fallback if the build slips:** temporarily point the button at the GitHub repo /
