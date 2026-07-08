@@ -105,26 +105,33 @@ defended by saying no:
 ## 4. Footprint & performance
 
 ### Footprint — a first-class differentiator
-The release `.app` is **~1.5 MB** (arm64; the bundle is essentially one binary —
-no embedded frameworks, no asset catalog), ~365 KB zipped. A **universal** build
-(Apple Silicon + Intel) roughly doubles the binary to **~3 MB**; signing/
-notarization adds almost nothing. So the honest headline is **"~3 MB universal."**
+**Measured on the actually-shipped Release build (2026-07-08, `dist/Diptychon.zip`):**
+it's a **universal** binary (Intel `x86_64` **+** Apple Silicon `arm64`) and *still* tiny:
+- **Download (.zip): ~1.37 MB**
+- **Installed (.app): ~5.4 MB** (the universal Mach-O is ~5.27 MB — both slices)
+
+The site's public claim — **"1.4 MB download, 5 MB installed"** — is **accurate**. (An
+earlier version of this section estimated "~1.5 MB arm64 / ~3 MB universal / ~365 KB
+zipped" — that was wrong; the real *universal* build zips to 1.37 MB. This is the
+corrected, measured figure.)
 
 Why it's this small: pure Swift / SwiftUI / AppKit linking the system frameworks —
-no bundled runtime, no Chromium. This is the most *visceral* proof of the
-"lightweight" thesis — it makes the positioning tangible instead of a slogan.
+no bundled runtime, no Chromium. A **universal** build that still downloads at ~1.4 MB
+is a *stronger* flex than an arm64-only one — the most *visceral* proof of the
+"lightweight" thesis, and it makes the positioning tangible instead of a slogan.
 
-| App | Approx. download size | Stack |
+| App | Approx. download | Stack |
 |---|---|---|
-| **Diptychon** | **~1.5 MB (arm64) / ~3 MB universal** | native Swift/SwiftUI/AppKit |
+| **Diptychon** | **~1.4 MB** (universal `.zip`) | native Swift/SwiftUI/AppKit |
+| ForkLift 4 | **~16.3 MB** (verified) | native Swift |
 | Marta | ~10–15 MB ❔ | native |
 | Nimble Commander | ~20 MB+ ❔ | native |
-| ForkLift | ~30–40 MB ❔ | native |
 | Path Finder | ~30–60 MB ❔ | native |
 | (any Electron file manager) | 100–200 MB+ | bundled Chromium |
 
-> ❔ Competitor sizes are from memory — **verify before publishing**. The
-> Diptychon figure is measured (Release build, 2026-06-24).
+> Diptychon = measured 2026-07-08. ForkLift = MacUpdate (verified — see
+> `competitor-facts.md`). Other competitor sizes are still estimates (❔) —
+> **verify before publishing.**
 
 **What size proves:** native + lightweight. **What it does *not* prove:** runtime
 speed — don't let the two blur.
