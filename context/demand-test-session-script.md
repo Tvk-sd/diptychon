@@ -5,8 +5,6 @@
 > to be said close to verbatim. ~30–40 min.
 
 ## Before they arrive
-- [ ] App **installed and running** on their Mac (you drove `xattr`/right-click→Open).
-      Log any install friction *here*, then set it aside — it is **not** the demand read.
 - [ ] Ask to **record** (screen + audio): *"Mind if I record? Only for my own notes."*
 - [ ] Have them pick **their own real folder** to work in (Downloads, a project, photos).
       Never your demo files.
