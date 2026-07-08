@@ -6,21 +6,112 @@
 <title>Diptychon — move files at the speed of your keyboard</title>
 <meta name="description" content="Diptychon is a fast, keyboard-first dual-panel file manager for macOS. Two folders side by side, move files with one keystroke, undo anything. Native, 1.4 MB download." />
 <link rel="icon" type="image/png" href="icon.png" />
+<script>
+  // Apply a saved theme override before first paint (no flash). Default: system.
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
 <style>
+  /* Theme tokens. Light is the base; dark redefines via media query, and an
+     explicit data-theme (set by the nav toggle, persisted in localStorage)
+     must win in BOTH directions — hence the duplicated blocks below. */
   :root{
-    --bg:#0b0b0d;
-    --bg-raise:#131316;
-    --line:#232327;
-    --line-soft:#1b1b1f;
-    --ink:#f2f1ec;          /* warm off-white */
-    --ink-dim:#a4a3a0;
-    --ink-faint:#6d6c6a;
-    --accent:#0a84ff;
-    --accent-hover:#3a9bff;
+    color-scheme:light;
+    --bg:#f6f6f4;
+    --bg-raise:#ffffff;
+    --bg-inset:#efefec;
+    --hover:#f1f1ee;
+    --line:#d9d9d4;
+    --line-soft:#d8d8d2;
+    --line-strong:#c9c9c4;
+    --leader:#d8d8d3;
+    --ink:#1a1a1c;
+    --ink-dim:#52525a;
+    --ink-faint:#6b6b70;
+    --accent:#0066d6;
+    --accent-hover:#0a84ff;
+    --err:#b3362a;
+    --warn:#a05f1d;
+    --nav-bg:rgba(246,246,244,.8);
+    --selection:rgba(10,132,255,.22);
+    --selection-ink:#1a1a1c;
+    --shot-shadow:0 40px 90px -50px rgba(25,25,35,.4),0 2px 0 rgba(255,255,255,.65) inset;
     --radius:10px;
     --mono:ui-monospace,"SF Mono",Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
     --maxw:1080px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      color-scheme:dark;
+      --bg:#0b0b0d;
+      --bg-raise:#131316;
+      --bg-inset:#101013;
+      --hover:#17171b;
+      --line:#232327;
+      --line-soft:#303038;
+      --line-strong:#33333a;
+      --leader:#2a2a2f;
+      --ink:#f2f1ec;          /* warm off-white */
+      --ink-dim:#a4a3a0;
+      --ink-faint:#6d6c6a;
+      --accent:#0a84ff;
+      --accent-hover:#3a9bff;
+      --err:#ff7a6b;
+      --warn:#c9803a;
+      --nav-bg:rgba(11,11,13,.78);
+      --selection:rgba(10,132,255,.28);
+      --selection-ink:#fff;
+      --shot-shadow:0 40px 90px -50px rgba(0,0,0,.9),0 2px 0 rgba(255,255,255,.02) inset;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0b0b0d;
+    --bg-raise:#131316;
+    --bg-inset:#101013;
+    --hover:#17171b;
+    --line:#232327;
+    --line-soft:#303038;
+    --line-strong:#33333a;
+    --leader:#2a2a2f;
+    --ink:#f2f1ec;
+    --ink-dim:#a4a3a0;
+    --ink-faint:#6d6c6a;
+    --accent:#0a84ff;
+    --accent-hover:#3a9bff;
+    --err:#ff7a6b;
+    --warn:#c9803a;
+    --nav-bg:rgba(11,11,13,.78);
+    --selection:rgba(10,132,255,.28);
+    --selection-ink:#fff;
+    --shot-shadow:0 40px 90px -50px rgba(0,0,0,.9),0 2px 0 rgba(255,255,255,.02) inset;
+  }
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --bg:#f6f6f4;
+    --bg-raise:#ffffff;
+    --bg-inset:#efefec;
+    --hover:#f1f1ee;
+    --line:#d9d9d4;
+    --line-soft:#d8d8d2;
+    --line-strong:#c9c9c4;
+    --leader:#d8d8d3;
+    --ink:#1a1a1c;
+    --ink-dim:#52525a;
+    --ink-faint:#6b6b70;
+    --accent:#0066d6;
+    --accent-hover:#0a84ff;
+    --err:#b3362a;
+    --warn:#a05f1d;
+    --nav-bg:rgba(246,246,244,.8);
+    --selection:rgba(10,132,255,.22);
+    --selection-ink:#1a1a1c;
+    --shot-shadow:0 40px 90px -50px rgba(25,25,35,.4),0 2px 0 rgba(255,255,255,.65) inset;
   }
 
   *{box-sizing:border-box}
@@ -41,7 +132,7 @@
   a{color:var(--accent);text-decoration:none}
   a:hover{color:var(--accent-hover)}
 
-  ::selection{background:rgba(10,132,255,.28);color:#fff}
+  ::selection{background:var(--selection);color:var(--selection-ink)}
 
   :focus-visible{
     outline:2px solid var(--accent);
@@ -54,6 +145,17 @@
     max-width:var(--maxw);
     margin-inline:auto;
     padding-inline:24px;
+  }
+
+  /* the lattice rails: two hairlines bounding the content column, viewport-tall */
+  .rails{
+    position:fixed;
+    top:0;bottom:0;left:0;right:0;
+    margin-inline:auto;
+    width:min(var(--maxw),100% - 36px);
+    border-inline:1px solid var(--line-soft);
+    pointer-events:none;
+    z-index:0;
   }
 
   /* mono micro-label motif — the single recurring accent style */
@@ -72,7 +174,7 @@
     color:var(--ink);
     background:var(--bg-raise);
     border:1px solid var(--line);
-    border-bottom-color:#2c2c31;
+    border-bottom-color:var(--line-strong);
     border-radius:5px;
     padding:.12em .42em;
     white-space:nowrap;
@@ -83,7 +185,7 @@
     position:sticky;
     top:0;
     z-index:20;
-    background:rgba(11,11,13,.78);
+    background:var(--nav-bg);
     backdrop-filter:saturate(160%) blur(14px);
     -webkit-backdrop-filter:saturate(160%) blur(14px);
     border-bottom:1px solid var(--line-soft);
@@ -110,16 +212,46 @@
     display:block;
   }
   .nav-cta{
-    font-family:var(--mono);
     font-size:13.5px;
-    color:var(--ink);
-    border:1px solid var(--line);
-    background:var(--bg-raise);
+    font-weight:500;
+    color:#fff;
+    background:var(--accent);
+    border:1px solid transparent;
     padding:8px 15px;
     border-radius:8px;
+    transition:background .15s ease;
+  }
+  .nav-cta:hover{background:var(--accent-hover);color:#fff}
+  .nav-right{display:flex;align-items:center;gap:10px}
+  .theme-toggle{
+    display:grid;place-items:center;
+    width:36px;height:36px;padding:0;
+    color:var(--ink-dim);
+    background:var(--bg-raise);
+    border:1px solid var(--line);
+    border-radius:8px;cursor:pointer;
     transition:border-color .15s ease,color .15s ease;
   }
-  .nav-cta:hover{border-color:var(--accent);color:var(--ink)}
+  .theme-toggle:hover{border-color:var(--line-strong);color:var(--ink)}
+  .theme-toggle svg{width:16px;height:16px;display:block}
+  /* show the icon of the theme you'd switch TO */
+  .tt-sun{display:none}
+  .tt-moon{display:block}
+  @media (prefers-color-scheme:dark){
+    .tt-sun{display:block}
+    .tt-moon{display:none}
+  }
+  :root[data-theme="dark"] .tt-sun{display:block}
+  :root[data-theme="dark"] .tt-moon{display:none}
+  :root[data-theme="light"] .tt-sun{display:none}
+  :root[data-theme="light"] .tt-moon{display:block}
+
+  body,nav,.shortcuts,.shot-frame,kbd,.nav-cta,.theme-toggle{
+    transition:background-color .25s ease,border-color .25s ease,color .25s ease;
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition:none!important;animation:none!important}
+  }
 
   /* ---------- hero ---------- */
   .hero{
@@ -151,11 +283,14 @@
   .btn{
     display:inline-flex;
     align-items:center;
+    justify-content:center;
     gap:9px;
     font-size:15.5px;
     font-weight:500;
+    border:1px solid transparent;
     border-radius:9px;
     padding:13px 22px;
+    cursor:pointer;
     transition:background .15s ease,border-color .15s ease,color .15s ease;
   }
   .btn-primary{
@@ -171,7 +306,7 @@
     font-family:var(--mono);
     font-size:14px;
   }
-  .btn-secondary:hover{border-color:#3a3a40;color:var(--ink)}
+  .btn-secondary:hover{border-color:var(--line-strong);color:var(--ink)}
 
   .specline{
     font-family:var(--mono);
@@ -179,7 +314,7 @@
     letter-spacing:.04em;
     color:var(--ink-faint);
   }
-  .specline .dot{color:#3a3a40;padding:0 2px}
+  .specline .dot{color:var(--leader);padding:0 2px}
   .honesty{
     margin-top:10px;
     font-family:var(--mono);
@@ -189,17 +324,17 @@
   }
   .honesty::before{
     content:"//";
-    color:#3a3a40;
+    color:var(--leader);
     margin-right:8px;
   }
 
-  /* ---------- shortcuts list (commands, up top) ---------- */
-  .shortcuts{
-    border:1px solid var(--line);
-    border-radius:12px;
-    background:var(--bg-raise);
-    padding:8px 22px;
-    max-width:680px;
+  /* ---------- command panel (the app's panel as a page element) ---------- */
+  .cmd-band{border-block:1px solid var(--line-soft)}
+  .cmd-scroll{
+    max-height:min(480px,68vh);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding-bottom:14px;
   }
   .sc-row{
     display:flex;
@@ -214,7 +349,7 @@
   .sc-act{color:var(--ink);white-space:nowrap}
   .sc-lead{
     flex:1;
-    border-bottom:1px dotted #2a2a2f;
+    border-bottom:1px dotted var(--leader);
     transform:translateY(-4px);
     min-width:14px;
   }
@@ -225,15 +360,11 @@
     font-size:14px;
     color:var(--ink-dim);
   }
-  .sc-groups{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
-    align-items:start;
-  }
-  .sc-groups .shortcuts{max-width:none}
-  @media (max-width:760px){.sc-groups{grid-template-columns:1fr}}
   .sc-h{
+    position:sticky;
+    top:0;
+    z-index:1;
+    background:var(--bg);
     font-family:var(--mono);
     font-size:11.5px;
     letter-spacing:.09em;
@@ -254,20 +385,13 @@
     padding:12px 0 20px;
   }
   .shot-frame{
-    border:1px solid var(--line);
-    border-radius:14px;
-    background:var(--bg-raise);
-    padding:10px;
-    box-shadow:0 40px 90px -50px rgba(0,0,0,.9),
-               0 2px 0 rgba(255,255,255,.02) inset;
+    border:1px solid var(--line-soft);
   }
   .shot-frame img{
     display:block;
     width:100%;
     max-width:100%;
     height:auto;
-    border-radius:7px;
-    border:1px solid var(--line-soft);
   }
   .caption{
     margin:16px 2px 0;
@@ -288,16 +412,13 @@
   .why-grid{
     display:grid;
     grid-template-columns:repeat(3,1fr);
-    gap:1px;
-    background:var(--line-soft);
-    border:1px solid var(--line-soft);
-    border-radius:12px;
-    overflow:hidden;
   }
   .why{
-    background:var(--bg);
-    padding:30px 26px 32px;
+    padding:26px 26px 6px;
+    border-left:1px solid var(--line-soft);
   }
+  .why:first-child{border-left:none;padding-left:0}
+  .why:last-child{padding-right:0}
   .why h3{
     font-size:19px;
     font-weight:600;
@@ -403,6 +524,8 @@
     body{font-size:16px}
     .hero{padding:64px 0 32px}
     .why-grid{grid-template-columns:1fr}
+    .why{border-left:none;border-top:1px solid var(--line-soft);padding-inline:0}
+    .why:first-child{border-top:none;padding-top:0}
     section.block{padding:56px 0}
     .btn{flex:1 1 auto;justify-content:center}
     .nav-cta{padding:7px 12px;font-size:12.5px}
@@ -413,8 +536,18 @@
   }
 
   /* ---------- notify / capture (interest signup) ---------- */
-  #notify{max-width:560px;margin-bottom:8px}
-  #notify button{font-family:var(--sans);cursor:pointer;border:1px solid transparent;background:transparent}
+  /* a lattice band: full-bleed cross rules above and below, no card */
+  .nfy-band{border-block:1px solid var(--line-soft)}
+  #notify{
+    max-width:620px;
+    padding:24px 0 20px;
+  }
+  .hero .specline{margin-top:20px}
+  #notify .nfy-context{
+    font-size:15px;color:var(--ink-dim);margin:0 0 14px;max-width:54ch;
+  }
+  #notify .nfy-context strong{color:var(--ink);font-weight:500}
+  #notify button{font-family:var(--sans)}
   #notify .field{display:flex;gap:10px;flex-wrap:wrap}
   #notify input[type=email]{
     flex:1 1 240px;min-width:0;background:var(--bg-raise);border:1px solid var(--line);
@@ -423,26 +556,26 @@
   }
   #notify input[type=email]::placeholder{color:var(--ink-faint)}
   #notify input[type=email]:focus{border-color:var(--accent)}
-  #notify .err{color:#ff7a6b;font-family:var(--mono);font-size:12.5px;margin-top:10px;min-height:1em}
+  #notify .err{color:var(--err);font-family:var(--mono);font-size:12.5px;margin-top:10px;min-height:1em}
   #notify .step{display:none}
   #notify .step.on{display:block}
   #notify .tick{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:13px;color:var(--accent);margin-bottom:10px}
   #notify .ask{font-size:18px;color:var(--ink);margin:0 0 4px}
   #notify .ask em{font-style:normal;color:var(--accent)}
   #notify .ask-sub{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);margin:0 0 18px}
-  #notify .wishes{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--bg-raise);overflow:hidden;margin-bottom:18px}
+  #notify .wishes{display:flex;flex-direction:column;border-block:1px solid var(--line-soft);margin-bottom:18px}
   #notify .wish{display:flex;align-items:center;gap:13px;padding:13px 16px;cursor:pointer;border-top:1px solid var(--line-soft);transition:background .12s ease}
   #notify .wish:first-child{border-top:none}
-  #notify .wish:hover{background:#17171b}
+  #notify .wish:hover{background:var(--hover)}
   #notify .wish input{position:absolute;opacity:0;width:0;height:0}
-  #notify .box{width:18px;height:18px;border:1px solid #33333a;border-radius:5px;flex:none;display:grid;place-items:center;transition:border-color .12s ease}
+  #notify .box{width:18px;height:18px;border:1px solid var(--line-strong);border-radius:5px;flex:none;display:grid;place-items:center;transition:border-color .12s ease}
   #notify .box::after{content:"";width:9px;height:9px;border-radius:2px;background:var(--accent);transform:scale(0);transition:transform .12s ease}
   #notify .wish input:checked + .box{border-color:var(--accent)}
   #notify .wish input:checked + .box::after{transform:scale(1)}
   #notify .wish input:focus-visible + .box{outline:2px solid var(--accent);outline-offset:2px}
   #notify .wish-label{font-size:14.5px;color:var(--ink)}
   #notify .wish-label .tag{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-left:8px}
-  #notify .wish.out .wish-label .tag{color:#c9803a}
+  #notify .wish.out .wish-label .tag{color:var(--warn)}
   #notify .nfy-row{display:flex;align-items:center;gap:16px}
   #notify .skip{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
   #notify .skip:hover{color:var(--ink-dim)}
@@ -451,13 +584,21 @@
 </head>
 <body>
 
+<div class="rails" aria-hidden="true"></div>
+
 <nav>
   <div class="wrap nav-in">
     <a class="brand" href="#top" aria-label="Diptychon home">
       <img src="icon.png" alt="" width="26" height="26">
       <span>diptychon</span>
     </a>
-    <a class="nav-cta" href="#notify">Notify me</a>
+    <span class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+        <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
+      </button>
+      <a class="nav-cta" href="#notify">Email me at launch</a>
+    </span>
   </div>
 </nav>
 
@@ -472,22 +613,26 @@
         side by side, one keystroke to move between them, and everything is
         undoable. <strong>Native, and small: 1.4&nbsp;MB to download, 5&nbsp;MB installed.</strong>
       </p>
+    </div>
+    <div class="nfy-band">
+    <div class="wrap">
       <div id="notify">
         <!-- step 1 · email -->
         <div class="step on" data-step="1">
+          <p class="nfy-context">Diptychon isn't released yet. Leave your email and you'll get <strong>one email on launch day</strong> — no newsletter, nothing else.</p>
           <form id="notify-form" novalidate>
             <div class="field">
               <input type="email" id="notify-email" placeholder="you@example.com" autocomplete="email" aria-label="Email address">
-              <button class="btn btn-primary" type="submit">Notify me at launch</button>
+              <button class="btn btn-primary" type="submit">Email me at launch</button>
             </div>
             <div class="err" id="notify-err" role="alert"></div>
           </form>
         </div>
         <!-- step 2 · wishes -->
         <div class="step" data-step="2">
-          <div class="tick">✓&nbsp; You're on the list.</div>
-          <p class="ask">One quick thing — what would make this a <em>must-have</em> for you?</p>
-          <p class="ask-sub">Optional. Pick any. It shapes what I build next.</p>
+          <div class="tick">✓&nbsp; Done — one email, on launch day.</div>
+          <p class="ask">While you're here: what would make Diptychon a <em>must-have</em> for you?</p>
+          <p class="ask-sub">Optional — it decides what gets built first. Skipping changes nothing.</p>
           <form id="notify-wishes">
             <div class="wishes">
               <label class="wish"><input type="checkbox" name="wish" value="persistence"><span class="box"></span><span class="wish-label">Remembers my layout &amp; sort between launches</span></label>
@@ -499,8 +644,8 @@
               <label class="wish out"><input type="checkbox" name="wish" value="remote"><span class="box"></span><span class="wish-label">Remote drives (SFTP / WebDAV)<span class="tag">// not planned</span></span></label>
             </div>
             <div class="nfy-row">
-              <button class="btn btn-secondary" type="submit">Send</button>
-              <a class="skip" href="#" id="notify-skip">skip</a>
+              <button class="btn btn-secondary" type="submit">Send picks</button>
+              <a class="skip" href="#" id="notify-skip">skip — I'm done</a>
             </div>
           </form>
         </div>
@@ -510,6 +655,9 @@
           <div class="done"><p>I'll email you once, the day Diptychon is ready. Talk soon.</p></div>
         </div>
       </div>
+    </div>
+    </div>
+    <div class="wrap">
       <p class="specline">
         Apple&nbsp;Silicon&nbsp;&amp;&nbsp;Intel <span class="dot">·</span> macOS&nbsp;13+ <span class="dot">·</span> native&nbsp;Swift
       </p>
@@ -552,9 +700,12 @@
   <section class="block" id="shortcuts">
     <div class="wrap">
       <p class="label">Every command, one place</p>
-      <div class="sc-groups">
+    </div>
+    <div class="cmd-band">
+    <div class="wrap">
+      <div class="cmd-scroll" role="region" aria-label="All Diptychon commands, scrollable" tabindex="0">
 
-        <div class="shortcuts">
+        <div class="cmd-group">
           <div class="sc-h">Panels &amp; navigation</div>
           <div class="sc-row"><span class="sc-act">Switch active panel</span><span class="sc-lead"></span><span class="sc-key">Tab</span></div>
           <div class="sc-row"><span class="sc-act">Open folder / file</span><span class="sc-lead"></span><span class="sc-key">Return</span></div>
@@ -566,7 +717,22 @@
           <div class="sc-row"><span class="sc-act">Show sidebar</span><span class="sc-lead"></span><span class="sc-key">⌘B</span></div>
         </div>
 
-        <div class="shortcuts">
+        <div class="cmd-group">
+          <div class="sc-h">Selection</div>
+          <div class="sc-row"><span class="sc-act">Select all</span><span class="sc-lead"></span><span class="sc-key">⌘A</span></div>
+          <div class="sc-row"><span class="sc-act">Clear selection</span><span class="sc-lead"></span><span class="sc-key">Esc</span></div>
+          <div class="sc-row"><span class="sc-act">Invert selection</span><span class="sc-lead"></span><span class="sc-key">⌘⇧I</span></div>
+        </div>
+
+        <div class="cmd-group">
+          <div class="sc-h">Tags &amp; staging</div>
+          <div class="sc-row"><span class="sc-act">Edit Finder tags</span><span class="sc-lead"></span><span class="sc-key">⌘T</span></div>
+          <div class="sc-row"><span class="sc-act">Add to Staging</span><span class="sc-lead"></span><span class="sc-key">⌘⇧S</span></div>
+          <div class="sc-row"><span class="sc-act">Show Staging panel</span><span class="sc-lead"></span><span class="sc-key">⌘⇧B</span></div>
+          <div class="sc-row"><span class="sc-act">Remove from Staging</span><span class="sc-lead"></span><span class="sc-key">⌫</span></div>
+        </div>
+
+        <div class="cmd-group">
           <div class="sc-h">File operations</div>
           <div class="sc-row"><span class="sc-act">Copy · Paste</span><span class="sc-lead"></span><span class="sc-key">⌘C · ⌘V</span></div>
           <div class="sc-row"><span class="sc-act">Paste as move</span><span class="sc-lead"></span><span class="sc-key">⌥⌘V</span></div>
@@ -577,29 +743,14 @@
           <div class="sc-subnote">Undo is multi-level across move, copy, trash and rename. Overwrites are the exception — Diptychon says so instead of faking an undo.</div>
         </div>
 
-        <div class="shortcuts">
+        <div class="cmd-group">
           <div class="sc-h">Across panels</div>
           <div class="sc-row"><span class="sc-act">Copy to other panel</span><span class="sc-lead"></span><span class="sc-key"><span class="hl">⌥⌘→</span> · <span class="hl">⌥⌘←</span></span></div>
           <div class="sc-row"><span class="sc-act">Move to other panel</span><span class="sc-lead"></span><span class="sc-key"><span class="hl">⌥⇧⌘→</span> · <span class="hl">⌥⇧⌘←</span></span></div>
           <div class="sc-subnote">The active panel is the source, the inactive one is the destination — the arrow is simply which side is inactive.</div>
         </div>
 
-        <div class="shortcuts">
-          <div class="sc-h">Selection</div>
-          <div class="sc-row"><span class="sc-act">Select all</span><span class="sc-lead"></span><span class="sc-key">⌘A</span></div>
-          <div class="sc-row"><span class="sc-act">Clear selection</span><span class="sc-lead"></span><span class="sc-key">Esc</span></div>
-          <div class="sc-row"><span class="sc-act">Invert selection</span><span class="sc-lead"></span><span class="sc-key">⌘⇧I</span></div>
-        </div>
-
-        <div class="shortcuts">
-          <div class="sc-h">Tags &amp; staging</div>
-          <div class="sc-row"><span class="sc-act">Edit Finder tags</span><span class="sc-lead"></span><span class="sc-key">⌘T</span></div>
-          <div class="sc-row"><span class="sc-act">Add to Staging</span><span class="sc-lead"></span><span class="sc-key">⌘⇧S</span></div>
-          <div class="sc-row"><span class="sc-act">Show Staging panel</span><span class="sc-lead"></span><span class="sc-key">⌘⇧B</span></div>
-          <div class="sc-row"><span class="sc-act">Remove from Staging</span><span class="sc-lead"></span><span class="sc-key">⌫</span></div>
-        </div>
-
-        <div class="shortcuts">
+        <div class="cmd-group">
           <div class="sc-h">View &amp; tools</div>
           <div class="sc-row"><span class="sc-act">Quick Look</span><span class="sc-lead"></span><span class="sc-key">Space</span></div>
           <div class="sc-row"><span class="sc-act">Get Info</span><span class="sc-lead"></span><span class="sc-key">⌘I</span></div>
@@ -610,6 +761,9 @@
         </div>
 
       </div>
+    </div>
+    </div>
+    <div class="wrap">
       <p class="sc-note">Finder conventions where they exist; chords where they earn their keep. Every key is rebindable — nothing to relearn.</p>
     </div>
   </section>
@@ -618,7 +772,7 @@
     <div class="wrap">
       <h2>Give your keyboard the file manager.</h2>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#notify">Notify me at launch</a>
+        <a class="btn btn-primary" href="#notify">Email me at launch</a>
       </div>
       <p class="specline">Apple&nbsp;Silicon&nbsp;&amp;&nbsp;Intel <span class="dot">·</span> macOS&nbsp;13+ <span class="dot">·</span> native&nbsp;Swift</p>
     </div>
@@ -637,6 +791,21 @@
 </footer>
 
 <script>
+  // Theme toggle: flips to the opposite of the currently effective theme and
+  // persists the override. No override = follow the system.
+  (function(){
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var effective = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = effective === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+    });
+  })();
+
   // Interest capture — email now, wishes optional. Posts same-origin to the
   // Worker's /api/notify (KV). Optimistic UI: the signup lands even if the
   // network hiccups after we advance the step.
