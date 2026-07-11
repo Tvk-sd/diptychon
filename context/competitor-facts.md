@@ -67,3 +67,8 @@ footprint. → *Angle:* Path Finder going **subscription** is a gift for the ant
 - ForkLift 4 — [binarynights.com](https://binarynights.com/), [techrevue review](https://techrevue.com/software/forklift-4-mac-review-alternatives/), [mqdir price note](https://mqdir.com/blog/file-management/finder-vs-forklift)
 - Nimble Commander — [magnumbytes.com](https://magnumbytes.com/), [Mac App Store](https://apps.apple.com/us/app/nimble-commander/id905202937?mt=12), [GitHub](https://github.com/mikekazakov/nimble-commander)
 - Path Finder — [cocoatech.io](https://cocoatech.io/product/path-finder/), [store/updates](https://store.cocoatech.io/updates), [mqdir 2026](https://mqdir.com/blog/file-management/best-finder-alternatives-2026)
+
+## Re-verification 2026-07-11 (fetched live for the /vs page)
+- **Prices, vendor-direct:** ForkLift **$19.95** single (binarynights.com/store) · Path Finder **$32.95 / 1-Year License** (cocoatech.io) · Nimble Commander **free & open-source** (magnumbytes.com). Marta price not shown on marta.sh; Marta free + Nimble Pro $29.99 remain MacUpdate-verified from 2026-07-07 (Apple MAS rate-limited the check).
+- **Download sizes (new — the /vs footprint row now uses numbers, not "small/heavier"):** Marta **10.7 MB** (MacUpdate) · Nimble Commander **15.0 MB** (GitHub release asset v1.8.0, authoritative) · ForkLift **16.3 MB** (MacUpdate) · Path Finder **19.4 MB** (MacUpdate) · Diptychon **1.4 MB** (measured release zip).
+- Note: Path Finder shows **$32.95/yr** on cocoatech.io — the summary table above says $29.95/yr; vendor page wins, /vs uses $32.95.
