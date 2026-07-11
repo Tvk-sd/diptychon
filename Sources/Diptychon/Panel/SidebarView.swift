@@ -56,6 +56,8 @@ struct SidebarView: View {
     let model: WorkspaceModel
     /// True while a drag hovers the sidebar — highlights the drop zone.
     @State private var dropTargeted = false
+    /// The device row the mouse is over — shows that row's eject button (issue 51).
+    @State private var hoveredDeviceURL: URL?
 
     private let places = SidebarPlace.standard
 
@@ -142,8 +144,31 @@ struct SidebarView: View {
     /// to the volume root and the row highlights when the panel sits on it. `row`
     /// re-checks the path at click time, so a volume ejected since render is a no-op
     /// rather than a crash.
+    ///
+    /// Eject (issue 51): a hover-revealed ⏏ button plus a context-menu item. The
+    /// button lives in an `.overlay` *above* the row's Button, not inside its label —
+    /// nested SwiftUI Buttons swallow each other's clicks.
     private func deviceRow(_ device: SidebarDevice) -> some View {
         row(name: device.name, icon: device.icon, url: device.url)
+            .overlay(alignment: .trailing) {
+                if hoveredDeviceURL == device.url {
+                    Button { model.eject(device) } label: {
+                        Image(systemName: "eject.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 10)
+                    .help("Eject “\(device.name)”")
+                    .accessibilityIdentifier("eject:\(device.name)")
+                }
+            }
+            .onHover { inside in
+                if inside { hoveredDeviceURL = device.url }
+                else if hoveredDeviceURL == device.url { hoveredDeviceURL = nil }
+            }
+            .contextMenu {
+                Button("Eject") { model.eject(device) }
+            }
             .accessibilityIdentifier("device:\(device.name)")
     }
 

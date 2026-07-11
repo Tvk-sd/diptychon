@@ -345,6 +345,22 @@ final class WorkspaceModel {
     /// mount/unmount/rename so the sidebar tracks inserts and ejects without relaunch.
     private func refreshDevices() { devices = Self.mountedDeviceVolumes() }
 
+    /// Eject a Devices-section volume (issue 51). Success needs no toast — the
+    /// unmount observer prunes the row (and relocates any panel sitting on the
+    /// volume), which *is* the feedback. Failure — typically a busy volume: an
+    /// open file, or a Terminal cd'd into it — surfaces the system's reason as
+    /// a toast, and the row stays because nothing unmounted.
+    func eject(_ device: SidebarDevice) {
+        FileManager.default.unmountVolume(at: device.url,
+                                          options: [.allPartitionsAndEjectDisk]) { [weak self] error in
+            guard let error else { return }
+            Task { @MainActor [weak self] in
+                self?.showActivityToast("Couldn’t eject “\(device.name)” — \(error.localizedDescription)",
+                                        systemImage: "eject")
+            }
+        }
+    }
+
     /// Even split — the default when there's no snapshot (issue 45).
     static let defaultSplitRatio = 0.5
 

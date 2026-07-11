@@ -11,10 +11,14 @@ final class WorkspaceStagingTests: XCTestCase {
     private let b = URL(fileURLWithPath: "/tmp/staging-b.txt")
 
     /// A workspace with a known right-pane baseline (the live default comes from
-    /// persisted prefs, which we don't want these tests to depend on).
+    /// persisted prefs, which we don't want these tests to depend on). The staged
+    /// set is persisted too (issue 41) and restored by `WorkspaceModel()`, so it
+    /// must be reset the same way — otherwise the developer's real staged items
+    /// leak into these assertions (bit us 2026-07-11 with a non-empty live set).
     private func makeModel() -> WorkspaceModel {
         let model = WorkspaceModel()
         model.rightPane = .none
+        model.staging.clear()
         return model
     }
 
