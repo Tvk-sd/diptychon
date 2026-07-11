@@ -6,14 +6,50 @@
 <title>Diptychon vs Marta, ForkLift, Nimble Commander &amp; Path Finder — Mac file managers compared</title>
 <meta name="description" content="An honest comparison of Diptychon against Marta, ForkLift, Nimble Commander and Path Finder: footprint, price model (one-time vs subscription), remote support, and who each dual-pane Mac file manager is really for." />
 <link rel="icon" type="image/png" href="icon.png" />
+<script>
+  // Apply a saved theme override before first paint (no flash). Default: system.
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
 <style>
+  /* Theme tokens — same system as the homepage (light base, dark via media
+     query, explicit data-theme wins in both directions). */
   :root{
-    --bg:#0b0b0d;--bg-raise:#131316;--line:#232327;--line-soft:#1b1b1f;
-    --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
-    --accent:#0a84ff;--accent-hover:#3a9bff;--good:#3fb98f;
+    color-scheme:light;
+    --bg:#f6f6f4;--bg-raise:#ffffff;--bg-inset:#efefec;
+    --line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;--leader:#d8d8d3;
+    --ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;
+    --accent:#0066d6;--accent-hover:#0a84ff;--good:#14754f;--warn:#a05f1d;--me-tint:rgba(10,132,255,.11);
     --mono:ui-monospace,"SF Mono",Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
     --maxw:940px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      color-scheme:dark;
+      --bg:#0b0b0d;--bg-raise:#131316;--bg-inset:#101013;
+      --line:#232327;--line-soft:#303038;--line-strong:#33333a;--leader:#2a2a2f;
+      --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
+      --accent:#0a84ff;--accent-hover:#3a9bff;--good:#3fb98f;--warn:#c9803a;--me-tint:rgba(10,132,255,.08);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0b0b0d;--bg-raise:#131316;--bg-inset:#101013;
+    --line:#232327;--line-soft:#303038;--line-strong:#33333a;--leader:#2a2a2f;
+    --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
+    --accent:#0a84ff;--accent-hover:#3a9bff;--good:#3fb98f;--warn:#c9803a;--me-tint:rgba(10,132,255,.08);
+  }
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --bg:#f6f6f4;--bg-raise:#ffffff;--bg-inset:#efefec;
+    --line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;--leader:#d8d8d3;
+    --ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;
+    --accent:#0066d6;--accent-hover:#0a84ff;--good:#14754f;--warn:#a05f1d;--me-tint:rgba(10,132,255,.11);
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
@@ -21,12 +57,49 @@
   :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
   .in{max-width:var(--maxw);margin-inline:auto;padding-inline:24px}
 
+  /* the lattice rails — same system as the homepage, at this page's column width */
+  .rails{
+    position:fixed;
+    top:0;bottom:0;left:0;right:0;
+    margin-inline:auto;
+    width:min(var(--maxw),100% - 36px);
+    border-inline:1px solid var(--line-soft);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  body,.theme-toggle,.nav-cta{transition:background-color .25s ease,border-color .25s ease,color .25s ease}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition:none!important;animation:none!important}
+  }
+
   nav{border-bottom:1px solid var(--line-soft)}
   .nav-in{display:flex;align-items:center;justify-content:space-between;height:60px}
   .brand{display:flex;align-items:center;gap:11px;color:var(--ink);font-family:var(--mono);font-size:15px}
   .brand img{width:26px;height:26px;border-radius:7px;display:block}
-  .nav-cta{font-family:var(--mono);font-size:13.5px;color:var(--ink);border:1px solid var(--line);background:var(--bg-raise);padding:8px 15px;border-radius:8px}
-  .nav-cta:hover{border-color:var(--accent);color:var(--ink)}
+  .nav-cta{font-size:13.5px;font-weight:500;color:#fff;background:var(--accent);border:1px solid transparent;padding:8px 15px;border-radius:8px}
+  .nav-cta:hover{background:var(--accent-hover);color:#fff}
+  .nav-right{display:flex;align-items:center;gap:10px}
+  .theme-toggle{
+    display:grid;place-items:center;
+    width:36px;height:36px;padding:0;
+    color:var(--ink-dim);
+    background:var(--bg-raise);
+    border:1px solid var(--line);
+    border-radius:8px;cursor:pointer;
+  }
+  .theme-toggle:hover{border-color:var(--line-strong);color:var(--ink)}
+  .theme-toggle svg{width:16px;height:16px;display:block}
+  .tt-sun{display:none}
+  .tt-moon{display:block}
+  @media (prefers-color-scheme:dark){
+    .tt-sun{display:block}
+    .tt-moon{display:none}
+  }
+  :root[data-theme="dark"] .tt-sun{display:block}
+  :root[data-theme="dark"] .tt-moon{display:none}
+  :root[data-theme="light"] .tt-sun{display:none}
+  :root[data-theme="light"] .tt-moon{display:block}
 
   header{padding:72px 0 8px}
   .label{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 18px}
@@ -34,37 +107,40 @@
   .lede{font-size:18px;color:var(--ink-dim);max-width:66ch;margin:0 0 10px}
   .lede2{font-size:16px;color:var(--ink-faint);max-width:66ch;margin:0 0 40px}
 
-  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  /* lattice bands — cross rules live OUTSIDE .in, same pattern as the homepage */
+  .table-band{border-block:1px solid var(--line-soft);margin-top:28px}
+  .forwho-band{border-block:1px solid var(--line-soft);margin-top:56px}
+  .tablewrap{overflow-x:auto}
+  .verify{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);line-height:1.6;margin:12px 0 0;max-width:78ch}
+  .sr-caption{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
   th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
-  thead th{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);background:#101013}
+  thead th{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);background:var(--bg-inset)}
   thead th.me{color:var(--accent)}
   tbody tr:last-child td{border-bottom:none}
-  td.row-h{font-weight:500;color:var(--ink);white-space:normal}
-  td.me{color:var(--ink);background:rgba(10,132,255,.06);font-weight:500}
-  .yes{color:var(--good)}.no{color:var(--ink-faint)}.dim{color:var(--ink-dim)}.sub{color:#d98a3d}
-  caption{caption-side:bottom;text-align:left;font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);padding:12px 2px 0;line-height:1.5}
+  .row-h{font-weight:500;color:var(--ink);white-space:normal;text-align:left}
+  td.me{color:var(--ink);background:var(--me-tint);font-weight:500}
+  .yes{color:var(--good)}.no{color:var(--ink-faint)}.dim{color:var(--ink-dim)}.sub{color:var(--warn)}
 
   h2{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:52px 0 4px}
-  .peer{border-top:1px solid var(--line-soft);padding:22px 0}
+  .peer{border-top:1px dashed var(--line);padding:22px 0}
   .peer h3{font-size:17px;font-weight:600;margin:0 0 6px}
-  .peer p{margin:0;color:var(--ink-dim);font-size:15px;max-width:72ch}
+  .peer p{margin:0 0 7px;color:var(--ink-dim);font-size:15px;max-width:72ch}
+  .peer p:last-child{margin-bottom:0}
   .peer .win{color:var(--good);font-family:var(--mono);font-size:12.5px}
   .peer .edge{color:var(--ink);font-family:var(--mono);font-size:12.5px}
 
-  .forwho{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:12px;overflow:hidden;margin:44px 0 0}
-  .forwho > div{background:var(--bg);padding:24px}
+  .forwho > div{padding:24px 0}
   .forwho h4{margin:0 0 12px;font-size:13px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
-  .forwho .yeshead{color:var(--good)}.forwho .nohead{color:var(--ink-faint)}
+  .forwho .yeshead{color:var(--good)}
   .forwho ul{margin:0;padding-left:18px;color:var(--ink-dim);font-size:14.5px}
   .forwho li{margin:6px 0}
-  @media(max-width:620px){.forwho{grid-template-columns:1fr}}
 
   .cta{margin:52px 0 0;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
   .btn{display:inline-flex;align-items:center;font-size:15.5px;font-weight:500;border-radius:9px;padding:13px 22px;background:var(--accent);color:#fff}
   .btn:hover{background:var(--accent-hover);color:#fff}
   .honesty{margin-top:18px;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);max-width:66ch}
-  .honesty::before{content:"//";color:#3a3a40;margin-right:8px}
+  .honesty::before{content:"//";color:var(--leader);margin-right:8px}
 
   footer{border-top:1px solid var(--line-soft);padding:34px 0 48px;margin-top:64px}
   .foot-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
@@ -75,12 +151,22 @@
 </head>
 <body>
 
+<div class="rails" aria-hidden="true"></div>
+
 <nav>
   <div class="in nav-in">
     <a class="brand" href="/"><img src="icon.png" alt="" width="26" height="26"><span>diptychon</span></a>
-    <a class="nav-cta" href="/?src=vs">Notify me at launch</a>
+    <span class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+        <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
+      </button>
+      <a class="nav-cta" href="/?src=vs#notify">Email me at launch</a>
+    </span>
   </div>
 </nav>
+
+<main>
 
 <header>
   <div class="in">
@@ -91,41 +177,55 @@
   </div>
 </header>
 
+<div class="table-band">
 <div class="in">
-  <div class="tablewrap">
+  <div class="tablewrap" role="region" aria-label="Comparison table: Diptychon vs Marta, ForkLift 4, Nimble Commander and Path Finder — scrolls horizontally" tabindex="0">
     <table>
-      <caption>Objective axes, verified 2026-07-07 (vendor / MacUpdate). Prices change — check the vendor before you buy. Feature nuances are in the notes below, not asserted as a grid.</caption>
+      <caption class="sr-caption">Feature and price comparison of five macOS file managers</caption>
       <thead>
-        <tr><th>&nbsp;</th><th class="me">Diptychon</th><th>Marta</th><th>ForkLift&nbsp;4</th><th>Nimble&nbsp;Commander</th><th>Path&nbsp;Finder</th></tr>
+        <tr><td></td><th scope="col" class="me">Diptychon</th><th scope="col">Marta</th><th scope="col">ForkLift&nbsp;4</th><th scope="col">Nimble&nbsp;Commander</th><th scope="col">Path&nbsp;Finder</th></tr>
       </thead>
       <tbody>
-        <tr><td class="row-h">Price model</td><td class="me">one-time <span class="dim">(planned)</span></td><td class="yes">free</td><td class="dim">one-time $19.95</td><td class="dim">free / $29.99 one-time Pro</td><td class="sub">subscription ~$32.95/yr</td></tr>
-        <tr><td class="row-h">Footprint</td><td class="me">~1.4 MB</td><td class="dim">small</td><td class="dim">~16.3 MB</td><td class="dim">small</td><td class="dim">heavier</td></tr>
-        <tr><td class="row-h">Native / open-source</td><td class="me">Swift, native</td><td class="dim">Swift, native</td><td class="dim">Swift, native</td><td class="dim">C++, open-source</td><td class="dim">native</td></tr>
-        <tr><td class="row-h">Dual-pane</td><td class="me yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
-        <tr><td class="row-h">Remote (SFTP / WebDAV)</td><td class="me no">No — by design</td><td class="no">No</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="dim">limited</td></tr>
+        <tr><th scope="row" class="row-h">Price model</th><td class="me">one-time €9.99 <span class="dim">(planned)</span></td><td class="yes">free</td><td class="dim">one-time $19.95</td><td class="dim">free / $29.99 one-time Pro</td><td class="sub">subscription $32.95/yr</td></tr>
+        <tr><th scope="row" class="row-h">Footprint (download)</th><td class="me">1.4 MB</td><td class="dim">10.7 MB</td><td class="dim">16.3 MB</td><td class="dim">15.0 MB</td><td class="dim">19.4 MB</td></tr>
+        <tr><th scope="row" class="row-h">Native / open-source</th><td class="me">Swift, native</td><td class="dim">Swift, native</td><td class="dim">Swift, native</td><td class="dim">C++, open-source</td><td class="dim">native</td></tr>
+        <tr><th scope="row" class="row-h">Dual-pane</th><td class="me yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+        <tr><th scope="row" class="row-h">Remote (SFTP / WebDAV)</th><td class="me no">No</td><td class="no">No</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="dim">limited</td></tr>
       </tbody>
     </table>
   </div>
+</div>
+</div>
+
+<div class="in">
+  <p class="verify">Verified 2026-07-11 against the vendors: <a href="https://binarynights.com/store" rel="noopener">ForkLift $19.95 (binarynights.com)</a> · <a href="https://cocoatech.io/product/path-finder/" rel="noopener">Path Finder $32.95/yr (cocoatech.io)</a> · <a href="https://github.com/mikekazakov/nimble-commander/releases" rel="noopener">Nimble Commander free &amp; open-source, 15.0 MB (GitHub release)</a>. Download sizes for <a href="https://marta.macupdate.com/" rel="noopener">Marta (10.7 MB)</a>, ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 1.4 MB is the measured release zip. Prices change — check the vendor before you buy. Feature nuances are in the notes below, not asserted as a grid.</p>
 
   <h2>Where each one wins (honestly)</h2>
   <div class="peer">
     <h3>Marta</h3>
-    <p><span class="win">Wins:</span> free, keyboard-cult-favorite, native and plain-fast. <span class="edge">Diptychon's edge:</span> undo-anything and real Finder tags, plus an actively-shipped roadmap — Marta's recurring community worry is single-developer continuity, not capability.</p>
+    <p><span class="win">Wins:</span> free, keyboard-cult-favorite, native and plain-fast.</p>
+    <p><span class="edge">Diptychon's edge:</span> undo-anything and real Finder tags. If free-forever is your requirement, Marta is the honest pick.</p>
   </div>
   <div class="peer">
     <h3>ForkLift 4</h3>
-    <p><span class="win">Wins:</span> the remote powerhouse (SFTP/FTP/WebDAV/S3/cloud/SMB), folder sync, multi-rename — and a fair one-time $19.95. <span class="edge">Diptychon's edge:</span> ~1.4 MB vs ~16 MB and keyboard-first — if all you need is local, ForkLift is a lot of app.</p>
+    <p><span class="win">Wins:</span> the remote powerhouse (SFTP/FTP/WebDAV/S3/cloud/SMB), folder sync, multi-rename — and a fair one-time $19.95.</p>
+    <p><span class="edge">Diptychon's edge:</span> ~1.4 MB vs ~16 MB and keyboard-first — if all you need is local, ForkLift is a lot of app.</p>
   </div>
   <div class="peer">
     <h3>Nimble Commander</h3>
-    <p><span class="win">Wins:</span> blazing C++ speed, 100+ hotkeys, remote mounts, open-source. <span class="edge">Diptychon's edge:</span> gentler to learn (Nimble's curve is steep), no feature paywall in the free build, undo, native Finder tags.</p>
+    <p><span class="win">Wins:</span> raw C++ speed, 100+ hotkeys, remote mounts, open-source.</p>
+    <p><span class="edge">Diptychon's edge:</span> gentler to learn (Nimble's curve is steep), no feature paywall in the free build, undo, native Finder tags.</p>
   </div>
   <div class="peer">
     <h3>Path Finder</h3>
-    <p><span class="win">Wins:</span> the deepest, kitchen-sink power-feature set, still actively maintained. <span class="edge">Diptychon's edge:</span> Path Finder now runs on a <strong>yearly subscription</strong> (~$32.95/yr) — Diptychon's planned one-time purchase and tiny footprint is the clean contrast if you're done renting software.</p>
+    <p><span class="win">Wins:</span> the deepest, kitchen-sink power-feature set, still actively maintained.</p>
+    <p><span class="edge">Diptychon's edge:</span> Path Finder now runs on a <strong>yearly subscription</strong> (~$32.95/yr) — Diptychon's planned one-time purchase and tiny footprint is the clean contrast if you're done renting software.</p>
   </div>
 
+</div>
+
+<div class="forwho-band">
+<div class="in">
   <div class="forwho">
     <div>
       <h4 class="yeshead">Diptychon is for you if…</h4>
@@ -136,31 +236,45 @@
         <li>You mostly work on local (or mounted) drives.</li>
       </ul>
     </div>
-    <div>
-      <h4 class="nohead">Look elsewhere if…</h4>
-      <ul>
-        <li>Your core job is remote servers → ForkLift or Nimble.</li>
-        <li>You want the deepest feature set → Path Finder.</li>
-        <li>Free-forever is a hard requirement → Marta.</li>
-      </ul>
-    </div>
   </div>
-
-  <div class="cta">
-    <a class="btn" href="/?src=vs">Notify me at launch →</a>
-  </div>
-  <p class="honesty">Made by one person, not a company. This page cedes what the others do better on purpose — if it fits, leave your email and I'll ping you the day it's ready.</p>
 </div>
+</div>
+
+<div class="in">
+  <div class="cta">
+    <a class="btn" href="/?src=vs#notify">Email me at launch →</a>
+  </div>
+  <p class="honesty">This page cedes what the others do better on purpose — if Diptychon fits, leave your email and you'll get one email on launch day.</p>
+</div>
+
+</main>
 
 <footer>
   <div class="in foot-in">
     <span>© Diptychon — native macOS, ~1.4 MB</span>
     <span class="foot-links">
       <a href="/">Home</a>
-      <a href="/?src=vs">Notify me</a>
+      <a href="/#shortcuts">Keyboard shortcuts</a>
+      <a href="/?src=vs#notify">Email me at launch</a>
     </span>
   </div>
 </footer>
+
+<script>
+  // Theme toggle — same behavior as the homepage.
+  (function(){
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var effective = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = effective === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+    });
+  })();
+</script>
 
 </body>
 </html>
