@@ -72,3 +72,17 @@ footprint. → *Angle:* Path Finder going **subscription** is a gift for the ant
 - **Prices, vendor-direct:** ForkLift **$19.95** single (binarynights.com/store) · Path Finder **$32.95 / 1-Year License** (cocoatech.io) · Nimble Commander **free & open-source** (magnumbytes.com). Marta price not shown on marta.sh; Marta free + Nimble Pro $29.99 remain MacUpdate-verified from 2026-07-07 (Apple MAS rate-limited the check).
 - **Download sizes (new — the /vs footprint row now uses numbers, not "small/heavier"):** Marta **10.7 MB** (MacUpdate) · Nimble Commander **15.0 MB** (GitHub release asset v1.8.0, authoritative) · ForkLift **16.3 MB** (MacUpdate) · Path Finder **19.4 MB** (MacUpdate) · Diptychon **1.4 MB** (measured release zip).
 - Note: Path Finder shows **$32.95/yr** on cocoatech.io — the summary table above says $29.95/yr; vendor page wins, /vs uses $32.95.
+
+## Undo & session-restore verification 2026-07-11 (4 parallel research agents, vendor sources only)
+
+Feeds the two action-framed /vs rows ("Undo a file operation", "Remembers your session").
+
+| | Undo file ops | Session restore |
+|---|---|---|
+| **Diptychon** | multi-level (move/copy/trash/rename); overwrites excluded by design | yes — workspaceState (#41): panel paths, sort, layout, pins |
+| Marta | **no** — open request since 2018 ([#230](https://github.com/marta-file-manager/marta-issues/issues/230), [#705](https://github.com/marta-file-manager/marta-issues/issues/705)); docs: delete is "permanently" | **yes, strong** — auto; windows/tabs/folders/cursor ([reset doc](https://marta.sh/docs/other/reset/)); per-folder sort undocumented |
+| ForkLift 4 | **partial** — Trash + Multi-Rename undo in [release notes](https://binarynights.com/versionhistory); scope/depth undocumented (manual has zero undo docs) | **yes** — "Restore Windows and Tabs on Startup" setting + Workspaces feature; only documented via release notes |
+| Nimble Commander | **no** — absent from [Help.md](https://github.com/mikekazakov/nimble-commander/blob/main/Docs/Help.md) manual, Edit menu and changelog | **yes, default on** — `restoreLastWindowState:true`; per-panel folder+sorting+layout; multi-window needs macOS "Close windows when quitting" OFF (FAQ) |
+| Path Finder | **partial** — 8.5 ["undo panel"](https://cocoatech.io/post/welcome-to-path-finder-8-5/) for moves + "other undoable operations… whenever possible"; extent undocumented; current KB has zero undo articles | **partial** — "Last used folders" pref; layout = manual Window→Save As Default; tab sets = manual presets; vendor's own KB lists "Doesn't Remember Layout or Windows" as a top-10 issue |
+
+Honesty guardrails: do NOT claim "undo: only Diptychon" (ForkLift/Path Finder have partial undo). Do NOT claim competitors lack session restore (only Path Finder is partial).
