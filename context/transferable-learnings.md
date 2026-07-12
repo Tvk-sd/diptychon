@@ -812,6 +812,114 @@ probe at the real risk.)
 
 ---
 
+## 24. A state doc is a bounded context — one reader, one question, one deletion moment
+
+*Captured 2026-07-12.*
+
+**Diptychon moment.** The PM couldn't reconstruct the project's open decisions and had to
+ask an agent to grep for them. Post-mortem: PLAN.md was actually current, but
+PROJECT-TRACKER had drifted into a 40-section append-only changelog, and the open
+items lived as one-line "Open: …" sentences buried inside closed-work prose — plus in
+chat, agent memory, and individual context docs. No surface answered "what's open, on
+whom?" The fix was structural, not disciplinary: PLAN.md became Roadmap-lite → Offen
+bei Till → Offen bei AI (pointer to the issue queue) → Aktiver Task; outcomes now close
+in the issue file or an ADR; git history is the changelog; the tracker was retired to
+`context/archive/`.
+
+**Principle.** Domain-driven design's *bounded context* applies to project docs: every
+state surface needs (1) **one reader**, (2) **one question it answers**, and (3) **one
+deletion moment** — an owner-event where entries get *removed* (decision made → line
+deleted; task done → section cleared; issue closed → leaves the queue). The diagnostic
+is: *who deletes from this doc, and when?* A doc with no deletion moment can only grow,
+turns into a changelog, and stops being read. Corollary: never hand-maintain what a
+system already records — git is the changelog; a prose duplicate of it rots by default
+(§19).
+
+**The guard.** *Before creating or keeping any state doc, name its reader, its question,
+and its deletion moment. Can't name all three, or two of them overlap another surface →
+merge or kill it.*
+
+**Where it transfers.**
+*Classical PM.* This is why Jira boards and status pages rot and why status meetings
+exist: no surface cleanly answers "what's blocked, on whom." Same test works for
+dashboards, RAID logs, OKR check-ins — each needs an owner-moment of deletion or it
+becomes archaeology.
+*AI lookout.* With agents, docs aren't documentation *about* the collaboration — they
+**are** the collaboration interface. Every session reads only what's written, so a doc
+with two jobs actively misleads: the agent will faithfully append to the dead tracker
+forever. Doc design is now interface design. (Pairs with §19 — records drift; §26 —
+the rules that *point* at the docs rot the same way.)
+
+---
+
+## 25. Lead shared state with the roadmap — altitude before detail is the kickoff that every session re-attends
+
+*Captured 2026-07-12.*
+
+**Diptychon moment.** The restructured PLAN.md puts a one-line Roadmap-lite at the very
+top (Reach-Test → Demand-Test → GO? → Notarisierung → Launch) above the open items and
+the active task. The PM recognized his own old practice: kicking off feature meetings —
+discovery through user stories and three-amigos — *with the roadmap*, to set the why
+before anyone argued the what.
+
+**Principle.** The first thing a reader ingests frames everything after it. For AI
+collaboration this doubles in importance: **every session is a smart colleague with
+amnesia**, and the top of the shared state file is the only kickoff meeting they get.
+One line of "where we are in the sequence, and what the current bet is" is the cheapest
+known defense against locally-sensible-but-globally-wrong work (an agent polishing a
+feature while the roadmap says the demand test hasn't run). Roadmap-*lite*, deliberately:
+3–5 lines of sequence; the detail lives in the issue queue, or it becomes bloat that
+nobody re-reads (§24).
+
+**The guard.** *Any doc that an agent or new teammate reads first: current bet + sequence
+in the first five lines. If the reader has to scroll to learn the why, the doc starts at
+the wrong altitude.*
+
+**Where it transfers.**
+*Classical PM.* Agenda-setting, the three-amigos context round, "strategy before
+backlog" — the practice was always about shared framing, not the artifact.
+*AI lookout.* Context files (CLAUDE.md, PLAN.md, system prompts) are read top-down under
+attention and token budgets — put altitude first, mechanics later. Applies recursively:
+the same rule that orders a meeting orders a prompt.
+
+---
+
+## 26. Maintain encoded rules like code — a convention change is a refactor across every place the old convention is written down
+
+*Captured 2026-07-12.*
+
+**Diptychon moment.** Retiring PROJECT-TRACKER took edits in **four** encodings: the
+global CLAUDE.md (whose rule literally said "fold outcomes into PROJECT-TRACKER"), the
+project CLAUDE.md (new end-of-task issue-close rule), the agent's persistent memory, and
+— still open as a backlog item — the `project-setup` skill that scaffolds a tracker into
+every *new* project. Miss any one and the old convention resurrects itself: the next
+session dutifully appends to a dead file; the next project regenerates it from the
+template.
+
+**Principle.** Rules for AI collaborators are configuration-as-code, and they
+**duplicate by design**: the same convention gets encoded in global rules, project
+rules, skills/templates, and memories. Changing a convention is therefore a refactor —
+grep for the old symbol ("PROJECT-TRACKER") the way you'd grep for a renamed function.
+The dangerous property: **a stale rule doesn't error, and it isn't ignored — it is
+executed.** An agent follows the outdated instruction literally and forever, which is
+worse than a human's benign neglect of an old SOP.
+
+**The guard.** *After changing any workflow convention, enumerate every artifact that
+encodes the old one — global config, project config, skills, templates, memories — and
+update or delete each, now. It never happens by itself later.*
+
+**Where it transfers.**
+*Classical PM.* Process changes die when the templates and checklists still embody the
+old process (SOP drift): the org announces the new way while its artifacts keep teaching
+the old one.
+*AI lookout.* Treat CLAUDE.md, skills, and prompt templates with code-review discipline:
+they have callers (agents), they go stale, and their bugs run silently at full speed.
+When the project setup changes, the ruleset is *due for revisit* — put that revisit in
+the backlog explicitly. (Pairs with §19 — the map drifts toward flattering; §24 — the
+docs the rules point at rot the same way.)
+
+---
+
 ## How to use this doc
 - **When starting a new product:** read §1 and §5 *before* you design the second
   pane or hand consequential actions to any operator (a user or an agent). They're
@@ -859,6 +967,14 @@ probe at the real risk.)
   set the MVP bar by the category's table stakes, but retire the *unknown* risk (demand/reach),
   not the comfortable one (feasibility); name the riskiest assumption + its cheapest test, and
   if that test doesn't need the product, run it in parallel — never let the build be the test.
+- **When a "what's open / what did we decide" question needs an agent to answer, or a
+  status doc feels dead:** §24 — give every state doc one reader, one question, one
+  deletion moment; merge or kill docs that fail the test, and never hand-duplicate git.
+- **When writing any doc an agent (or new teammate) reads first:** §25 — current bet +
+  sequence in the first five lines; altitude before mechanics.
+- **After changing a workflow convention (or when project setup changes):** §26 — grep
+  every encoding of the old rule (global config, project config, skills, memories) and
+  update each; a stale rule isn't ignored, it's executed.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).

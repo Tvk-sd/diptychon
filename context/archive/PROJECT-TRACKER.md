@@ -790,3 +790,19 @@ top-of-funnel demand signal — downloads, not the request/visit noise in the CF
   Zero Trust self-hosted app over both hostnames, allow-policy = his email. `workers_dev` +
   preview URLs disabled in config so the wall can't be bypassed. Delete the Access app on launch
   day to go public. **Open:** Till clicks this through; counter KV reset to 0 and waiting.
+
+
+### Finder-Ersatz: Reveal-Routing gemerged, Ordner-Default von macOS geblockt (2026-07-12, merge `24f9396`)
+`feat/finder-replacement` (+21 Zeilen: `public.folder`-Doc-Type via partielle `Resources/Info.plist`,
+`.onOpenURL` → `WorkspaceModel.openExternal`) nach main gemerged; volle Suite grün (170 Unit + 9 UI).
+- **Funktioniert (real verifiziert):** „Im Finder anzeigen" aus Browsern/Apps öffnet **Diptychon**
+  und markiert die Datei (`NSFileViewer`-default). Dazu: Ordner aufs Dock-Icon, „Öffnen mit",
+  `open -a Diptychon <ordner>`.
+- **Geblockt von macOS 26 (bewiesen, nicht wieder versuchen):** den Standard-Ordner-Handler
+  (`open <ordner>`, Doppelklick) kann KEINE App mehr übernehmen — `LSSetDefaultRoleHandlerForContentType`
+  und `NSWorkspace.setDefaultApplication(toOpen:.folder)` geben `paramErr -50` selbst für Finder
+  als Ziel; der LSHandlers-Plist-Hack (Path Finder/ForkLift) wird beim Login verworfen.
+  Details + Rollback: `context/finder-replacement-runbook.md`.
+- **Wichtig:** `defaults delete -g NSFileViewer` NICHT ausführen — das trägt das Reveal-Routing.
+- Nebenbefund geschlossen: die 5 roten `WorkspaceStagingTests` im Worktree waren der auf main
+  bereits gefixte Staging-Persistenz-Leak (echter App-State in Tests), kein Regressionsrisiko.

@@ -9,3 +9,7 @@ aren't the spec or the code.
 
 Not to be confused with the root `CONTEXT.md` (the single domain doc) or
 `.scratch/diptychon-mvp/` (issues + PRD).
+
+`archive/` — retired state docs, kept for history only (PROJECT-TRACKER through
+2026-07-12, session retros). Outcomes now close in the issue files / ADRs;
+open items live in root `PLAN.md`.
