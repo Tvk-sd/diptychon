@@ -1,7 +1,7 @@
 # 34 — Operation Queue UI (progress · pause · cancel)
 
-Status: **Slice 1 shipped — awaiting evaluation** (2026-07-06, merged `main` PR #47,
-commit `5fa3683`). The value test is live; **do not start Slice 2 until we know the
+Status: **Slice 1 shipped — sighted in real use 2026-07-11, evaluation gate still open**
+(shipped 2026-07-06, merged `main` PR #47, commit `5fa3683`). The value test is live; **do not start Slice 2 until we know the
 pane is actually wanted.** Drafted from Marta gap analysis
 (`context/competitor-benchmark.md` §5). Highest-ROI competitive gap: it extends
 our existing reversible-Operation lead rather than bolting on a new domain.
@@ -163,3 +163,31 @@ as a live queue is the natural extension.
 - `context/netnography/04-diptychon-mapping.md` §2–3 (queue + merge/W9 evidence).
 - `18-operation-history-time-travel-undo` (sibling surface — *past* ops; keep separate).
 - ADR 0004 (reversible operation model).
+
+## Comments
+
+**2026-07-11 (Till, via session):** Saw the Slice-1 surface in real use ("currently
+a pop up, I have seen it"). That confirms it ships and shows — it is *not* yet the
+continue/stop verdict the evaluation gate asks for (deliberately opened? more in
+control during copies? or in the way?). Gate stays open.
+
+**2026-07-11 (Till, evaluation feedback):** "The pop up is good but maybe not
+enough — unsure if it would not feel better to show in the place where staging
+and the preview are" (the right auxiliary pane). Read as a **soft continue
+signal**: the surface is liked, but he wants more presence/permanence than a
+transient corner card. Design tension to resolve in Slice 2, not by relocating
+Slice 1 as-is: the aux pane is exclusive (preview XOR staging XOR …), so an
+Activity *pane* would displace preview exactly while a copy runs; and a single
+running op is too little content for a 300px pane. A *queue* (pending + running
++ recently done) is list-shaped and would earn that slot. Candidate shape:
+popup stays as the ambient in-flight indicator; the deliberate "open Activity"
+action becomes a third aux-pane mode alongside preview/staging.
+
+**2026-07-11 (Till, Slice-2 design direction — PARKED, do not build yet):**
+Rejected the aux-pane idea; his shape instead: a **bottom drawer underneath
+both panels**, spanning the panels' combined width, delimited by **its own
+mini top bar** (so it reads as a sibling region, like the panels' top bar).
+This supersedes the earlier "aux-pane third mode" candidate above and matches
+the original "dockable bottom drawer" design note. Decision: **keep Slice 1
+as-is for now**; when the evaluation gate opens Slice 2, start from this
+bottom-drawer shape.
