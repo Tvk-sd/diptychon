@@ -115,10 +115,11 @@ kann bleiben; ohne die defaults verhält sie sich wie vorher.
 
 ## Offene Punkte
 
-- [ ] Till entscheidet: +21 Zeilen committen (Reveal + Open-With + Dock-Drop
-      funktionieren und rechtfertigen den Code) oder Rollback
-- [ ] Bei Behalten: `defaults delete -g NSFileViewer` NICHT ausführen —
+- [x] Entschieden 2026-07-12: behalten — committet (`bc15ba2`) + gemerged
+      (`24f9396`), volle Suite grün.
+- [ ] Dauerhaft: `defaults delete -g NSFileViewer` NICHT ausführen —
       das trägt das Reveal-Routing. Der tote LSHandlers-Eintrag räumt sich
       beim nächsten Login von selbst weg.
-- [ ] Onboarding-Follow-up-Issue nur noch für NSFileViewer sinnvoll,
-      nicht mehr für den Ordner-Handler
+- [x] Onboarding-Follow-up gefiled als Issue #54
+      (`.scratch/diptychon-mvp/issues/54-reveal-default-onboarding.md`) —
+      nur NSFileViewer-Toggle, Ordner-Handler ist Non-goal
