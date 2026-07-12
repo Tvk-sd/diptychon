@@ -29,6 +29,14 @@ struct WorkspaceView: View {
         .background(WindowMinWidth(minWidth: minContentWidth))
         .onAppear { installMonitors(); model.startPersistence() }
         .onDisappear(perform: removeMonitors)
+        // Folders/files opened from outside (Dock drop, `open`, Launch Services
+        // when Diptychon is the user's default folder viewer). SwiftUI's own
+        // app delegate owns the odoc Apple Event and only surfaces it here —
+        // an @NSApplicationDelegateAdaptor's application(_:open:) never fires.
+        .onOpenURL { url in model.openExternal(url) }
+        // Route external opens into this (single) window instead of spawning
+        // a fresh WindowGroup window per opened folder.
+        .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
         // User may have just granted access in System Settings → if a panel was
         // blocked and access is now there, re-list it (no restart, AC3).
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in

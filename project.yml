@@ -32,6 +32,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.diptychon.app
         PRODUCT_NAME: Diptychon
         GENERATE_INFOPLIST_FILE: YES
+        # Partial plist, merged into the generated one — carries only
+        # CFBundleDocumentTypes (public.folder viewer, Finder-replacement).
+        INFOPLIST_FILE: Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: Resources/Diptychon.entitlements
         INFOPLIST_KEY_NSHighResolutionCapable: YES
