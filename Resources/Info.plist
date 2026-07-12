@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!-- Partial Info.plist: merged with the build-generated one
+     (GENERATE_INFOPLIST_FILE stays YES in project.yml). Only keys that have
+     no INFOPLIST_KEY_ build setting live here.
+
+     public.folder as a Viewer document type lets Launch Services route
+     folder opens to Diptychon — the receiving half of the Finder-replacement
+     setup (the sending half is the user-set NSFileViewer/LSHandlers
+     defaults). Rank Alternate: never claim folders away from Finder unless
+     the user opted in via those defaults. -->
+<dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Folder</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.folder</string>
+			</array>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+	</array>
+</dict>
+</plist>

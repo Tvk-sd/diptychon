@@ -709,6 +709,16 @@ final class WorkspaceModel {
         activeModel.go(to: url)
     }
 
+    /// An external "open" (Dock drop, Launch Services when Diptychon is the
+    /// default folder viewer): Finder-style, a folder is entered and a file
+    /// lands in its parent with the file highlighted — which is exactly what
+    /// `navigateIfPath` does for pasted paths, so reuse it. Vanished paths
+    /// fail its exists-check and are silently ignored.
+    func openExternal(_ url: URL) {
+        guard url.isFileURL else { return }
+        activeModel.navigateIfPath(url.path)
+    }
+
     // MARK: - Pinned folders (sidebar, issue 16)
 
     func pin(_ url: URL) { pinnedFolders = PinnedFolders.adding(url, to: pinnedFolders) }
