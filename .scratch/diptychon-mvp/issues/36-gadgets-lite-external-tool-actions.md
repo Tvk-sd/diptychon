@@ -1,6 +1,6 @@
 # 36 — Gadgets-lite: user-defined external-tool actions
 
-Status: ready-for-agent (triaged 2026-07-06) — agent brief at bottom. Drafted from
+Status: ready-for-agent — **CLAIMED 2026-07-13: in Arbeit in eigener Worktree-Session, nicht erneut greifen.** (triaged 2026-07-06) — agent brief at bottom. Drafted from
 Marta gap analysis (`context/competitor-benchmark.md` §5). The 80/20 slice of Marta's extensibility
 suite — deliberately **not** a plugin API.
 
