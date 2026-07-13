@@ -21,6 +21,11 @@ enum RenameRule: Equatable {
     case addText(String, Position)
     case format(name: String, start: Int, padding: Int)
     case changeCase(CaseMode)
+    /// Prepend an ascending counter, KEEPING the existing name (issue 52):
+    /// `0 report.pdf`, `1 photo.jpg`, … — unlike `format`, which replaces it.
+    /// Separator is a fixed space (decision 2026-07-13); index order is the
+    /// caller's item order, i.e. the panel's visual order.
+    case numberPrefix(start: Int, padding: Int)
 
     /// New file name for `original` at `index`. Extension is preserved;
     /// transforms apply to the base name only.
@@ -44,6 +49,9 @@ enum RenameRule: Equatable {
             case .upper: newBase = base.uppercased()
             case .capitalized: newBase = base.capitalized
             }
+        case let .numberPrefix(start, padding):
+            let n = start + index
+            newBase = "\(String(format: "%0\(max(padding, 1))d", n)) \(base)"
         }
         return ext.isEmpty ? newBase : "\(newBase).\(ext)"
     }

@@ -7,13 +7,20 @@ import XCTest
 private final class FakeOperation: Diptychon.Operation {
     let title = "Fake"
     let isUndoable: Bool
+    let revertError: Error?
     private(set) var applied = 0
     private(set) var reverted = 0
 
-    init(isUndoable: Bool = true) { self.isUndoable = isUndoable }
+    init(isUndoable: Bool = true, revertError: Error? = nil) {
+        self.isUndoable = isUndoable
+        self.revertError = revertError
+    }
 
     func apply(progress: @escaping (Double) -> Void) async throws { applied += 1; progress(1) }
-    func revert() async throws { reverted += 1 }
+    func revert() async throws {
+        if let revertError { throw revertError }
+        reverted += 1
+    }
 }
 
 /// `onOperationSettled` is the single point that tells the UI to re-list after an
@@ -94,6 +101,28 @@ final class OperationCoordinatorTests: XCTestCase {
         coordinator.undo()   // non-undoable path is synchronous
         XCTAssertTrue(toast?.contains("Can’t undo") == true,
                       "an overwrite never claims it was undone")
+    }
+
+    /// Issue 52: a failed revert must never claim "Undone". The op stays on the
+    /// undo stack (it IS still applied) and the toast says it couldn't be undone.
+    func testFailedRevertToastsHonestlyAndKeepsOpUndoable() async {
+        let coordinator = OperationCoordinator()
+        let ran = expectation(description: "run")
+        coordinator.onOperationSettled = { ran.fulfill() }
+        coordinator.run(FakeOperation(revertError: CocoaError(.fileWriteFileExists)))
+        await fulfillment(of: [ran], timeout: 1)
+
+        var toast: String?
+        coordinator.onUndoRedoToast = { text, _ in toast = text }
+        let undone = expectation(description: "undo settled")
+        coordinator.onOperationSettled = { undone.fulfill() }
+        coordinator.undo()
+        await fulfillment(of: [undone], timeout: 1)
+
+        XCTAssertTrue(toast?.contains("Couldn’t undo") == true,
+                      "a failed revert must not toast 'Undone', got: \(toast ?? "nil")")
+        XCTAssertTrue(coordinator.canUndo, "the still-applied op stays undoable")
+        XCTAssertFalse(coordinator.canRedo, "a failed undo is not a redoable undo")
     }
 
     func testEmptyUndoDoesNotFire() {

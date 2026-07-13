@@ -14,6 +14,7 @@ struct BatchRenameSheet: View {
         case replace = "Replace Text"
         case add = "Add Text"
         case format = "Name + Number"
+        case numberPrefix = "Number Prefix"
         case changeCase = "Case"
         var id: String { rawValue }
     }
@@ -26,6 +27,8 @@ struct BatchRenameSheet: View {
     @State private var formatName = "File"
     @State private var startNumber = 1
     @State private var padding = 1
+    @State private var prefixStart = 0
+    @State private var prefixPadding = 1
     @State private var caseMode: RenameRule.CaseMode = .lower
 
     private var rule: RenameRule {
@@ -33,6 +36,7 @@ struct BatchRenameSheet: View {
         case .replace: return .replaceText(find: find, with: replaceWith)
         case .add: return .addText(addText, addPosition)
         case .format: return .format(name: formatName, start: startNumber, padding: padding)
+        case .numberPrefix: return .numberPrefix(start: prefixStart, padding: prefixPadding)
         case .changeCase: return .changeCase(caseMode)
         }
     }
@@ -103,6 +107,13 @@ struct BatchRenameSheet: View {
                     .textFieldStyle(.roundedBorder)
                 Stepper("Start \(startNumber)", value: $startNumber, in: 0...100_000)
                 Stepper("Pad \(padding)", value: $padding, in: 1...6)
+            }
+        case .numberPrefix:
+            HStack {
+                Stepper("Start \(prefixStart)", value: $prefixStart, in: 0...100_000)
+                Stepper("Pad \(prefixPadding)", value: $prefixPadding, in: 1...6)
+                Text("Counter in list order; names are kept.")
+                    .font(.callout).foregroundStyle(.secondary)
             }
         case .changeCase:
             Picker("", selection: $caseMode) {

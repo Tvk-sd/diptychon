@@ -67,10 +67,18 @@ final class OperationCoordinator {
         }
         running = Running(title: "Undo \(op.title)", fraction: 0)
         task = Task {
-            try? await op.revert()
-            redoStack.append(op)
+            do {
+                try await op.revert()
+                redoStack.append(op)
+                onUndoRedoToast("Undone — \(op.title)", "arrow.uturn.backward")
+            } catch {
+                // Revert failed (e.g. an old name is occupied again): the op is
+                // still applied, so keep it undoable and say so — never a false
+                // "Undone" for files that didn't move back.
+                undoStack.append(op)
+                onUndoRedoToast("Couldn’t undo \(op.title)", "exclamationmark.triangle")
+            }
             running = nil
-            onUndoRedoToast("Undone — \(op.title)", "arrow.uturn.backward")
             onOperationSettled()
         }
     }
@@ -89,6 +97,7 @@ final class OperationCoordinator {
             } catch {
                 // re-push so the redo isn't silently lost.
                 redoStack.append(op)
+                onUndoRedoToast("Couldn’t redo \(op.title)", "exclamationmark.triangle")
             }
             running = nil
             onOperationSettled()
