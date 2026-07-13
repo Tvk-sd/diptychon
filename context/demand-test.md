@@ -71,11 +71,13 @@ is **not** part of this test. Hand-install so friction can't contaminate the dem
       - if one person gets mentioned that could use it 
    - **Values probe (segment-specific):** does "native, ~1.5 MB, no telemetry, one-time
      buy" read as a *reason to switch* or a nice-to-have? (T-A/T-B/T-C say it should pull.)
-   - **Pay probe (one-time buy — model decided):** "If this were a **one-time €5,99**,
+   - **Pay probe (one-time buy — model decided):** "If this were a **one-time €9,99**,
      would you buy *today*?" Watch the flinch, not the polite yes. (Anchor: Nimble
-     Commander / ForkLift ≈ $30; Diptychon is leaner + newer → test below them. Swap
-     €19 for your real candidate; if you want price sensitivity, also ask "at what price
-     is it *too cheap to trust* / *too expensive*?")
+     Commander / ForkLift ≈ $20–30; Diptychon is leaner + newer → test below them.
+     €9,99 decided 2026-07-11 — under the impulse threshold, clear of the
+     too-cheap-to-trust floor; the anchor-gap risk is exactly what the sensitivity
+     question reads: also ask "at what price is it *too cheap to trust* /
+     *too expensive*?")
 
 ## The retention test — the real signal
 
@@ -114,7 +116,10 @@ it **again, unprompted, days later**. So:
 ## Decided (2026-07-07)
 
 1. **Monetization = one-time purchase** (segment-aligned, T-A anti-abo). Pay-probe names
-   a concrete candidate price (€19 anchor above) so the signal is sharp. Only open sub-
-   choice left: the *actual* number to test — pick it before session 1.
+   a concrete candidate price so the signal is sharp.
+   **Update 2026-07-11: candidate price = €9,99 one-time** (Till's call; options
+   weighed were donation / open source / one-time — donation and OSS both reproduce
+   the Marta continuity doubt and forfeit the pay signal). Validate via the
+   too-cheap/too-expensive question in the sessions.
 2. **Recruit split = 2 network + 3 cold-ish** (public "Finder alternative" tool-hoppers),
    to balance speed against friendliness bias.
