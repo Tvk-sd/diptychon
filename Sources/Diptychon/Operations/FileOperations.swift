@@ -131,22 +131,34 @@ final class RenameOperation: Operation {
         }.value
     }
 
-    /// Two-phase batch move: from → temp → to.
+    /// Two-phase batch move: from → temp → to. A mid-flight failure (name now
+    /// occupied, file gone, volume error) unwinds every move already made, so no
+    /// item is ever stranded under a hidden temp name — the batch applies fully
+    /// or not at all, and the thrown error reports the failure honestly.
     private static func run(_ pairs: [(from: URL, to: URL)], progress: @escaping (Double) -> Void) throws {
         let fm = FileManager.default
-        var temps: [(temp: URL, to: URL)] = []
-        for (i, pair) in pairs.enumerated() {
-            try Task.checkCancellation()
-            let temp = pair.from.deletingLastPathComponent()
-                .appendingPathComponent(".diptychon-rename-\(UUID().uuidString)")
-            try fm.moveItem(at: pair.from, to: temp)
-            temps.append((temp: temp, to: pair.to))
-            progress(Double(i + 1) / Double(max(pairs.count, 1)) * 0.5)
-        }
-        for (i, t) in temps.enumerated() {
-            try Task.checkCancellation()
-            try fm.moveItem(at: t.temp, to: t.to)
-            progress(0.5 + Double(i + 1) / Double(max(temps.count, 1)) * 0.5)
+        var temps: [(temp: URL, from: URL, to: URL)] = []
+        var finished = 0
+        do {
+            for (i, pair) in pairs.enumerated() {
+                try Task.checkCancellation()
+                let temp = pair.from.deletingLastPathComponent()
+                    .appendingPathComponent(".diptychon-rename-\(UUID().uuidString)")
+                try fm.moveItem(at: pair.from, to: temp)
+                temps.append((temp: temp, from: pair.from, to: pair.to))
+                progress(Double(i + 1) / Double(max(pairs.count, 1)) * 0.5)
+            }
+            for (i, t) in temps.enumerated() {
+                try Task.checkCancellation()
+                try fm.moveItem(at: t.temp, to: t.to)
+                finished = i + 1
+                progress(0.5 + Double(i + 1) / Double(max(temps.count, 1)) * 0.5)
+            }
+        } catch {
+            for (i, t) in temps.enumerated() {
+                try? fm.moveItem(at: i < finished ? t.to : t.temp, to: t.from)
+            }
+            throw error
         }
     }
 }
