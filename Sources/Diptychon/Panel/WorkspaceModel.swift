@@ -319,26 +319,39 @@ final class WorkspaceModel {
 
     /// The external volumes to surface in the sidebar's Devices section (issue 46).
     ///
-    /// Inclusion predicate: a volume is a "device" when it is **removable or
-    /// ejectable**, and never the root (boot) file system. The internal boot/data
-    /// volumes are internal + non-ejectable, so they drop out naturally; SD cards,
-    /// USB sticks, mass-storage cameras, external disks, and attached disk images
-    /// all report removable and/or ejectable. This is the one real judgement call
-    /// here — widen it (e.g. include any non-internal volume) and network shares
-    /// start appearing, which issue 46 scopes out (see ADR 0003 / issue 47).
+    /// Inclusion predicate: a volume is a "device" when it is **removable,
+    /// ejectable, or an external local disk**, and never the root (boot) file
+    /// system. The internal boot/data volumes are internal, so they drop out
+    /// naturally; SD cards, USB sticks, and cameras report removable/ejectable.
+    /// Desktop-class external hard drives report *fixed* media — neither
+    /// removable nor ejectable — so the third clause (external + local) admits
+    /// them (issue 59). Network shares are non-local and stay excluded, which
+    /// issue 46 scopes out (see ADR 0003 / issue 47).
     static func mountedDeviceVolumes() -> [SidebarDevice] {
         let keys: [URLResourceKey] = [
             .volumeNameKey, .volumeIsRemovableKey, .volumeIsEjectableKey,
-            .volumeIsInternalKey, .volumeIsRootFileSystemKey,
+            .volumeIsInternalKey, .volumeIsRootFileSystemKey, .volumeIsLocalKey,
         ]
         let urls = FileManager.default.mountedVolumeURLs(
             includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) ?? []
         return urls.compactMap { url -> SidebarDevice? in
             guard let v = try? url.resourceValues(forKeys: Set(keys)) else { return nil }
-            if v.volumeIsRootFileSystem == true { return nil }
-            guard v.volumeIsRemovable == true || v.volumeIsEjectable == true else { return nil }
+            guard isDeviceVolume(isRootFileSystem: v.volumeIsRootFileSystem,
+                                 isRemovable: v.volumeIsRemovable,
+                                 isEjectable: v.volumeIsEjectable,
+                                 isInternal: v.volumeIsInternal,
+                                 isLocal: v.volumeIsLocal) else { return nil }
             return SidebarDevice(name: v.volumeName ?? url.lastPathComponent, url: url)
         }
+    }
+
+    /// The pure inclusion predicate behind `mountedDeviceVolumes()` (issue 59).
+    /// Nil resource values (a volume that won't say) count as "no".
+    static func isDeviceVolume(isRootFileSystem: Bool?, isRemovable: Bool?,
+                               isEjectable: Bool?, isInternal: Bool?, isLocal: Bool?) -> Bool {
+        if isRootFileSystem == true { return false }
+        if isRemovable == true || isEjectable == true { return true }
+        return isInternal == false && isLocal == true
     }
 
     /// Re-enumerate the mounted devices (issue 46). Cheap; called on volume
