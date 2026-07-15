@@ -13,7 +13,7 @@ Reach-Test (Ads/Outreach → signups) → Demand-Test (5 Sessions → Day-10-Ret
 - [ ] **`.adobeTemp` löschen (4,2 GB, braucht sudo):** `sudo rm -rf /System/Volumes/Data/.adobeTemp` — root-owned, AI kommt nicht ran (Platten-Aufräumen 2026-07-15; npm-Cache bereits geleert)
 
 ## Offen — bei AI
-Nächstes: **UI-Suite auf main nachholen** (nach `pkill testmanagerd`-Fix statt Re-Login; der #53-Tab-Fokus-Test ist nie grün gelaufen, dabei #61 `testToggleRightPanel` not hittable mit klären). Danach Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #52 batch-rename [eigener Worktree], #57). #36 Gadgets-lite + #53 abgeschlossen + gemerged 2026-07-15.
+Nächstes: Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #52 batch-rename [eigener Worktree], #57). #36 Gadgets-lite + #53 abgeschlossen + gemerged 2026-07-15; volle Suite grün auf main `2b8bf08` (210 Unit + 13 UI); #61 als Wedge-Artefakt geschlossen (`pkill testmanagerd` = Recovery).
 
 ## Aktiver Task
 <!-- AI-Arbeitsstand; bei Done leeren + Issue schließen -->

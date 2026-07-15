@@ -1,6 +1,13 @@
 # 61 — UI test `testToggleRightPanel` fails: toggle button "not hittable"
 
-Status: needs-triage (filed 2026-07-15 during issue 36 close-out)
+Status: done — root cause identified same day (2026-07-15): the machine-wide
+XCUITest/testmanagerd wedge (see `context/automations-learnings.md` + the #53
+close-out) presents as *fake* "not hittable" failures at plausible coordinates.
+After `pkill -x testmanagerd` the full suite runs green on merged main
+(210 unit + 13 UI, incl. this test — post-#36 merge `2b8bf08`). "Fails also on
+main" was true but misleading: the wedge was machine-wide, so both branches
+showed the same artifact. No test hardening needed; the recovery command is
+documented in the automations learnings.
 
 ## Parent
 
