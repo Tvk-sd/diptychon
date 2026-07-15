@@ -83,13 +83,12 @@ Shipped on `feat/53-select-next-after-trash` @ `a5ae96b`, verified live by Till.
   panel's table now claims first responder (never from text fields / Staging).
   Regression UI test added (`testTabMovesArrowKeyFocusToOtherPanel`).
 
-**Merged to main @ `70cb7a2`** on Till's explicit call, with a known gap
-against the full-suite rule: the UI-test runner was wedged machine-wide
-("Timed out while enabling automation mode" — persisted across retries and
-a `testmanagerd` restart; likely needs re-login). Unit suite green on the
-merged main (182 tests). **Follow-up owed:** after the next re-login, run
-the full UI suite on main; both new #53 UI tests exist, one
-(`testTabMovesArrowKeyFocusToOtherPanel`) has never executed.
+**Merged to main @ `70cb7a2`**, full suite green on the merged main:
+188 unit tests + all 13 UI tests (incl. both new #53 tests). The runner
+wedge that briefly blocked verification ("Timed out while enabling
+automation mode" / "hung before establishing connection") was cured by
+killing `testmanagerd` + retry — it also explains the earlier
+`testToggleRightPanel` failure, which passes again; no product bug there.
 
 ## References
 
