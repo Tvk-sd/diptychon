@@ -941,6 +941,10 @@ final class WorkspaceModel {
     private func trashSelection() {
         let sources = operationSourceURLs
         guard !sources.isEmpty else { return }
+        // Finder parity (issue 53): after the rows vanish, land the selection on
+        // the nearest surviving row so ↓/↑ continue from the same spot. File
+        // panels only — the Staging pane's ⌫ is unstage, a different model.
+        if !stagingFocused { activeModel.armReselectAfterTrash() }
         let op = TrashOperation(sources: sources)
         coordinator.run(op)
     }

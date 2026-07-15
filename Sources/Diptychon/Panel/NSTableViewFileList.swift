@@ -27,6 +27,10 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     /// A row to weakly grey-highlight and scroll into view (a path-paste jump's
     /// landing file). Distinct from selection; `nil` in normal use.
     var highlightedTargetID: FileItem.ID? = nil
+    /// When true, this list is the keyboard home of the Active Panel and claims
+    /// first responder (issue 53) — ↑/↓ are native table navigation, so they follow
+    /// the AppKit first responder, which Tab (`switchPanel`) alone never moved.
+    var claimsKeyFocus = false
     /// Stable accessibility identifier for the table (e.g. `panel-left`), so UI
     /// tests target a panel by id rather than a positional `boundBy:` index — the
     /// sidebar `List` also surfaces as a `table`, breaking index assumptions
@@ -64,6 +68,14 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
     func highlightingTarget(_ id: FileItem.ID?) -> Self {
         var copy = self
         copy.highlightedTargetID = id
+        return copy
+    }
+
+    /// Fluent setter mirroring `highlightingTarget`: keyboard focus follows the
+    /// Active Panel. Kept off the protocol `init` for the same reason.
+    func claimingKeyFocus(_ claims: Bool) -> Self {
+        var copy = self
+        copy.claimsKeyFocus = claims
         return copy
     }
 
@@ -131,6 +143,14 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         context.coordinator.syncSelection(table)
         context.coordinator.syncTargetHighlight(table)
         context.coordinator.handleRenameRequest(table)
+        // Claim keyboard focus for the Active Panel — but only from the other
+        // panel's table (or from nothing), never from a text field, so typing in
+        // Search/Filter or an inline rename is never interrupted.
+        if claimsKeyFocus, let window = scroll.window,
+           window.firstResponder !== table,
+           window.firstResponder === window || window.firstResponder is FileTableView {
+            window.makeFirstResponder(table)
+        }
     }
 
     private func addColumn(_ table: NSTableView, id: String, title: String, width: CGFloat,
@@ -170,7 +190,14 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
             if ids != displayedIDs {
                 let isNavigation = !displayedIDs.isEmpty   // not the very first fill
                 displayedIDs = ids
+                // A reload can move/clear the table's selection (rows vanished);
+                // that is NOT user input and must never publish back into the
+                // model — it would overwrite a fresh model-side selection (the
+                // issue-53 post-trash reselect lost its race here). Suppress the
+                // echo; `syncSelection` right after reconciles table ← model.
+                echo.beginApply()
                 table.reloadData()
+                echo.endApply()
                 // Start scrolled to the left so Name is visible first when a folder
                 // loads (issue 17). The user can still scroll right to Size/Date;
                 // navigating to another folder returns to Name-first.
