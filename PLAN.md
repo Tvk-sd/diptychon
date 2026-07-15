@@ -17,4 +17,31 @@ Nächstes: **#52 batch-rename quality** (`ready-for-agent`, eigener Worktree). V
 
 ## Aktiver Task
 <!-- AI-Arbeitsstand; bei Done leeren + Issue schließen -->
-_No active task._
+
+### #36 Gadgets-lite — Plan (freigegeben 2026-07-15)
+
+**Issue:** `.scratch/diptychon-mvp/issues/36-gadgets-lite-external-tool-actions.md` (ready-for-agent)
+**Branch:** `feat/36-gadgets-lite` ab `e4091fc` (dieser Worktree, steady-fig — Achtung: springt vor #52 in der Queue)
+
+**Verstanden:** User definiert deklarative "Gadgets" (Application = gespeichertes "Open With"; Executable = Binary + Argument-Template). Ausführung gegen die aktuelle Selektion, 6 Substitutionsvariablen, multi-value → separate argv-Einträge. Kein Scripting, kein Output-Capture, keine GUI.
+
+**Recon-Fakten (2026-07-13):**
+- Palette-Commands sind closure-fähig (`PaletteCommand`, `CommandPalette.swift:6`) → Gadgets werden dort zur Laufzeit eingemischt. `AppAction`-Enum ist statisch → **Hotkey-Binding für Gadgets = v1 out of scope** (Issue sagt "optional").
+- App ist **nicht sandboxed** (`Diptychon.entitlements`, ADR 0001) → `Process` spawnen ist ohne Entitlement-Änderung möglich. Akzeptanzkriterium "Sandbox verifizieren" = dokumentieren, erledigt.
+- Open-With-Plumbing (`OpenWithController.swift:100`, `NSWorkspace.open(_:withApplicationAt:)`) ist direkt wiederverwendbar für Application-Gadgets.
+- Persistenz-Konvention der App = UserDefaults-Blobs; es gibt noch KEINE Datei in Application Support.
+
+**Schritte:**
+1. [x] `Gadget` + `GadgetConfig` (toleranter Decode) + `GadgetStore` (`gadgets.json` in App Support) — `Sources/Diptychon/Gadgets/`
+2. [x] Substitutions-Engine pure (`GadgetSubstitution`), unit-getestet inkl. Spaces/Multi-Select/Fehlerfälle
+3. [x] Ausführung `GadgetRunner`: NSWorkspace / Process (argv-Array), off-main, First-Run-Confirm (B), Fehler → Alert
+4. [x] Palette-Integration: Gadgets + „Gadgets: Edit Config…"/„Gadgets: Reload" zur Laufzeit gemerged (`filter(_:in:)`-Overload)
+5. [x] Tests: 3 neue Suiten (Substitution/Config/Store), Unit-Suite 192/192 grün; UI-Suite: `testToggleRightPanel` schlägt fehl, aber **identisch auf main 83e213a** → Vorbestand/Umgebung, nicht #36
+6. [x] Doku: `docs/gadgets.md` neu; Benchmark §5 Gadgets-Zeile → ✅, Extensibility-Note angepasst
+
+**Status 2026-07-15:** Implementiert + getestet, UNCOMMITTED — wartet auf Tills Hands-on-Test (show-before-commit). Danach: commit, Issue #36 schließen, PLAN leeren. Offen zu klären: UI-Test-Vorbestand ggf. als eigenes Issue filen.
+
+**Entscheidungen (Till, 2026-07-15):**
+- **A — Config:** JSON-Datei in `~/Library/Application Support/Diptychon/gadgets.json` (handeditierbar)
+- **B — Confirm-Dialog:** JA — beim ersten Lauf jedes Executable-Gadgets (zeigt, was ausgeführt wird)
+- **C — Hotkey-Binding:** bestätigt out of scope v1 (Palette-only; Folge-Issue statt Keymap-Umbau)

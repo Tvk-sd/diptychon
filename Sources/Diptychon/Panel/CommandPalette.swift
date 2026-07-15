@@ -96,6 +96,13 @@ enum CommandCatalog {
     /// Commands whose title fuzzy-matches `query`, best match first. Empty query
     /// returns the full catalog in declared order.
     static func filter(_ query: String) -> [PaletteCommand] {
+        filter(query, in: commands)
+    }
+
+    /// Same filter over an explicit list — the palette sheet passes the static
+    /// catalog plus the user's gadget commands (issue 36), which only exist at
+    /// runtime and so can't live in `commands`.
+    static func filter(_ query: String, in commands: [PaletteCommand]) -> [PaletteCommand] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return commands }
         return commands.enumerated()

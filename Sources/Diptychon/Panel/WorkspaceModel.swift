@@ -190,6 +190,11 @@ final class WorkspaceModel {
         didSet { UserDefaults.standard.set(FavoriteApps.encode(favoriteApps), forKey: "openWithFavorites") }
     }
 
+    /// User-defined external-tool actions (issue 36), loaded from
+    /// `~/Library/Application Support/Diptychon/gadgets.json` and surfaced in the
+    /// command palette (see `WorkspaceModel+Gadgets`).
+    let gadgetStore = GadgetStore()
+
     /// Whether the right file panel is shown (issue 13). Defaults to true (a
     /// registered default in `DiptychonApp`). Hiding it forces the Active Panel to
     /// the left so keyboard/clicks stay coherent.
