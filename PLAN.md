@@ -5,7 +5,6 @@ Reach-Test (Ads/Outreach → signups) → Demand-Test (5 Sessions → Day-10-Ret
 
 ## Offen — bei Till
 <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
-- [ ] **Aus-/Einloggen (oder Neustart), dann UI-Suite nachholen:** #53 ist auf Tills Ansage OHNE grüne UI-Suite gemerged (`70cb7a2`; Unit-Suite grün, Automation-Mode hängt maschinenweit) — nach Re-Login in einer Session sagen "run the UI suite on main"; der neue Tab-Fokus-Test ist noch nie gelaufen
 - [ ] **Reach-Test starten:** Google Ads + Roundup-Outreach live → `signups:src:*` lesen → GO/ITERATE/STOP (`context/reach-test.md`, `google-ads-setup.md`, `roundup-outreach.md`)
 - [ ] **Demand-Test starten:** Screener finalisieren, 5 rekrutieren (2 Netzwerk + 3 cold) → Sessions Woche 1, Retention-Check ~Tag 10 (`context/demand-test.md`; Preis-Frage: €9.99 one-time)
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
