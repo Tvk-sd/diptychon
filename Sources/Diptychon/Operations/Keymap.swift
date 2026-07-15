@@ -182,8 +182,14 @@ enum Keymap {
         (KeyChord(.character("z"), command: true), .undo),
         (KeyChord(.character("z"), command: true, shift: true), .redo),
         (KeyChord(.code(Key.upArrow), command: true), .goUp),   // ⌘↑ leave directory
-        (KeyChord(.character("["), command: true), .goBack),    // ⌘[ back (Finder convention)
-        (KeyChord(.character("]"), command: true), .goForward), // ⌘] forward
+        // History runs on ⌘←/⌘→ (Safari convention): keycode chords work on every
+        // keyboard layout, unlike ⌘[/⌘] — on a German layout `[` is ⌥5, so the
+        // character chord can never match. The bracket pair stays as an alias
+        // for US layouts (Finder convention); first match wins in the palette.
+        (KeyChord(.code(Key.leftArrow), command: true), .goBack),
+        (KeyChord(.code(Key.rightArrow), command: true), .goForward),
+        (KeyChord(.character("["), command: true), .goBack),
+        (KeyChord(.character("]"), command: true), .goForward),
         (KeyChord(.code(Key.tab)), .switchPanel),               // Tab switch Active Panel
         (KeyChord(.character("c"), command: true), .clipboardCopy),
         (KeyChord(.character("v"), command: true), .paste),
