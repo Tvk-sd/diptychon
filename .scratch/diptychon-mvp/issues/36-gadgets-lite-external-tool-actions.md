@@ -1,12 +1,12 @@
 # 36 — Gadgets-lite: user-defined external-tool actions
 
 Status: done — shipped on `feat/36-gadgets-lite` (commit `d1e0047`), user-verified
-hands-on 2026-07-15 (zip/say/TextEdit demo gadgets). Declarative `gadgets.json` in
-Application Support (decision A), first-run confirm for executables (decision B),
-palette-only — hotkey binding out of scope v1 (decision C). Docs: `docs/gadgets.md`.
-All acceptance criteria met; full unit suite green (192); UI-suite failure
-`testToggleRightPanel` is a pre-existing environment issue (also fails on main
-`83e213a`) → filed as issue 61. Not yet merged to main.
+hands-on 2026-07-15 (zip/say/TextEdit demo gadgets), merged to main 2026-07-15.
+Declarative `gadgets.json` in Application Support (decision A), first-run confirm
+for executables (decision B), palette-only — hotkey binding out of scope v1
+(decision C). Docs: `docs/gadgets.md`. All acceptance criteria met; full unit
+suite green; UI-suite failure `testToggleRightPanel` is a pre-existing
+environment issue (also fails on main `83e213a`) → filed as issue 61.
 
 Drafted from Marta gap analysis (`context/competitor-benchmark.md` §5). The 80/20
 slice of Marta's extensibility suite — deliberately **not** a plugin API.

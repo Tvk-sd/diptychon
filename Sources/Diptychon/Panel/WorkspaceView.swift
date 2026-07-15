@@ -293,6 +293,7 @@ struct WorkspaceView: View {
         if model.rightPanelVisible {
             SplitPane(fraction: $model.splitRatio) {
                 PanelView(model: model.left, isActive: model.active == .left,
+                          hasKeyFocus: model.active == .left && !model.stagingFocused,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
                           onGoToFolder: { model.active = .left; model.presentedSheet = .goToFolder },
                           onPin: { model.pin($0) },
@@ -302,6 +303,7 @@ struct WorkspaceView: View {
                           tableIdentifier: "panel-left")
             } right: {
                 PanelView(model: model.right, isActive: model.active == .right,
+                          hasKeyFocus: model.active == .right && !model.stagingFocused,
                           onDrop: { urls, folder in model.handleDrop(urls, on: model.right, targetFolder: folder) },
                           onGoToFolder: { model.active = .right; model.presentedSheet = .goToFolder },
                           onPin: { model.pin($0) },
@@ -312,6 +314,7 @@ struct WorkspaceView: View {
             }
         } else {
             PanelView(model: model.left, isActive: true,
+                      hasKeyFocus: !model.stagingFocused,
                       onDrop: { urls, folder in model.handleDrop(urls, on: model.left, targetFolder: folder) },
                       onGoToFolder: { model.active = .left; model.presentedSheet = .goToFolder },
                       onPin: { model.pin($0) },

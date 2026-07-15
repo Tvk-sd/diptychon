@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Impressum, Diptychon</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/png" href="icon.png" />
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#f6f6f4;--bg-raise:#ffffff;
+    --line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;
+    --ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;
+    --accent:#0066d6;--accent-hover:#0a84ff;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    --maxw:940px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{color-scheme:dark;--bg:#0b0b0d;--bg-raise:#131316;--line:#232327;--line-soft:#303038;--line-strong:#33333a;--ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;--accent:#0a84ff;--accent-hover:#3a9bff}
+  }
+  :root[data-theme="dark"]{color-scheme:dark;--bg:#0b0b0d;--bg-raise:#131316;--line:#232327;--line-soft:#303038;--line-strong:#33333a;--ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;--accent:#0a84ff;--accent-hover:#3a9bff}
+  :root[data-theme="light"]{color-scheme:light;--bg:#f6f6f4;--bg-raise:#ffffff;--line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;--ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;--accent:#0066d6;--accent-hover:#0a84ff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:var(--accent);text-decoration:none}a:hover{color:var(--accent-hover)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+  .in{max-width:var(--maxw);margin-inline:auto;padding-inline:24px}
+  .rails{position:fixed;top:0;bottom:0;left:0;right:0;margin-inline:auto;width:min(var(--maxw),100% - 36px);border-inline:1px solid var(--line-soft);pointer-events:none;z-index:0}
+  body{transition:background-color .25s ease,color .25s ease}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+  nav{border-bottom:1px solid var(--line-soft)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:11px;color:var(--ink);font-family:var(--mono);font-size:15px}
+  .brand img{width:26px;height:26px;border-radius:7px;display:block}
+  main{display:block;padding:64px 0 72px}
+  .label{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 18px}
+  h1{font-size:clamp(26px,4vw,36px);line-height:1.1;letter-spacing:-.02em;font-weight:600;margin:0 0 28px}
+  h2{font-size:18px;font-weight:600;margin:36px 0 8px}
+  p{max-width:68ch;color:var(--ink-dim);margin:0 0 12px}
+  address{font-style:normal;color:var(--ink);max-width:68ch;margin:0 0 12px}
+  footer{border-top:1px solid var(--line-soft);padding:34px 0 48px}
+  .foot-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
+  .foot-in a{color:var(--ink-dim)}.foot-in a:hover{color:var(--accent)}
+  .foot-links{display:flex;gap:22px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="rails" aria-hidden="true"></div>
+
+<nav>
+  <div class="in nav-in">
+    <a class="brand" href="/"><img src="icon.png" alt="" width="26" height="26"><span>diptychon</span></a>
+  </div>
+</nav>
+
+<main>
+  <div class="in">
+    <p class="label">Rechtliches</p>
+    <h1>Impressum</h1>
+
+    <h2>Angaben gemäß § 5 DDG</h2>
+    <address>
+      Till von Krueger<br>
+      Meisenstraße 1<br>
+      14195 Berlin<br>
+      Deutschland
+    </address>
+
+    <h2>Kontakt</h2>
+    <p>E-Mail: <a href="mailto:feedback@diptychon.com">feedback@diptychon.com</a></p>
+
+    <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+    <p>Till von Krueger, Anschrift wie oben.</p>
+
+    <h2>Hinweis</h2>
+    <p>Diptychon ist ein Projekt einer Einzelperson und befindet sich vor der Veröffentlichung. Diese Website dient der Information über die App und der Entgegennahme von Benachrichtigungswünschen zum Erscheinungstermin.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="in foot-in">
+    <span>© Diptychon, native macOS, 1.4 MB</span>
+    <span class="foot-links">
+      <a href="/">Home</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>

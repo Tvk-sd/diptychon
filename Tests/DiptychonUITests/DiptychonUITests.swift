@@ -87,6 +87,195 @@ final class DiptychonUITests: XCTestCase {
         )
     }
 
+    /// Issue 53: after ⌘⌫, the selection lands on the nearest surviving row so
+    /// arrow keys continue from the same spot (Finder parity). The probe for
+    /// "which row is selected" is ⌘R — its inline editor opens ON the selected
+    /// row and names it. Layout under the default date-desc sort (newest first):
+    /// [delta, gamma, beta, alpha]. Trash gamma (row 1) → beta slides into row 1
+    /// and must be selected; ↓ must then step to alpha — never restart at row 0.
+    func testTrashSelectsNearestSurvivorAndArrowsContinue() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-uitrash-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        for name in ["alpha.txt", "beta.txt", "gamma.txt", "delta.txt"] {
+            fm.createFile(atPath: dir.appendingPathComponent(name).path, contents: Data())
+        }
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts["gamma.txt"].waitForExistence(timeout: 10))
+
+        leftTable.staticTexts["gamma.txt"].click()
+        app.typeKey(.delete, modifierFlags: .command)
+        XCTAssertTrue(waitForNames(in: dir, toEqual: ["alpha.txt", "beta.txt", "delta.txt"]),
+                      "⌘⌫ should trash gamma.txt, got: \(names(in: dir))")
+        XCTAssertTrue(waitFor { !leftTable.staticTexts["gamma.txt"].exists },
+                      "the trashed row should leave the table")
+
+        // The nearest surviving row (beta, now at gamma's index) must be selected:
+        // ⌘R opens the inline editor on the selected row.
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(leftTable.textFields["beta.txt"].waitForExistence(timeout: 5),
+                      "selection should land on beta.txt (the nearest surviving row)")
+        app.typeKey(.escape, modifierFlags: [])   // cancel the rename probe
+
+        // Arrow keys continue from there — ↓ steps to alpha, not back to row 0.
+        app.typeKey(.downArrow, modifierFlags: [])
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(leftTable.textFields["alpha.txt"].waitForExistence(timeout: 5),
+                      "↓ after trash should continue to alpha.txt, not restart at the top")
+        app.typeKey(.escape, modifierFlags: [])
+    }
+
+    /// Issue 53 follow-up: Tab (switch panel) must move KEYBOARD focus too, not
+    /// just the model's Active Panel — ↑/↓ are native table navigation and follow
+    /// the AppKit first responder. Click in the left panel, Tab to the right one,
+    /// press ↓: the selection must move in the RIGHT panel (probed via ⌘R's inline
+    /// editor, which opens on the active panel's selected row).
+    func testTabMovesArrowKeyFocusToOtherPanel() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-uitabfocus-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        for name in ["alpha.txt", "beta.txt", "gamma.txt", "delta.txt"] {
+            fm.createFile(atPath: dir.appendingPathComponent(name).path, contents: Data())
+        }
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        let rightTable = app.tables.element(boundBy: 1)
+        XCTAssertTrue(rightTable.waitForExistence(timeout: 10), "Expected two panels")
+        XCTAssertTrue(leftTable.staticTexts["beta.txt"].waitForExistence(timeout: 5))
+
+        // Anchor keyboard focus in the LEFT panel, then Tab to the right one.
+        leftTable.staticTexts["beta.txt"].click()
+        app.typeKey(.tab, modifierFlags: [])
+
+        // ↓ must now act in the right panel: empty selection there → row 0 (delta
+        // under the newest-first default sort).
+        app.typeKey(.downArrow, modifierFlags: [])
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(rightTable.textFields["delta.txt"].waitForExistence(timeout: 5),
+                      "↓ after Tab should select in the right panel, not keep driving the left")
+        app.typeKey(.escape, modifierFlags: [])
+    }
+
+    /// Issue 52 AC1: a batch rename of N items must revert completely with ONE ⌘Z
+    /// in the running app, and ⇧⌘Z must redo it. Asserts against the real files on
+    /// disk (not the accessibility tree), so a stale panel can't fake a pass.
+    func testBatchRenameUndoRedo() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-uibatch-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let originals = ["alpha.txt", "beta.txt", "delta.txt"]
+        for name in originals {
+            fm.createFile(atPath: dir.appendingPathComponent(name).path, contents: Data())
+        }
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts["alpha.txt"].waitForExistence(timeout: 10))
+
+        // Select all three files, then ⌘R → multi-selection opens the batch sheet.
+        leftTable.staticTexts["alpha.txt"].click()
+        app.typeKey("a", modifierFlags: .command)
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(app.staticTexts["Rename 3 items"].waitForExistence(timeout: 5),
+                      "⌘R on a multi-selection should open the batch-rename sheet")
+
+        // Replace mode (default): "a" → "o" touches every fixture name. Match the
+        // sheet's fields by placeholder — element(boundBy:) would grab sidebar search.
+        let findField = app.textFields.matching(
+            NSPredicate(format: "placeholderValue == %@", "Find")).firstMatch
+        XCTAssertTrue(findField.waitForExistence(timeout: 5))
+        findField.click()
+        app.typeText("a")
+        let replaceField = app.textFields.matching(
+            NSPredicate(format: "placeholderValue == %@", "Replace with")).firstMatch
+        replaceField.click()
+        app.typeText("o")
+        let renamed = ["olpho.txt", "beto.txt", "delto.txt"]
+        // Wait for the live preview to show the computed name before committing.
+        XCTAssertTrue(app.staticTexts["olpho.txt"].waitForExistence(timeout: 5),
+                      "Sheet preview should show the resulting name")
+        app.buttons["Rename"].click()
+
+        XCTAssertTrue(waitForNames(in: dir, toEqual: renamed),
+                      "Batch rename should apply on disk: \(names(in: dir))")
+
+        // Change the selection first — undo is stack-based, it must not depend on
+        // what is selected when ⌘Z arrives (issue 52 edge case).
+        leftTable.staticTexts["beto.txt"].click()
+
+        // ONE ⌘Z reverts the whole batch…
+        app.typeKey("z", modifierFlags: .command)
+        XCTAssertTrue(waitForNames(in: dir, toEqual: originals),
+                      "One ⌘Z must revert ALL names, got: \(names(in: dir))")
+        // …and the undo toast names the operation.
+        XCTAssertTrue(app.staticTexts["Undone — Rename 3 items"].waitForExistence(timeout: 5),
+                      "Undo toast should name the batch operation")
+
+        // ⇧⌘Z redoes the whole batch.
+        app.typeKey("z", modifierFlags: [.command, .shift])
+        XCTAssertTrue(waitForNames(in: dir, toEqual: renamed),
+                      "⇧⌘Z must redo the batch, got: \(names(in: dir))")
+    }
+
+    /// Issue 52 AC2: the "Number Prefix" mode prepends an ascending counter
+    /// (default start 0, space separator) while KEEPING the existing names, in
+    /// the panel's list order — and the result is one undoable batch.
+    func testNumberPrefixModeRenamesInListOrder() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-uinum-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let originals = ["alpha.txt", "beta.txt", "delta.txt"]
+        for name in originals {
+            fm.createFile(atPath: dir.appendingPathComponent(name).path, contents: Data())
+        }
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts["alpha.txt"].waitForExistence(timeout: 10))
+        leftTable.staticTexts["alpha.txt"].click()
+        app.typeKey("a", modifierFlags: .command)
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(app.staticTexts["Rename 3 items"].waitForExistence(timeout: 5))
+
+        // The segmented picker's segments surface as radio buttons.
+        app.radioButtons["Number Prefix"].click()
+
+        // Live preview shows the computed names (default start 0) before commit.
+        // The default sort is date-modified DESCENDING, so the newest fixture
+        // (delta) is row 0 — numbering follows the panel's visual order.
+        XCTAssertTrue(app.staticTexts["0 delta.txt"].waitForExistence(timeout: 5),
+                      "Preview should number the topmost (visual) row 0")
+        app.buttons["Rename"].click()
+
+        let renamed = ["0 delta.txt", "1 beta.txt", "2 alpha.txt"]
+        XCTAssertTrue(waitForNames(in: dir, toEqual: renamed),
+                      "Number Prefix should keep names, got: \(names(in: dir))")
+
+        // The new mode is one undoable batch like the others.
+        app.typeKey("z", modifierFlags: .command)
+        XCTAssertTrue(waitForNames(in: dir, toEqual: originals),
+                      "One ⌘Z must revert the numbered batch, got: \(names(in: dir))")
+    }
+
     /// Issue 08 AC2: set a tag on the selection via the picker (⌘T), and undo it.
     /// Asserts against the file's actual `_kMDItemUserTags` xattr — which is both
     /// robust (no accessibility-tree guessing) and proof of the Finder round-trip.
@@ -364,6 +553,24 @@ final class DiptychonUITests: XCTestCase {
         XCTAssertTrue(removeItem.waitForExistence(timeout: 5))
         removeItem.click()
         XCTAssertTrue(waitFor { !app.buttons["pinned-missing:\(folderName)"].exists })
+    }
+
+    /// Sorted visible file names in `dir`, read straight from disk.
+    private func names(in dir: URL) -> [String] {
+        ((try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? [])
+            .filter { !$0.hasPrefix(".") }.sorted()
+    }
+
+    /// Poll the directory listing (rename ops are async) until it matches, or time out.
+    private func waitForNames(in dir: URL, toEqual expected: [String],
+                              timeout: TimeInterval = 5) -> Bool {
+        let want = expected.sorted()
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if names(in: dir) == want { return true }
+            usleep(100_000)
+        } while Date() < deadline
+        return names(in: dir) == want
     }
 
     /// Poll the file's tag xattr (the op is async) until it matches, or time out.

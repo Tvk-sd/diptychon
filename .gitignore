@@ -15,3 +15,6 @@ presentations/
 
 # Stray build artifact in repo root (the real download lives in .scratch/landing-page/)
 /Diptychon.zip
+
+# Impeccable skill critique cache (session artifact, not project state)
+.impeccable/

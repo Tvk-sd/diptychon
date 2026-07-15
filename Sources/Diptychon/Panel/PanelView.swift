@@ -7,6 +7,11 @@ import SwiftUI
 struct PanelView: View {
     let model: PanelModel
     let isActive: Bool
+    /// True when this panel is the keyboard home: active AND Staging doesn't hold
+    /// the operation focus. Drives the file list's first-responder claim (issue 53)
+    /// — separate from `isActive`, which also paints the border while Staging is
+    /// focused.
+    var hasKeyFocus: Bool = true
     let onDrop: (_ urls: [URL], _ targetFolder: FileItem?) -> Void
     /// Open the Go to Folder sheet (issue 15) — owned by the workspace.
     var onGoToFolder: () -> Void = {}
@@ -100,6 +105,7 @@ struct PanelView: View {
                         onRename: onRename,
                         accessibilityID: tableIdentifier
                     )
+                    .claimingKeyFocus(hasKeyFocus)
                     .highlightingTarget(model.highlightedTargetURL)
                 }
             case .failed(let message):
