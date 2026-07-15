@@ -9,9 +9,11 @@ Reach-Test (Ads/Outreach → signups) → Demand-Test (5 Sessions → Day-10-Ret
 - [ ] **Demand-Test starten:** Screener finalisieren, 5 rekrutieren (2 Netzwerk + 3 cold) → Sessions Woche 1, Retention-Check ~Tag 10 (`context/demand-test.md`; Preis-Frage: €9.99 one-time)
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 - [ ] **pm-skills-Repo committen:** Deprecation (conductor + project-handoff → `_deprecated/`, entschieden statt Migration 2026-07-12) + project-setup v3.0.0 / project-resume v2.0.0 liegen uncommitted in `~/.claude/skills/user/` — dort warten auch ältere Änderungen (README, brainstorming-ideation, design-analysis); reviewen + committen
+- [ ] **Setup-Skills nachziehen** (Backlog, nicht dringend): `~/.claude/skills/user/project-setup` auf das neue Ruleset umstellen — PLAN-Struktur (Roadmap-lite / Offen-Till / Offen-AI / Aktiver Task), End-of-task-Issue-Close statt PROJECT-TRACKER-Scaffold; dabei alle Skills nach `PROJECT-TRACKER` greppen (auch `conductor`, `project-handoff`) — sonst regeneriert das nächste Projekt die alte Konvention (transferable-learnings §26)
+- [ ] **`.adobeTemp` löschen (4,2 GB, braucht sudo):** `sudo rm -rf /System/Volumes/Data/.adobeTemp` — root-owned, AI kommt nicht ran (Platten-Aufräumen 2026-07-15; npm-Cache bereits geleert)
+
 ## Offen — bei AI
-Nächstes: Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #53, #57)
-— #36 in Arbeit: eigene Worktree-Session seit 2026-07-13
+Nächstes: **UI-Suite auf main nachholen** (nach `pkill testmanagerd`-Fix statt Re-Login; der #53-Tab-Fokus-Test ist nie grün gelaufen, dabei #61 `testToggleRightPanel` not hittable mit klären). Danach Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #52 batch-rename [eigener Worktree], #57). #36 Gadgets-lite + #53 abgeschlossen + gemerged 2026-07-15.
 
 ## Aktiver Task
 <!-- AI-Arbeitsstand; bei Done leeren + Issue schließen -->

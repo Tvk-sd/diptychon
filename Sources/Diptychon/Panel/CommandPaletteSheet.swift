@@ -15,7 +15,9 @@ struct CommandPaletteSheet: View {
     @State private var suppressHoverUntil = Date.distantPast
     @FocusState private var searchFocused: Bool
 
-    private var results: [PaletteCommand] { CommandCatalog.filter(query) }
+    private var results: [PaletteCommand] {
+        CommandCatalog.filter(query, in: CommandCatalog.commands + model.gadgetPaletteCommands)
+    }
 
     var body: some View {
         VStack(spacing: 0) {

@@ -180,7 +180,7 @@ Legend: ❌ absent · 🟡 partial · 🔄 backlog · ➖ deliberate
 |---|---|---|---|
 | **Operation Queue** | Queued ops, shared across windows, progress bar, **pause/cancel**, keyboard-driven (`=`) | ❌ ops run off-main but no surfaced queue/pause/cancel | **Top gap** — extends our reversible-op lead (issue 34) |
 | **Analyze Disk Usage** | Recursive size scan → sorted-desc virtual view | ❌ | **File** (issue 35) |
-| **Gadgets** | User-defined actions running external apps/executables on the selection | ❌ | **Gadgets-lite** (issue 36) |
+| **Gadgets** | User-defined actions running external apps/executables on the selection | ✅ Gadgets-lite (issue 36): declarative `gadgets.json`, ⌘K palette, 6 substitution variables — no scripting runtime | Shipped — the one extensibility exception (see `docs/gadgets.md`) |
 | **Flatten** | Recursive folder → one flat file list | ❌ | Candidate — cheap, pairs with disk-usage |
 | **Look Up** | System-global search via Spotlight indices | ❌ | Candidate |
 | **Embedded Terminal (etty)** | Per-pane pty, dir-synced (`⌘O`) | ❌ | Weight risk — tension w/ "lightweight" |
@@ -193,7 +193,7 @@ Legend: ❌ absent · 🟡 partial · 🔄 backlog · ➖ deliberate
 | **Regex quick search** | Filter by substring **or** regex | 🟡 substring type-ahead only | Minor |
 | **Decoupled selection** | Move cursor without losing selection | ❌ Finder-style | UX-divergence decision, not a bug |
 | **Action Bar** | Button strip + hotkey cheat sheet below panes | ❌ (have command palette, issue 19) | Deferred |
-| **Extensibility suite** | Lua plugin API · config DSL · configurable keybindings · themes · fonts · CLI | ❌ none | ➖ mostly *against* the lightweight/Finder-native thesis — **not** parity targets (except Gadgets-lite, issue 36) |
+| **Extensibility suite** | Lua plugin API · config DSL · configurable keybindings · themes · fonts · CLI | ✅ Gadgets-lite only (issue 36, shipped) | ➖ mostly *against* the lightweight/Finder-native thesis — **not** parity targets; Gadgets-lite is the one shipped exception |
 
 > **PM note.** Marta's extensibility is its moat *and* its weight. Don't chase
 > plugin/theme/DSL parity — it fights "lightweight + Finder muscle memory." The
