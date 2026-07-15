@@ -41,4 +41,4 @@ da modifier-genau gematcht wird.
 
 Implementiert in `Sources/Diptychon/Operations/Keymap.swift` (⌘←/⌘→ vor den
 Bracket-Aliassen eingefügt). Volle Suite grün, Commit-OK von Till —
-geshippt auf main in `7cf923b`.
+geshippt auf main in `df44a7c`.

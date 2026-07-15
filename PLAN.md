@@ -7,6 +7,7 @@ Reach-Test (Ads/Outreach → signups) → Demand-Test (5 Sessions → Day-10-Ret
 <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
 - [ ] **Reach-Test starten:** Google Ads + Roundup-Outreach live → `signups:src:*` lesen → GO/ITERATE/STOP (`context/reach-test.md`, `google-ads-setup.md`, `roundup-outreach.md`)
 - [ ] **Demand-Test starten:** Screener finalisieren, 5 rekrutieren (2 Netzwerk + 3 cold) → Sessions Woche 1, Retention-Check ~Tag 10 (`context/demand-test.md`; Preis-Frage: €9.99 one-time)
+- [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 - [ ] **pm-skills-Repo committen:** Deprecation (conductor + project-handoff → `_deprecated/`, entschieden statt Migration 2026-07-12) + project-setup v3.0.0 / project-resume v2.0.0 liegen uncommitted in `~/.claude/skills/user/` — dort warten auch ältere Änderungen (README, brainstorming-ideation, design-analysis); reviewen + committen
 ## Offen — bei AI
 Nächstes: Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #53, #57)
