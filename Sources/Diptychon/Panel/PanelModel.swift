@@ -44,6 +44,7 @@ final class PanelModel {
     /// in-memory.
     var filter = "" {
         didSet {
+            cancelReselect()              // user narrowing ≠ rows deleted (issue 53)
             if filterSearchesSubfolders && searchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
                 scheduleSearch()          // Filter drives a scoped recursive walk
             } else {
@@ -52,12 +53,13 @@ final class PanelModel {
         }
     }
     /// Optional tag filter (by name): when set, show only files carrying it.
-    var tagFilter: String? = nil { didSet { recomputeVisible() } }
+    var tagFilter: String? = nil { didSet { cancelReselect(); recomputeVisible() } }
     /// Global search query. Non-empty ⇒ the panel shows matches from the whole
     /// **Home** subtree (not just `directory`), so search works from any folder.
     /// Debounced; cancels the prior walk on each change.
     var searchQuery = "" {
         didSet {
+            cancelReselect()   // user retargeting ≠ rows deleted (issue 53)
             // A pasted/typed absolute or `~` path jumps straight there — done live,
             // not on Enter, because the app's key monitor swallows Return before
             // SwiftUI's onSubmit. Only fires when the path actually resolves, so a
@@ -114,6 +116,41 @@ final class PanelModel {
     /// highlighted and scrolled into view once its folder finishes loading, then
     /// cleared on the next selection, navigation, or search. `nil` normally.
     var highlightedTargetURL: URL? = nil
+
+    /// One-shot "reselect after trash" intent (issue 53, Finder parity): the
+    /// smallest selected visual index + the IDs whose disappearance we await.
+    /// Consumed by `recomputeVisible()` once those rows are actually gone — the
+    /// trash is async, so a synchronous reselect would land on the dying rows.
+    /// Cleared by navigation and by any user-driven filter/search change, so a
+    /// stale intent (e.g. a failed trash) can never fire later.
+    private var pendingReselect: (index: Int, ids: Set<FileItem.ID>)?
+
+    /// Remember where the selection sits before a trash, so the selection can
+    /// land on the nearest surviving row (`min(index, count-1)`) after the rows
+    /// vanish. No-op if nothing visible is selected.
+    func armReselectAfterTrash() {
+        let indices = visibleItems.enumerated()
+            .filter { selection.contains($0.element.id) }
+            .map(\.offset)
+        guard let smallest = indices.min() else { return }
+        pendingReselect = (index: smallest, ids: selection)
+    }
+
+    private func cancelReselect() { pendingReselect = nil }
+
+    /// Apply an armed reselect once none of the awaited IDs is visible anymore.
+    /// Selection is set like a normal user selection (echoes to the table via the
+    /// SelectionEchoGuard; `didSet` drops any landing highlight).
+    private func consumePendingReselect() {
+        guard let pending = pendingReselect else { return }
+        guard pending.ids.isDisjoint(with: visibleItems.map(\.id)) else { return }
+        pendingReselect = nil
+        guard !visibleItems.isEmpty else {
+            selection = []
+            return
+        }
+        selection = [visibleItems[min(pending.index, visibleItems.count - 1)].id]
+    }
     /// Bumped to ask the list to begin an inline rename on the selected row (issue
     /// 11). The `NSTableView` watches this token and calls `editColumn`.
     var inlineRenameRequest: UUID?
@@ -272,6 +309,7 @@ final class PanelModel {
     }
 
     private func afterNavigation() {
+        cancelReselect()   // a pending post-trash reselect belongs to the old folder
         searchQuery = ""   // leaving the folder exits search
         filter = ""
         tagFilter = nil
@@ -360,6 +398,7 @@ final class PanelModel {
         visibleItems = Self.compileVisible(
             loaded: loadedItems, searchResults: searchResults, isSearching: isSearching,
             filter: filter, tagName: tagFilter, sort: sortOrder)
+        consumePendingReselect()
     }
 
     /// Pure base→filter→sort pipeline that produces the rows a Panel shows. The base

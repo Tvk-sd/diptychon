@@ -87,6 +87,86 @@ final class DiptychonUITests: XCTestCase {
         )
     }
 
+    /// Issue 53: after ⌘⌫, the selection lands on the nearest surviving row so
+    /// arrow keys continue from the same spot (Finder parity). The probe for
+    /// "which row is selected" is ⌘R — its inline editor opens ON the selected
+    /// row and names it. Layout under the default date-desc sort (newest first):
+    /// [delta, gamma, beta, alpha]. Trash gamma (row 1) → beta slides into row 1
+    /// and must be selected; ↓ must then step to alpha — never restart at row 0.
+    func testTrashSelectsNearestSurvivorAndArrowsContinue() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-uitrash-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        for name in ["alpha.txt", "beta.txt", "gamma.txt", "delta.txt"] {
+            fm.createFile(atPath: dir.appendingPathComponent(name).path, contents: Data())
+        }
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        XCTAssertTrue(leftTable.staticTexts["gamma.txt"].waitForExistence(timeout: 10))
+
+        leftTable.staticTexts["gamma.txt"].click()
+        app.typeKey(.delete, modifierFlags: .command)
+        XCTAssertTrue(waitForNames(in: dir, toEqual: ["alpha.txt", "beta.txt", "delta.txt"]),
+                      "⌘⌫ should trash gamma.txt, got: \(names(in: dir))")
+        XCTAssertTrue(waitFor { !leftTable.staticTexts["gamma.txt"].exists },
+                      "the trashed row should leave the table")
+
+        // The nearest surviving row (beta, now at gamma's index) must be selected:
+        // ⌘R opens the inline editor on the selected row.
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(leftTable.textFields["beta.txt"].waitForExistence(timeout: 5),
+                      "selection should land on beta.txt (the nearest surviving row)")
+        app.typeKey(.escape, modifierFlags: [])   // cancel the rename probe
+
+        // Arrow keys continue from there — ↓ steps to alpha, not back to row 0.
+        app.typeKey(.downArrow, modifierFlags: [])
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(leftTable.textFields["alpha.txt"].waitForExistence(timeout: 5),
+                      "↓ after trash should continue to alpha.txt, not restart at the top")
+        app.typeKey(.escape, modifierFlags: [])
+    }
+
+    /// Issue 53 follow-up: Tab (switch panel) must move KEYBOARD focus too, not
+    /// just the model's Active Panel — ↑/↓ are native table navigation and follow
+    /// the AppKit first responder. Click in the left panel, Tab to the right one,
+    /// press ↓: the selection must move in the RIGHT panel (probed via ⌘R's inline
+    /// editor, which opens on the active panel's selected row).
+    func testTabMovesArrowKeyFocusToOtherPanel() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-uitabfocus-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        for name in ["alpha.txt", "beta.txt", "gamma.txt", "delta.txt"] {
+            fm.createFile(atPath: dir.appendingPathComponent(name).path, contents: Data())
+        }
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let leftTable = app.tables.element(boundBy: 0)
+        let rightTable = app.tables.element(boundBy: 1)
+        XCTAssertTrue(rightTable.waitForExistence(timeout: 10), "Expected two panels")
+        XCTAssertTrue(leftTable.staticTexts["beta.txt"].waitForExistence(timeout: 5))
+
+        // Anchor keyboard focus in the LEFT panel, then Tab to the right one.
+        leftTable.staticTexts["beta.txt"].click()
+        app.typeKey(.tab, modifierFlags: [])
+
+        // ↓ must now act in the right panel: empty selection there → row 0 (delta
+        // under the newest-first default sort).
+        app.typeKey(.downArrow, modifierFlags: [])
+        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(rightTable.textFields["delta.txt"].waitForExistence(timeout: 5),
+                      "↓ after Tab should select in the right panel, not keep driving the left")
+        app.typeKey(.escape, modifierFlags: [])
+    }
+
     /// Issue 52 AC1: a batch rename of N items must revert completely with ONE ⌘Z
     /// in the running app, and ⇧⌘Z must redo it. Asserts against the real files on
     /// disk (not the accessibility tree), so a stale panel can't fake a pass.
