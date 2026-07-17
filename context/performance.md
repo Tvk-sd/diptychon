@@ -62,3 +62,34 @@ DIPTYCHON_DIR=/path/to/folder \
 ```
 The `Perf` helper (`Sources/Diptychon/App/Perf.swift`) emits both lines to the
 unified log — no Instruments required.
+
+## Memory footprint (added 2026-07-17)
+
+Same machine as above, Release build from main `9082296`, `footprint(1)`
+(`phys_footprint`, the Activity-Monitor-style number). Fixture: 50k empty files
+(`seq -f "file%05g.txt" 1 50000 | xargs touch`). Note: `DIPTYCHON_DIR` seeds
+**both** panels with the fixture, so the 50k number below covers ~100k loaded rows.
+
+| Scenario | Footprint | Peak |
+| --- | --- | --- |
+| Idle, empty folder (8 s after launch) | **35 MB** | 40 MB |
+| 50k fixture, both panels (20 s after launch) | **231 MB** | 264 MB |
+| Derived: per 50k-file panel | **~100 MB** (≈2 KB/row) | — |
+| Reference: live instance after ~1 day real use | 100 MB | — |
+
+**Finder comparison (single run — record, don't market):** Finder on the same
+machine went 104 MB → 367 MB opening the same 50k fixture (+263 MB for one window)
+and held ~369 MB after the window closed. Caveats before this appears on /vs or
+anywhere public: long-running Finder instance (not clean-room), footprint depends
+on Finder's view mode (icon view builds thumbnails), n=1. Needs a scripted
+repeatable run first — same bar as the load-time numbers above.
+
+The ~2 KB/row suggests materialized `URL` + resource values per row model; any trim
+shares the `LocalDirectorySource` load path with issue 40 and should ride along there.
+
+**How to refresh:**
+```
+# Build Release (see above), then:
+DIPTYCHON_DIR=/path/to/fixture <Release>/Diptychon.app/Contents/MacOS/Diptychon & P=$!
+sleep 20; footprint $P | grep phys_footprint; kill $P
+```
