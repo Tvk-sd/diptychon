@@ -190,7 +190,7 @@
     <p class="label">Compare · macOS file managers</p>
     <h1>Diptychon vs Marta, ForkLift, Nimble &amp; Path Finder</h1>
     <p class="lede">There's no clear winner among Mac file managers. This segment tool-hops for a reason. Here's an honest read of where Diptychon fits, and where these (genuinely good) tools still beat it.</p>
-    <p class="lede2">Diptychon is a fast, keyboard-first dual-panel file manager: native, ~1.4&nbsp;MB, one-time purchase, no telemetry, undo anything. It's pre-launch. This page is about fit, not a claim that it's finished.</p>
+    <p class="lede2">Diptychon is a fast, keyboard-first dual-panel file manager: native, ~1.5&nbsp;MB, one-time purchase, no telemetry, undo anything. It's pre-launch. This page is about fit, not a claim that it's finished.</p>
   </div>
 </header>
 
@@ -204,7 +204,7 @@
       </thead>
       <tbody>
         <tr><th scope="row" class="row-h">Price model</th><td class="me">one-time €9.99 <span class="dim">(planned)</span></td><td class="yes">free</td><td class="dim">one-time $19.95</td><td class="dim">free / $29.99 one-time Pro</td><td class="sub">subscription $32.95/yr</td></tr>
-        <tr><th scope="row" class="row-h">Footprint (download)</th><td class="me">1.4 MB</td><td class="dim">10.7 MB</td><td class="dim">16.3 MB</td><td class="dim">15.0 MB</td><td class="dim">19.4 MB</td></tr>
+        <tr><th scope="row" class="row-h">Footprint (download)</th><td class="me">1.5 MB</td><td class="dim">10.7 MB</td><td class="dim">16.3 MB</td><td class="dim">15.0 MB</td><td class="dim">19.4 MB</td></tr>
         <tr><th scope="row" class="row-h">Native / open-source</th><td class="me">Swift, native</td><td class="dim">Swift, native</td><td class="dim">Swift, native</td><td class="dim">C++, open-source</td><td class="dim">native</td></tr>
         <tr><th scope="row" class="row-h">Dual-pane</th><td class="me yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
         <tr><th scope="row" class="row-h">Undo a file operation</th><td class="me yes">Yes, multi-level</td><td class="no">No</td><td class="dim">Partial (undocumented)</td><td class="no">No</td><td class="dim">Partial (moves)</td></tr>
@@ -220,7 +220,7 @@
 <div class="in">
   <details class="sources">
   <summary>Sources &amp; verification, 2026-07-11 (every number linked)</summary>
-  <p class="verify">Verified 2026-07-11 against the vendors: <a href="https://binarynights.com/store" rel="noopener">ForkLift $19.95 (binarynights.com)</a> · <a href="https://cocoatech.io/product/path-finder/" rel="noopener">Path Finder $32.95/yr (cocoatech.io)</a> · <a href="https://github.com/mikekazakov/nimble-commander/releases" rel="noopener">Nimble Commander free &amp; open-source, 15.0 MB (GitHub release)</a>. Download sizes for <a href="https://marta.macupdate.com/" rel="noopener">Marta (10.7 MB)</a>, ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 1.4 MB is the measured release zip. Prices change. Check the vendor before you buy.</p>
+  <p class="verify">Verified 2026-07-11 against the vendors: <a href="https://binarynights.com/store" rel="noopener">ForkLift $19.95 (binarynights.com)</a> · <a href="https://cocoatech.io/product/path-finder/" rel="noopener">Path Finder $32.95/yr (cocoatech.io)</a> · <a href="https://github.com/mikekazakov/nimble-commander/releases" rel="noopener">Nimble Commander free &amp; open-source, 15.0 MB (GitHub release)</a>. Download sizes for <a href="https://marta.macupdate.com/" rel="noopener">Marta (10.7 MB)</a>, ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 1.5 MB is the zip of the current build, measured 2026-07-17. Prices change. Check the vendor before you buy.</p>
   <p class="verify">Undo &amp; session, verified 2026-07-11: Marta has <a href="https://github.com/marta-file-manager/marta-issues/issues/230" rel="noopener">no file-operation undo (open request since 2018)</a> but documented session restore; ForkLift's <a href="https://binarynights.com/versionhistory" rel="noopener">release notes show undo for Trash &amp; Multi-Rename</a>, full scope undocumented, restore via its "Restore Windows and Tabs on Startup" setting; Nimble Commander's <a href="https://github.com/mikekazakov/nimble-commander/blob/main/Docs/Help.md" rel="noopener">manual documents no undo</a>, session restore is on by default; Path Finder added an <a href="https://cocoatech.io/post/welcome-to-path-finder-8-5/" rel="noopener">"undo panel" for moves</a>, extent undocumented, and layout restore is a manual "Save As Default". Diptychon's undo is multi-level across move, copy, trash and rename; overwrites are destructive and excluded. Batch rename: documented for <a href="https://binarynights.com/versionhistory" rel="noopener">ForkLift (Multi-Rename)</a>, <a href="https://github.com/mikekazakov/nimble-commander/blob/main/Docs/Help.md" rel="noopener">Nimble Commander (Batch Rename)</a> and <a href="https://support.cocoatech.com/hc/en-us/search?query=batch+rename" rel="noopener">Path Finder (Batch Renaming)</a>; Marta's file-operations reference lists only single-item rename. Diptychon's batch rename covers Finder-style modes (replace, add text, format with counter, change case) as one undoable operation; regex patterns are planned.</p>
   </details>
 
@@ -233,7 +233,7 @@
   <div class="peer">
     <h3>ForkLift 4</h3>
     <p><span class="win">Wins:</span> the remote powerhouse (SFTP/FTP/WebDAV/S3/cloud/SMB), folder sync, multi-rename.</p>
-    <p><span class="edge">Diptychon's edge:</span> built keyboard-first: every action has a binding, one chord moves files between panels, all in a 1.4 MB download.</p>
+    <p><span class="edge">Diptychon's edge:</span> built keyboard-first: every action has a binding, one chord moves files between panels, all in a 1.5 MB download.</p>
   </div>
   <div class="peer">
     <h3>Nimble Commander</h3>
@@ -275,7 +275,7 @@
 
 <footer>
   <div class="in foot-in">
-    <span>© Diptychon, native macOS, ~1.4 MB</span>
+    <span>© Diptychon, native macOS, ~1.5 MB</span>
     <span class="foot-links">
       <a href="/">Home</a>
       <a href="/#shortcuts">Keyboard shortcuts</a>
