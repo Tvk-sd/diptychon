@@ -269,8 +269,9 @@
     font-size:clamp(17px,2.4vw,20px);
     color:var(--ink-dim);
     max-width:60ch;
-    margin:0 0 32px;
+    margin:0 0 14px;
   }
+  .sizeline{margin:0 0 32px}
   .subhead strong{color:var(--ink);font-weight:500}
 
   .cta-row{
@@ -389,6 +390,9 @@
   /* ---------- screenshot ---------- */
   .shot{
     padding:12px 0 20px;
+  }
+  .hero .shot{
+    padding:8px 0 44px;
   }
   .shot-frame{
     border:1px solid var(--line-soft);
@@ -612,13 +616,27 @@
 
   <header class="hero">
     <div class="wrap">
-      <p class="label">Dual-panel file manager · macOS</p>
-      <h1>Move files at the speed of your keyboard.</h1>
+      <p class="label">Keyboard-first · macOS</p>
+      <h1>The dual-pane file manager for your Mac.</h1>
       <p class="subhead">
-        The dual-panel macOS file manager Finder never gave you. Two folders
-        side by side, one keystroke to move between them, and everything is
-        undoable. <strong>Native, and small: 1.4&nbsp;MB to download, 5&nbsp;MB installed.</strong>
+        Two folders side by side, so you see where a file is and where it's
+        going. One keystroke moves it across. Every action is undoable.
       </p>
+      <p class="specline sizeline">
+        1.5&nbsp;MB&nbsp;download <span class="dot">·</span> 6&nbsp;MB&nbsp;installed
+      </p>
+    </div>
+    <div class="shot">
+      <div class="wrap">
+        <div class="shot-frame">
+          <img src="app-screenshot.png"
+               alt="Diptychon showing two folders side by side: a Places sidebar, an Inbox of mixed files on the left with logo-final.svg selected in blue, and an organized Website Redesign project folder on the right."
+               width="2880" height="1560" loading="eager">
+        </div>
+        <p class="caption">
+          <b>Two panels, one workspace.</b> Select a file in the left panel, press <kbd>⌥⌘→</kbd>, it lands in the right. No dragging, no new windows.
+        </p>
+      </div>
     </div>
     <div class="nfy-band">
     <div class="wrap">
@@ -669,19 +687,6 @@
       </p>
     </div>
   </header>
-
-  <div class="shot">
-    <div class="wrap">
-      <div class="shot-frame">
-        <img src="app-screenshot.png"
-             alt="Diptychon showing two folders side by side: a Places sidebar, an Inbox of mixed files on the left with logo-final.svg selected in blue, and an organized Website Redesign project folder on the right."
-             width="2880" height="1560" loading="eager">
-      </div>
-      <p class="caption">
-        <b>Two panels, one workspace.</b> Select a file in the left panel, press <kbd>⌥⌘→</kbd>, it lands in the right. No dragging, no new windows.
-      </p>
-    </div>
-  </div>
 
   <section class="block">
     <div class="wrap">
