@@ -72,8 +72,13 @@ final class PanelModel {
     /// while `isSearching`.
     private(set) var searchResults: [FileItem] = []
 
-    /// The user's Home dir — the root for global Search. Computed once.
-    static let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
+    /// The root for global Search — the user's Home dir. Computed once.
+    /// `DIPTYCHON_DIR` overrides it so a seeded run (UI tests, demos) searches
+    /// the seeded tree, not the real home — same determinism contract as the
+    /// pane roots in `URL.startDirectory`.
+    static let homeDirectory = ProcessInfo.processInfo.environment["DIPTYCHON_DIR"]
+        .map { URL(fileURLWithPath: $0, isDirectory: true) }
+        ?? FileManager.default.homeDirectoryForCurrentUser
 
     /// Which subtree the recursive walk covers, and with what query, given both
     /// input fields. Global **Search** wins when present (root = `home`); otherwise,
