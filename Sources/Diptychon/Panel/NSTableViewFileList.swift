@@ -151,6 +151,13 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
            window.firstResponder === window || window.firstResponder is FileTableView {
             window.makeFirstResponder(table)
         }
+        // The claim above can't run while the view is detached: navigation swaps
+        // the PanelView load-state branch, so the table is recreated and this
+        // update pass sees `scroll.window == nil` — the claim silently no-ops and
+        // arrows are dead until a click. Let the table claim focus itself the
+        // moment it lands in the window (FileTableView.viewDidMoveToWindow).
+        (scroll.documentView as? FileTableView)?.claimsKeyFocusOnAttach =
+            { [weak c = context.coordinator] in c?.parent.claimsKeyFocus ?? false }
     }
 
     private func addColumn(_ table: NSTableView, id: String, title: String, width: CGFloat,
@@ -616,6 +623,10 @@ final class FileTableView: NSTableView {
     var menuProvider: ((Int) -> NSMenu?)?
     /// Begin an inline rename of a row (slow-click, issue 11). Set by the coordinator.
     var beginEdit: ((Int) -> Void)?
+    /// Whether this table should claim keyboard focus when it attaches to a
+    /// window (Active Panel only) — see the recreate-on-navigation note in
+    /// `updateNSView`. Never steals from a text field.
+    var claimsKeyFocusOnAttach: (() -> Bool)?
     private var pendingEdit: DispatchWorkItem?
 
     override func menu(for event: NSEvent) -> NSMenu? {
@@ -652,6 +663,14 @@ final class FileTableView: NSTableView {
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
+        if window != nil, claimsKeyFocusOnAttach?() == true {
+            DispatchQueue.main.async { [weak self] in
+                guard let self, let window = self.window,
+                      window.firstResponder !== self,
+                      !(window.firstResponder is NSText) else { return }
+                window.makeFirstResponder(self)
+            }
+        }
         if let window {
             window.acceptsMouseMovedEvents = true
             if moveMonitor == nil {
