@@ -4,6 +4,7 @@
 Reach-Test (Ads/Outreach → signups) → Demand-Test (5 Sessions → Day-10-Retention) → GO? → Notarisierung ($99) → Launch (Access-Wall weg)
 
 ## Offen — bei Till
+- [ ] **#62 Embed beauftragen:** Hero-Cut abgenommen — GO für Einbindung auf diptychon.com geben (+ optional: 38s-Sidebar-Cut als Zweitvideo?); Assets liegen in `.scratch/demo-video/`
 <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
 - [ ] **Reach-Test starten:** Google Ads + Roundup-Outreach live → `signups:src:*` lesen → GO/ITERATE/STOP (`context/reach-test.md`, `google-ads-setup.md`, `roundup-outreach.md`)
 - [ ] **Demand-Test starten:** Screener finalisieren, 5 rekrutieren (2 Netzwerk + 3 cold) → Sessions Woche 1, Retention-Check ~Tag 10 (`context/demand-test.md`; Preis-Frage: €9.99 one-time)
@@ -17,6 +18,8 @@ Nächstes: Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40,
 
 ## Aktiver Task
 <!-- AI-Arbeitsstand; bei Done leeren + Issue schließen -->
+**#62 Usage-Video für Landing Page** (2026-07-21) — Video FERTIG (Take 6, 40s mp4), wartet auf Abnahme; Details im Issue.
+
 **Reach-Test starten** (2026-07-12, Woche-1-Schritte aus `context/channel-plan.md`)
 
 Infrastruktur end-to-end verifiziert (2026-07-12): Seite öffentlich, Capture-Form
