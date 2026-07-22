@@ -1,6 +1,6 @@
 # #62 — Usage-Video für die Landing Page (Showcase-Daten)
 
-**Status:** Video ABGENOMMEN (Till, 2026-07-22: „looks great" zum Hero-Cut). Offen: Einbindung Landing Page.
+**Status:** CLOSED (2026-07-22) — Hero-Cut abgenommen + auf diptychon.com live (lp-Commit siehe git log).
 **Stand 2026-07-21 (abends):** ZWEI Videos fertig, warten auf Tills Abnahme.
 mp4 (40s, 1,9 MB, 1080p): Scratchpad `diptychon-demo.mp4`, Roh-Take `take6.mov`.
 Flows wie beschlossen; ⌘K-Palette als Cameo in Beat 2. Loop schließt sauber
