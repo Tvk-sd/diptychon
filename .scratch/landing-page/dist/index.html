@@ -397,7 +397,8 @@
   .shot-frame{
     border:1px solid var(--line-soft);
   }
-  .shot-frame img{
+  .shot-frame img,
+  .shot-frame video{
     display:block;
     width:100%;
     max-width:100%;
@@ -629,9 +630,10 @@
     <div class="shot">
       <div class="wrap">
         <div class="shot-frame">
-          <img src="app-screenshot.png"
-               alt="Diptychon showing two folders side by side: a Places sidebar, an Inbox of mixed files on the left with logo-final.svg selected in blue, and an organized Website Redesign project folder on the right."
-               width="2880" height="1560" loading="eager">
+          <video src="demo.mp4" poster="demo-poster.jpg"
+                 autoplay muted loop playsinline preload="auto"
+                 width="1920" height="1080"
+                 aria-label="23-second demo: navigating two folders side by side with the keyboard, selecting 10 images with Command-A, copying them to the other panel with Command-Option-Right-Arrow, then undoing the copy from the command palette. Each keystroke is shown on screen."></video>
         </div>
         <p class="caption">
           <b>Two panels, one workspace.</b> Select a file in the left panel, press <kbd>⌥⌘→</kbd>, it lands in the right. No dragging, no new windows.
