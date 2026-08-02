@@ -73,6 +73,7 @@ enum CommandCatalog {
         cmd(.preview, "Quick Look", "Open", enabled: hasSelection),
         cmd(.revealInFinder, "Reveal in Finder", "Open", enabled: hasSelection),
         cmd(.showInfo, "Get Info", "Open", enabled: hasSelection),
+        cmd(.openInTerminal, "Open in Terminal", "Open"),   // Active Panel's folder, selection ignored
         // View
         cmd(.toggleHidden, "Show/Hide Hidden Files", "View"),
         cmd(.focusSearch, "Search Subtree", "View"),

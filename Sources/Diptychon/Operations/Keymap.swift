@@ -41,6 +41,7 @@ enum AppAction: String, Equatable, Hashable, CaseIterable {
     case toggleStaging   // ⌘⇧B — swap the Active Panel to the staging set and back (issue 20)
     case removeFromStaging // ⌫ in the Staging pane — unstage (no disk delete) (issue 20)
     case toggleSidebar   // ⌘B — show/hide the left Places sidebar (VS Code convention)
+    case openInTerminal  // ⌘⇧T — open a terminal window in the Active Panel's folder (issue 57)
 }
 
 extension AppAction {
@@ -82,6 +83,7 @@ extension AppAction {
         case .toggleStaging:    return "Toggle Staging Panel"
         case .removeFromStaging:return "Remove from Staging"
         case .toggleSidebar:    return "Toggle Sidebar"
+        case .openInTerminal:   return "Open in Terminal"
         }
     }
 
@@ -222,6 +224,8 @@ enum Keymap {
         (KeyChord(.character("b"), command: true, shift: true), .toggleStaging), // ⌘⇧B show/hide staging
         (KeyChord(.code(Key.delete)), .removeFromStaging),                       // ⌫ unstage (staging pane)
         (KeyChord(.character("b"), command: true), .toggleSidebar), // ⌘B show/hide sidebar
+        // Issue 57 — external terminal launch. ⌘T stays reserved for possible tabs.
+        (KeyChord(.character("t"), command: true, shift: true), .openInTerminal), // ⌘⇧T terminal in Active folder
     ]
 
     static func action(for event: NSEvent,

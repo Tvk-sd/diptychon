@@ -607,6 +607,40 @@ final class WorkspaceModel {
         case .toggleStaging: toggleStaging()
         case .removeFromStaging: removeStagingSelection()
         case .toggleSidebar: sidebarVisible.toggle()
+        case .openInTerminal: openInTerminal()
+        }
+    }
+
+    // MARK: - Open in Terminal (issue 57)
+
+    /// Unresolvable terminal names already hinted about — one visible hint per
+    /// name per session, then quiet (issue 57: no silent fail, but no nagging).
+    private var warnedTerminalNames: Set<String> = []
+
+    /// ⌘⇧T: open a new window of the configured terminal app in the Active
+    /// Panel's current folder. The selection is deliberately ignored — the
+    /// target is always the panel's folder, one predictable mental model
+    /// (issue 57 decision). An unresolvable configured app falls back to
+    /// Terminal.app with a one-time toast.
+    private func openInTerminal() {
+        let folder = activeModel.directory
+        let name = TerminalLauncher.configuredName()
+        var appURL = TerminalLauncher.resolve(name)
+        if appURL == nil {
+            if warnedTerminalNames.insert(name).inserted {
+                showActivityToast("Terminal app “\(name)” not found — using Terminal",
+                                  systemImage: "exclamationmark.triangle")
+            }
+            appURL = TerminalLauncher.resolve(TerminalLauncher.fallbackName)
+        }
+        guard let appURL else { return }
+        NSWorkspace.shared.open([folder], withApplicationAt: appURL,
+                                configuration: NSWorkspace.OpenConfiguration()) { [weak self] _, error in
+            guard let error else { return }
+            Task { @MainActor in
+                self?.showActivityToast("Couldn’t open terminal — \(error.localizedDescription)",
+                                        systemImage: "exclamationmark.triangle")
+            }
         }
     }
 

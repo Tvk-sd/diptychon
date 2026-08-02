@@ -76,6 +76,7 @@ direction is simply which side is inactive.
 | `⌘↩` | Open With… |
 | `⇧⌘R` | Reveal in Finder |
 | `⌥⌘C` | Copy path(s) |
+| `⌘⇧T` | Open in Terminal (the Active Panel’s folder) |
 | `⌘K` | Command palette (run any action by name) |
 
 ---
