@@ -139,14 +139,14 @@ No — Total Commander is Windows-only. Christian Ghisler has never shipped a ma
 
 The compatibility route keeps your muscle memory but gives up native Finder integration, retina rendering and Apple Silicon performance. The native route means learning a new tool, but every native Mac dual-pane manager below gives you the thing you actually came for: two directories side by side, keyboard-driven.
 
-Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet
+Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-1.0 and under active development — no download yet
 
 |  | Diptychon | Marta | ForkLift 4 | Nimble Commander | Path Finder |
 |---|---|---|---|---|---|
 | Two panels side by side | Yes | Yes | Yes | Yes | Yes |
 | Keyboard-driven workflow | Every action bound | Yes | Partial, mouse-forward | 100+ hotkeys | Partial |
-| FTP / SFTP built in | No | No | Yes | Yes | Limited |
-| Plugin ecosystem | No | Yes | No | No | Modules |
+| FTP / SFTP built in | No — local-only in v1 | No | Yes | Yes | Limited |
+| Plugin ecosystem | No — gadgets instead | Yes | No | No | Modules |
 | Price model | one-time €9.99 (planned) | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
 | Download size | 1.5 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
 | Available today | No — pre-launch | Yes | Yes | Yes | Yes |
@@ -189,7 +189,13 @@ Yes. Marta is free (though not open source), and Nimble Commander is free and op
 
 Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 1.5 MB download. It is a one-time purchase (€9.99 planned), not a subscription, and it collects no telemetry.
 
-What it does not do, and this matters for anyone coming from Total Commander: no FTP or SFTP, no plugin system, no archive browsing yet. If those are why you use Total Commander, Diptychon is the wrong tool and ForkLift or Nimble Commander is the right one. It is also still pre-launch — there is no download today, only an email list.
+What it does not do matters for anyone coming from Total Commander, and the reasons differ — worth separating, because one of them is permanent and the others are not:
+
+- No FTP or SFTP. A deliberate boundary: v1 is local-only, and the app is built so it stays small. The internal seam that a remote source would plug into exists, but nothing is promised and nothing is scheduled.
+- No plugin runtime — gadgets instead. Not an omission, a different answer to the same need: a gadget hands the current selection to any app or CLI tool you name, with no plugin API to learn and nothing to install. Narrower than Total Commander's plugins, and it already ships.
+- No archive browsing. Not in v1. It is parked as a known gap rather than scheduled — it gets built if the people signing up ask for it, and dropped if they don't.
+
+Diptychon is pre-1.0 and under active development, so this list is a snapshot, not a verdict. But do not pick a tool on a roadmap: if built-in FTP or a plugin ecosystem is why you use Total Commander today, ForkLift or Nimble Commander is the honest answer, and there is nothing to download here yet either way.
 
 **Come to Diptychon from Total Commander if…**
 
@@ -224,7 +230,7 @@ Marta is free, native Swift, dual-pane and genuinely fast — for most people it
 
 The first is continuity: Marta is a one-person project and development has come in bursts, with long quiet stretches between releases. The second is undo: Marta has no undo for file operations — the request has been open since 2018. Its documentation describes delete as permanent. Batch rename is also absent; the file-operations reference lists single-item rename only.
 
-Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet
+Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-1.0 and under active development — no download yet
 
 |  | Marta | Diptychon | Nimble Commander | ForkLift 4 |
 |---|---|---|---|---|
@@ -302,7 +308,7 @@ If you need remote access, ForkLift 4 is still the right answer and nothing here
 
 People look for an alternative when they realise they never use any of it. If your files live on local and mounted drives, you are carrying a 16.3 MB remote-transfer suite to move things between two folders. The lighter native options are Marta (free), Nimble Commander (free, open source) and Diptychon (1.5 MB, pre-launch).
 
-Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet
+Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-1.0 and under active development — no download yet
 
 |  | ForkLift 4 | Diptychon | Marta | Nimble Commander |
 |---|---|---|---|---|
@@ -343,7 +349,9 @@ Partly. ForkLift has shortcuts, but the workflow it is designed around is mouse-
 
 ### What does Diptychon give up compared to ForkLift?
 
-A lot, on purpose: no remote protocols at all, no folder sync, no archive browsing yet, no cloud-storage integration. What you get back is 1.5 MB instead of 16.3 MB, every action on a key binding, multi-level undo, real Finder tags and no telemetry. It has not launched yet, so today the honest comparison is "ForkLift, which you can buy" against "a mailing list".
+A lot, and mostly on purpose. No remote protocols, no folder sync, no cloud-storage integration — that is a deliberate boundary, not a gap waiting to be filled, and it is the reason the download is 1.5 MB instead of 16.3 MB. Archive handling is the one genuinely open item: not in v1, parked until the people signing up ask for it.
+
+What you get back: every action on a key binding, multi-level undo across move, copy, trash and rename, real Finder tags, and no telemetry. Diptychon is pre-1.0 and under active development, so the feature list will grow — but it will grow inside that boundary, not across it. Today the honest comparison is still "ForkLift, which you can buy" against "a mailing list".
 
 **Look for a ForkLift alternative if…**
 
@@ -378,7 +386,7 @@ Path Finder is not abandoned and it is not bad — it has the deepest feature se
 
 If the recurring charge is your reason for leaving, the one-time-purchase options are ForkLift 4 ($19.95) and Nimble Commander (free, $29.99 one-time Pro). Marta is free. Diptychon is planned as a one-time €9.99 and is pre-launch.
 
-Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet
+Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-1.0 and under active development — no download yet
 
 |  | Path Finder | Diptychon | ForkLift 4 | Nimble Commander |
 |---|---|---|---|---|

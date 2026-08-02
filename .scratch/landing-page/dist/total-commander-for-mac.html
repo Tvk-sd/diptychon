@@ -120,7 +120,7 @@
           "name": "Where does Diptychon fit?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 1.5 MB download. It is a one-time purchase (€9.99 planned), not a subscription, and it collects no telemetry. What it does not do, and this matters for anyone coming from Total Commander: no FTP or SFTP, no plugin system, no archive browsing yet. If those are why you use Total Commander, Diptychon is the wrong tool and ForkLift or Nimble Commander is the right one. It is also still pre-launch — there is no download today, only an email list."
+            "text": "Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 1.5 MB download. It is a one-time purchase (€9.99 planned), not a subscription, and it collects no telemetry. What it does not do matters for anyone coming from Total Commander, and the reasons differ — worth separating, because one of them is permanent and the others are not: - No FTP or SFTP. A deliberate boundary: v1 is local-only, and the app is built so it stays small. The internal seam that a remote source would plug into exists, but nothing is promised and nothing is scheduled. - No plugin runtime — gadgets instead. Not an omission, a different answer to the same need: a gadget hands the current selection to any app or CLI tool you name, with no plugin API to learn and nothing to install. Narrower than Total Commander's plugins, and it already ships. - No archive browsing. Not in v1. It is parked as a known gap rather than scheduled — it gets built if the people signing up ask for it, and dropped if they don't. Diptychon is pre-1.0 and under active development, so this list is a snapshot, not a verdict. But do not pick a tool on a roadmap: if built-in FTP or a plugin ecosystem is why you use Total Commander today, ForkLift or Nimble Commander is the honest answer, and there is nothing to download here yet either way."
           }
         }
       ]
@@ -157,7 +157,7 @@
       <p><strong>No — Total Commander is Windows-only.</strong> Christian Ghisler has never shipped a macOS build, and there is no official port planned. You have two routes: run the Windows version through a compatibility layer (Wine, CrossOver) or a Windows VM, or switch to a file manager built natively for the Mac.</p>
       <p>The compatibility route keeps your muscle memory but gives up native Finder integration, retina rendering and Apple Silicon performance. The native route means learning a new tool, but every native Mac dual-pane manager below gives you the thing you actually came for: two directories side by side, keyboard-driven.</p>
     </div>
-    <p class="stamp">Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet</p>
+    <p class="stamp">Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-1.0 and under active development — no download yet</p>
   </div>
 </header>
 
@@ -172,8 +172,8 @@
       <tbody>
         <tr><th scope="row" class="row-h">Two panels side by side</th><td class="me yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
         <tr><th scope="row" class="row-h">Keyboard-driven workflow</th><td class="me yes">Every action bound</td><td class="yes">Yes</td><td class="dim">Partial, mouse-forward</td><td class="yes">100+ hotkeys</td><td class="dim">Partial</td></tr>
-        <tr><th scope="row" class="row-h">FTP / SFTP built in</th><td class="me no">No</td><td class="no">No</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="dim">Limited</td></tr>
-        <tr><th scope="row" class="row-h">Plugin ecosystem</th><td class="me no">No</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="dim">Modules</td></tr>
+        <tr><th scope="row" class="row-h">FTP / SFTP built in</th><td class="me no">No — local-only in v1</td><td class="no">No</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="dim">Limited</td></tr>
+        <tr><th scope="row" class="row-h">Plugin ecosystem</th><td class="me dim">No — gadgets instead</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="dim">Modules</td></tr>
         <tr><th scope="row" class="row-h">Price model</th><td class="me">one-time €9.99 <span class="dim">(planned)</span></td><td class="yes">free</td><td class="dim">one-time $19.95</td><td class="dim">free / $29.99 one-time Pro</td><td class="sub">subscription $32.95/yr</td></tr>
         <tr><th scope="row" class="row-h">Download size</th><td class="me">1.5 MB</td><td class="dim">10.7 MB</td><td class="dim">16.3 MB</td><td class="dim">15.0 MB</td><td class="dim">19.4 MB</td></tr>
         <tr><th scope="row" class="row-h">Available today</th><td class="me no">No — pre-launch</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
@@ -223,7 +223,13 @@
   <div class="faq">
     <h3>Where does Diptychon fit?</h3>
     <p>Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 1.5 MB download. It is a one-time purchase (€9.99 planned), not a subscription, and it collects no telemetry.</p>
-    <p>What it does <em>not</em> do, and this matters for anyone coming from Total Commander: <strong>no FTP or SFTP, no plugin system, no archive browsing yet.</strong> If those are why you use Total Commander, Diptychon is the wrong tool and ForkLift or Nimble Commander is the right one. It is also still pre-launch — there is no download today, only an email list.</p>
+    <p>What it does <em>not</em> do matters for anyone coming from Total Commander, and the reasons differ — worth separating, because one of them is permanent and the others are not:</p>
+    <ul>
+      <li><strong>No FTP or SFTP.</strong> A deliberate boundary: v1 is local-only, and the app is built so it stays small. The internal seam that a remote source would plug into exists, but nothing is promised and nothing is scheduled.</li>
+      <li><strong>No plugin runtime — gadgets instead.</strong> Not an omission, a different answer to the same need: a gadget hands the current selection to any app or CLI tool you name, with no plugin API to learn and nothing to install. Narrower than Total Commander's plugins, and it already ships.</li>
+      <li><strong>No archive browsing.</strong> Not in v1. It is parked as a known gap rather than scheduled — it gets built if the people signing up ask for it, and dropped if they don't.</li>
+    </ul>
+    <p>Diptychon is <strong>pre-1.0 and under active development</strong>, so this list is a snapshot, not a verdict. But do not pick a tool on a roadmap: if built-in FTP or a plugin ecosystem is why you use Total Commander today, ForkLift or Nimble Commander is the honest answer, and there is nothing to download here yet either way.</p>
   </div>
 </div>
 
