@@ -41,6 +41,7 @@ enum AppAction: String, Equatable, Hashable, CaseIterable {
     case toggleStaging   // ⌘⇧B — swap the Active Panel to the staging set and back (issue 20)
     case removeFromStaging // ⌫ in the Staging pane — unstage (no disk delete) (issue 20)
     case toggleSidebar   // ⌘B — show/hide the left Places sidebar (VS Code convention)
+    case toggleTerminal  // ⌘J — show/hide the embedded terminal panel (issue 65)
 }
 
 extension AppAction {
@@ -82,6 +83,7 @@ extension AppAction {
         case .toggleStaging:    return "Toggle Staging Panel"
         case .removeFromStaging:return "Remove from Staging"
         case .toggleSidebar:    return "Toggle Sidebar"
+        case .toggleTerminal:   return "Toggle Terminal"
         }
     }
 
@@ -222,6 +224,10 @@ enum Keymap {
         (KeyChord(.character("b"), command: true, shift: true), .toggleStaging), // ⌘⇧B show/hide staging
         (KeyChord(.code(Key.delete)), .removeFromStaging),                       // ⌫ unstage (staging pane)
         (KeyChord(.character("b"), command: true), .toggleSidebar), // ⌘B show/hide sidebar
+        // ⌘J — VS Code / Zed convention for the bottom panel. ⌘T is taken (tags) and
+        // Control-combos are swallowed before the app on some Macs, so neither ⌃` nor
+        // a ⌃-chord is an option here (issue 65).
+        (KeyChord(.character("j"), command: true), .toggleTerminal),
     ]
 
     static func action(for event: NSEvent,

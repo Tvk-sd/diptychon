@@ -206,6 +206,14 @@ struct WorkspaceView: View {
                 .keyboardShortcut("p", modifiers: [.command, .shift])
                 .accessibilityIdentifier("toggle-preview")
 
+                // Embedded terminal toggle (issue 65). Sits with the pane toggles —
+                // it opens a pane like they do.
+                headerIcon("apple.terminal", help: "Show/Hide Terminal (⌘J)") {
+                    model.toggleTerminal()
+                }
+                .foregroundStyle(model.terminalVisible ? Color.accentColor : .secondary)
+                .accessibilityIdentifier("toggle-terminal")
+
                 // Staging toggle, set apart by a full-height seam (issue 20).
                 Divider()
                 headerIcon("tray.full", help: "Show Staging (⌘⇧B)") {
@@ -262,7 +270,7 @@ struct WorkspaceView: View {
             }
             // Nav (up/back/forward + breadcrumb + Filter) now lives in the header,
             // so the panels sit directly under the header divider.
-            panels
+            panelsWithTerminal
             switch model.rightPane {
             case .none:
                 EmptyView()
@@ -278,6 +286,26 @@ struct WorkspaceView: View {
                                 onClear: { model.clearStaging() })
                     .frame(width: 300)
             }
+        }
+    }
+
+    /// The panel column with the embedded terminal below it (issue 65).
+    ///
+    /// The terminal wraps `panels` — not the whole `columns` row — so it spans exactly
+    /// the two file Panels, which is what "over both panes" means. The sidebar and the
+    /// preview/staging pane keep their full height beside it.
+    @ViewBuilder
+    private var panelsWithTerminal: some View {
+        @Bindable var model = model
+        if model.terminalVisible {
+            VSplitPane(fraction: $model.terminalSplitRatio) {
+                panels
+            } bottom: {
+                TerminalPanelView(session: model.terminal,
+                                  panelFolder: model.activeModel.directory)
+            }
+        } else {
+            panels
         }
     }
 
@@ -355,6 +383,17 @@ struct WorkspaceView: View {
                     model.perform(.openPalette)
                     return nil
                 }
+                // Issue 65: while the embedded terminal holds focus the shell owns the
+                // keyboard — ⌘B, arrows and letter chords are all things you type at a
+                // prompt. ⌘J stays live regardless, otherwise focusing the terminal
+                // would leave no key to close it again.
+                if model.terminal.hasKeyFocus {
+                    if case .toggleTerminal? = HotkeyManager.shared.action(for: event) {
+                        model.perform(.toggleTerminal)
+                        return nil
+                    }
+                    return event
+                }
                 // Don't steal keys while editing a text field (Filter, rename, new
                 // tag): plain keys like ␣/↩/⇥ must reach the field editor.
                 if event.window?.firstResponder is NSText { return event }
@@ -366,6 +405,10 @@ struct WorkspaceView: View {
             // of whether the selection changed. Not consumed — the Table still
             // gets the click to select the row.
             mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
+                // Issue 65: the terminal spans both Panels, so the x-position logic
+                // below would read a click in its right half as "activate the right
+                // Panel". Hit-tested, not measured — the terminal's height is dynamic.
+                if model.terminal.containsClick(event) { return event }
                 if let window = event.window, let contentView = window.contentView {
                     let x = event.locationInWindow.x
                     let bounds = contentView.bounds

@@ -27,17 +27,26 @@ struct WorkspaceState: Codable, Equatable {
     /// Staged file paths in order. Persisted as path refs; liveness is re-validated on
     /// load by `StagingSource` (issue 33), so missing entries simply grey out.
     var staging: [String]
+    /// Whether the embedded terminal panel was open (issue 65). The *shell* is never
+    /// persisted — a restored panel starts a fresh one in the restored folder.
+    var terminalVisible: Bool?
+    /// Panels-above-terminal fraction (0…1), clamped by `VSplitPane` at layout time.
+    var terminalSplitRatio: Double?
 
     init(left: PaneState,
          right: PaneState,
          splitRatio: Double? = nil,
          staging: [String] = [],
+         terminalVisible: Bool? = nil,
+         terminalSplitRatio: Double? = nil,
          schemaVersion: Int = WorkspaceState.currentVersion) {
         self.schemaVersion = schemaVersion
         self.left = left
         self.right = right
         self.splitRatio = splitRatio
         self.staging = staging
+        self.terminalVisible = terminalVisible
+        self.terminalSplitRatio = terminalSplitRatio
     }
 }
 
