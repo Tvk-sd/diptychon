@@ -191,6 +191,37 @@ SPM-Dependencies.
 - Terminal-Output zurück in die Dateiliste (z.B. Auto-Refresh nach `mv`)
   — verlockend, aber eigener Scope; erst nachdem das Panel steht.
 
+## Stand 2026-08-02 — gebaut, teilweise verifiziert
+
+Branch `feat/65-embedded-terminal` (Worktree `../diptychon-65-terminal`),
+Commits `f005f77` (Dependency) + `c3038fe` (Feature). **Nicht gemerged.**
+
+**Am laufenden Build bestätigt:** Panel öffnet unter beiden Panes, Toggle
+unten rechts wird aktiv eingefärbt, die Shell startet im Ordner des
+aktiven Panels (`DIPTYCHON_DIR`-Probe: Prompt-cwd = Probe-Ordner), und
+der Toggle spawnt genau einen `/bin/zsh -l` als Kindprozess.
+221 Unit-Tests grün (210 vorher + 11 neue).
+
+**Noch offen (nicht verifiziert):**
+- Tastatur-Gating im echten Betrieb (Fokus im Terminal → Hotkeys an die
+  Shell, ⌘J kommt trotzdem durch)
+- „cd hierher"-Leiste: erscheint/verschwindet korrekt, `cd` mit
+  Sonderzeichen im echten Pfad
+- Klick ins Terminal auf der rechten Fensterhälfte ändert das aktive
+  Panel nicht
+- Persistenz über App-Neustart
+- UI-Test-Suite (nur Unit-Tests gelaufen)
+
+**Probe-Falle für die nächste Session:** `open -n <pfad>/Diptychon.app`
+startet **nicht** den Debug-Build — LaunchServices löst die Bundle-ID
+`com.diptychon.app` auf die installierte `/Applications`-Kopie auf, und
+`open` reicht außerdem keine Environment-Variablen durch (`DIPTYCHON_DIR`
+verpufft). Stattdessen die Binary direkt starten:
+`DIPTYCHON_DIR=… <app>/Contents/MacOS/Diptychon &`.
+Und: die App aus einer Claude-Code-Session heraus zu starten vererbt
+deren Environment ins eingebettete Terminal — die erste Probe zeigte
+darum eine Claude-Session im Panel. Mit `env -i` ist es eine reine Shell.
+
 ## Offene Punkte (nicht blockierend)
 
 Beide von AI gesetzt, Veto möglich — Umsetzung kann ohne Antwort starten.
