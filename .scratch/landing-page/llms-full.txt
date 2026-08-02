@@ -72,7 +72,7 @@ By Till von Krueger · published 2026-07-11, last updated 2026-08-02 · competit
 
 |  | Diptychon | Marta | ForkLift 4 | Nimble Commander | Path Finder |
 |---|---|---|---|---|---|
-| Price model | one-time €9.99 (planned) | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
+| Price model | one-time (price not set) | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
 | Footprint (download) | 1.5 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
 | Native / open-source | Swift, native | Swift, native | Swift, native | C++, open-source | native |
 | Dual-pane | Yes | Yes | Yes | Yes | Yes |
@@ -111,7 +111,7 @@ Diptychon's edge: gentler to learn (Nimble's curve is steep), undo, native Finde
 
 Wins: the deepest, kitchen-sink power-feature set, still actively maintained.
 
-Diptychon's edge: a one-time purchase (€9.99 planned) instead of a yearly subscription ($32.95/yr).
+Diptychon's edge: a one-time purchase instead of a yearly subscription ($32.95/yr).
 
 **Diptychon is for you if…**
 
@@ -147,7 +147,7 @@ Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre
 | Keyboard-driven workflow | Every action bound | Yes | Partial, mouse-forward | 100+ hotkeys | Partial |
 | FTP / SFTP built in | No — local-only in v1 | No | Yes | Yes | Limited |
 | Plugin ecosystem | No — gadgets instead | Yes | No | No | Modules |
-| Price model | one-time €9.99 (planned) | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
+| Price model | one-time (price not set) | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
 | Download size | 1.5 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
 | Available today | No — pre-launch | Yes | Yes | Yes | Yes |
 
@@ -187,7 +187,7 @@ Yes. Marta is free (though not open source), and Nimble Commander is free and op
 
 ### Where does Diptychon fit?
 
-Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 1.5 MB download. It is a one-time purchase (€9.99 planned), not a subscription, and it collects no telemetry.
+Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 1.5 MB download. It is a one-time purchase rather than a subscription — the price is not set yet — and it collects no telemetry.
 
 What it does not do matters for anyone coming from Total Commander, and the reasons differ — worth separating, because one of them is permanent and the others are not:
 
@@ -234,7 +234,7 @@ Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre
 
 |  | Marta | Diptychon | Nimble Commander | ForkLift 4 |
 |---|---|---|---|---|
-| Price | free (not open source) | one-time €9.99 (planned) | free / $29.99 one-time Pro | one-time $19.95 |
+| Price | free (not open source) | one-time (price not set) | free / $29.99 one-time Pro | one-time $19.95 |
 | Undo a file operation | No — open request since 2018 | Yes, multi-level | No | Partial (undocumented) |
 | Batch rename | No | Yes, undoable | Yes | Yes |
 | Finder tags | Not documented | Yes, round-trip | Not documented | Not documented |
@@ -315,7 +315,7 @@ Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre
 | Remote (SFTP / WebDAV / S3) | Yes — the whole point | No | No | Yes (mounts) |
 | Folder sync | Yes | No | No | Partial |
 | Download size | 16.3 MB | 1.5 MB | 10.7 MB | 15.0 MB |
-| Price | one-time $19.95 | one-time €9.99 (planned) | free | free / $29.99 one-time Pro |
+| Price | one-time $19.95 | one-time (price not set) | free | free / $29.99 one-time Pro |
 | Keyboard-first | Partial — mouse-forward | Every action bound | Yes | 100+ hotkeys |
 | Undo a file operation | Partial (Trash, Multi-Rename) | Yes, multi-level | No | No |
 | Batch rename | Yes | Yes, undoable | No | Yes |
@@ -384,13 +384,13 @@ Compare · Path Finder
 
 Path Finder is not abandoned and it is not bad — it has the deepest feature set of any Mac file manager, and version 11 shipped in February 2026. The reason people look for an alternative is the pricing model: Cocoatech moved to recurring licences, and the vendor page showed $32.95 for a one-year licence when we checked on 2026-07-11.
 
-If the recurring charge is your reason for leaving, the one-time-purchase options are ForkLift 4 ($19.95) and Nimble Commander (free, $29.99 one-time Pro). Marta is free. Diptychon is planned as a one-time €9.99 and is pre-launch.
+If the recurring charge is your reason for leaving, the one-time-purchase options are ForkLift 4 ($19.95) and Nimble Commander (free, $29.99 one-time Pro). Marta is free. Diptychon is planned as a one-time purchase, price not set, and is pre-launch.
 
 Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-1.0 and under active development — no download yet
 
 |  | Path Finder | Diptychon | ForkLift 4 | Nimble Commander |
 |---|---|---|---|---|
-| Price model | recurring — $32.95 / 1-year licence | one-time €9.99 (planned) | one-time $19.95 | free / $29.99 one-time Pro |
+| Price model | recurring — $32.95 / 1-year licence | one-time (price not set) | one-time $19.95 | free / $29.99 one-time Pro |
 | Download size | 19.4 MB | 1.5 MB | 16.3 MB | 15.0 MB |
 | Remembers your layout | Partial — manual "Save As Default" | Yes, automatic | Yes (setting) | Yes, default on |
 | Undo a file operation | Partial (moves) | Yes, multi-level | Partial (undocumented) | No |
@@ -427,7 +427,7 @@ Depends what you use Path Finder for:
 
 - The remote and transfer features → ForkLift 4, one-time $19.95, deeper remote support than Path Finder's.
 - The power-user depth, for free → Nimble Commander, free and open source, $29.99 one-time for the Pro tier.
-- Just the dual-pane workflow, keyboard-driven → Marta (free) or Diptychon (one-time €9.99 planned, pre-launch).
+- Just the dual-pane workflow, keyboard-driven → Marta (free) or Diptychon (one-time purchase planned, price not set, pre-launch).
 
 None of them replaces Path Finder feature-for-feature. If you use its modules, its batch tools and its browser panes together, there is no like-for-like swap — that is the honest answer.
 

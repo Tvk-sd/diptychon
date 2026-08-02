@@ -2,7 +2,7 @@
 
 > A fast, keyboard-first, dual-panel file manager for macOS. Two folders side by side, one keystroke to send files across, multi-level undo, native Finder tags, 1.5 MB download, native Swift, no telemetry.
 
-Diptychon is **pre-launch**: there is no download and nothing to buy yet. The site captures launch notifications. A one-time purchase of EUR 9.99 is planned; there is no subscription and no telemetry, ever (see ADR 0006 and 0007 in the project repository).
+Diptychon is **pre-launch**: there is no download and nothing to buy yet. The site captures launch notifications. The business model is decided — a one-time purchase, never recurring billing, and no telemetry (ADR 0006 and 0007 in the project repository). The price is not set, and this site deliberately does not name one.
 
 Every competitor figure on this site is dated and linked to the vendor's own page. Where a vendor does not document a feature, the comparison says "not documented" rather than asserting the feature is absent. Figures were last verified against vendor pages on 2026-07-11; two items are flagged on the pages themselves as pending re-verification.
 
