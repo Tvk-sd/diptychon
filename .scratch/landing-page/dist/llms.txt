@@ -1,0 +1,22 @@
+# Diptychon
+
+> A fast, keyboard-first, dual-panel file manager for macOS. Two folders side by side, one keystroke to send files across, multi-level undo, native Finder tags, 1.5 MB download, native Swift, no telemetry.
+
+Diptychon is **pre-launch**: there is no download and nothing to buy yet. The site captures launch notifications. A one-time purchase of EUR 9.99 is planned; there is no subscription and no telemetry, ever (see ADR 0006 and 0007 in the project repository).
+
+Every competitor figure on this site is dated and linked to the vendor's own page. Where a vendor does not document a feature, the comparison says "not documented" rather than asserting the feature is absent. Figures were last verified against vendor pages on 2026-07-11; two items are flagged on the pages themselves as pending re-verification.
+
+## Pages
+
+- [Diptychon — move files at the speed of your keyboard](https://diptychon.com/): The product page: what Diptychon is, the keyboard model, the cheat-sheet, and the launch-notification form.
+- [Diptychon vs Marta, ForkLift, Nimble Commander & Path Finder, Mac file managers compared](https://diptychon.com/vs): Diptychon against Marta, ForkLift 4, Nimble Commander and Path Finder on price model, footprint, undo, session restore, batch rename and remote support. Every number sourced and dated.
+- [Total Commander for Mac? There isn't one — the native alternatives (2026)](https://diptychon.com/total-commander-for-mac): There is no native Total Commander for macOS. What the compatibility routes cost you, which native dual-pane managers carry which part of the workflow, and what Diptychon does not do.
+- [A Marta alternative for macOS: what Marta does not do (2026)](https://diptychon.com/marta-alternative): Marta is free, native and fast. The two reasons people look elsewhere are single-developer continuity and the missing file-operation undo, an open request since 2018.
+- [A lighter ForkLift alternative for Mac — if you only work locally (2026)](https://diptychon.com/forklift-alternative): ForkLift 4 is the remote powerhouse. If you only ever work locally, this is what the lighter native options give up and what they give back.
+- [A Path Finder alternative without the subscription (2026)](https://diptychon.com/path-finder-alternative): Path Finder is actively maintained and has the deepest feature set, but moved to recurring pricing. The one-time-purchase alternatives, compared honestly.
+
+## Optional
+
+- [Full text of every page](https://diptychon.com/llms-full.txt): all six pages as markdown, including the comparison tables and their sources.
+- [Impressum](https://diptychon.com/impressum): operator identity (German law).
+- [Privacy](https://diptychon.com/datenschutz): what the site stores. No analytics, no third-party beacons.

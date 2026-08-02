@@ -1,0 +1,448 @@
+# Diptychon — full site text
+
+Generated 2026-08-02 from the published pages at https://diptychon.com. Competitor figures verified 2026-07-11 against vendor pages. Diptychon is pre-launch: no download, nothing to buy yet.
+
+
+---
+
+# The dual-pane file manager for your Mac.
+
+Source: https://diptychon.com/
+
+Keyboard-first · macOS
+
+Two folders side by side, so you see where a file is and where it's going. One keystroke moves it across. Every action is undoable.
+
+1.5 MB download · 6 MB installed
+
+Two panels, one workspace. Select a file in the left panel, press ⌥⌘→, it lands in the right. No dragging, no new windows.
+
+Diptychon isn't released yet. Leave your email and you'll get one email on launch day — no newsletter, nothing else.
+
+While you're here: what would make Diptychon a must-have for you?
+
+Optional — it decides what gets built first. Skipping changes nothing.
+
+I'll email you once, the day Diptychon is ready. Talk soon.
+
+Apple Silicon & Intel · macOS 13+ · native Swift
+
+Why it's different
+
+### See everything. Undo anything.
+
+Both panes show where files come from and where they go. A staging area collects them before you act. Every move, copy, rename and trash is reversible: multi-level ⌘Z, with a toast that says exactly what was undone.
+
+### Small, native, private.
+
+Native Swift, 1.5 MB to download. No telemetry, no account, no subscription: everything runs on your Mac, and the plan is a fair one-time purchase.
+
+### Rides the Mac, not against it.
+
+Real Finder tags that round-trip both ways. Finder's own conventions for copy, paste, go-to-folder and Quick Look, so your muscle memory just transfers.
+
+Every command, one place
+
+Finder conventions where they exist; chords where they earn their keep. Every key is rebindable — nothing to relearn. And when a command is missing, add your own: gadgets hand the current selection to any app or CLI tool, no plugin runtime to learn.
+
+Compare
+
+There's no clear winner among Mac file managers — Marta, ForkLift, Nimble Commander and Path Finder are all genuinely good. We compared them honestly, including where they beat Diptychon. Read the comparison →
+
+Coming from one tool in particular? Marta · ForkLift · Path Finder · Total Commander on a Mac
+
+## Give your keyboard the file manager.
+
+Apple Silicon & Intel · macOS 13+ · native Swift
+
+
+---
+
+# Diptychon vs Marta, ForkLift, Nimble & Path Finder
+
+Source: https://diptychon.com/vs
+
+Compare · macOS file managers
+
+There's no clear winner among Mac file managers. This segment tool-hops for a reason. Here's an honest read of where Diptychon fits, and where these (genuinely good) tools still beat it.
+
+Diptychon is a fast, keyboard-first dual-panel file manager: native, ~1.5 MB, one-time purchase, no telemetry, undo anything. It's pre-launch. This page is about fit, not a claim that it's finished.
+
+By Till von Krueger · published 2026-07-11, last updated 2026-08-02 · competitor figures verified against vendor pages 2026-07-11
+
+|  | Diptychon | Marta | ForkLift 4 | Nimble Commander | Path Finder |
+|---|---|---|---|---|---|
+| Price model | one-time €9.99 (planned) | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
+| Footprint (download) | 1.5 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
+| Native / open-source | Swift, native | Swift, native | Swift, native | C++, open-source | native |
+| Dual-pane | Yes | Yes | Yes | Yes | Yes |
+| Undo a file operation | Yes, multi-level | No | Partial (undocumented) | No | Partial (moves) |
+| Remembers your session | Yes | Yes | Yes (setting) | Yes | Partial (manual save) |
+| Batch rename | Yes | No | Yes | Yes | Yes |
+| Remote (SFTP / WebDAV) | No | No | Yes | Yes | limited |
+
+**Sources & verification, 2026-07-11 (every number linked)**
+
+Verified 2026-07-11 against the vendors: ForkLift $19.95 (binarynights.com) · Path Finder $32.95/yr (cocoatech.io) · Nimble Commander free & open-source, 15.0 MB (GitHub release). Download sizes for Marta (10.7 MB), ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 1.5 MB is the zip of the current build, measured 2026-07-17. Prices change. Check the vendor before you buy.
+
+Undo & session, verified 2026-07-11: Marta has no file-operation undo (open request since 2018) but documented session restore; ForkLift's release notes show undo for Trash & Multi-Rename, full scope undocumented, restore via its "Restore Windows and Tabs on Startup" setting; Nimble Commander's manual documents no undo, session restore is on by default; Path Finder added an "undo panel" for moves, extent undocumented, and layout restore is a manual "Save As Default". Diptychon's undo is multi-level across move, copy, trash and rename; overwrites are destructive and excluded. Batch rename: documented for ForkLift (Multi-Rename), Nimble Commander (Batch Rename) and Path Finder (Batch Renaming); Marta's file-operations reference lists only single-item rename. Diptychon's batch rename covers Finder-style modes (replace, add text, format with counter, change case) as one undoable operation; regex patterns are planned.
+
+## Where each one wins (honestly)
+
+### Marta
+
+Wins: free, keyboard-cult-favorite, native and plain-fast.
+
+Diptychon's edge: undo-anything and real Finder tags.
+
+### ForkLift 4
+
+Wins: the remote powerhouse (SFTP/FTP/WebDAV/S3/cloud/SMB), folder sync, multi-rename.
+
+Diptychon's edge: built keyboard-first: every action has a binding, one chord moves files between panels, all in a 1.5 MB download.
+
+### Nimble Commander
+
+Wins: raw C++ speed, 100+ hotkeys, remote mounts, open-source.
+
+Diptychon's edge: gentler to learn (Nimble's curve is steep), undo, native Finder tags. No feature paywall: the one-time payment covers everything.
+
+### Path Finder
+
+Wins: the deepest, kitchen-sink power-feature set, still actively maintained.
+
+Diptychon's edge: a one-time purchase (€9.99 planned) instead of a yearly subscription ($32.95/yr).
+
+**Diptychon is for you if…**
+
+- You live in the keyboard and Finder feels slow.
+- You want native + tiny, not a web wrapper.
+- One-time purchase, no telemetry matters to you.
+- You mostly work on local (or mounted) drives.
+- Alternatives to Marta
+- Alternatives to ForkLift
+- Alternatives to Path Finder
+- Total Commander on a Mac
+
+This page cedes what the others do better on purpose. If Diptychon fits, leave your email and you'll get one email on launch day.
+
+
+---
+
+# Is there a Total Commander for Mac?
+
+Source: https://diptychon.com/total-commander-for-mac
+
+Switching · Windows → macOS
+
+No — Total Commander is Windows-only. Christian Ghisler has never shipped a macOS build, and there is no official port planned. You have two routes: run the Windows version through a compatibility layer (Wine, CrossOver) or a Windows VM, or switch to a file manager built natively for the Mac.
+
+The compatibility route keeps your muscle memory but gives up native Finder integration, retina rendering and Apple Silicon performance. The native route means learning a new tool, but every native Mac dual-pane manager below gives you the thing you actually came for: two directories side by side, keyboard-driven.
+
+Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet
+
+|  | Diptychon | Marta | ForkLift 4 | Nimble Commander | Path Finder |
+|---|---|---|---|---|---|
+| Two panels side by side | Yes | Yes | Yes | Yes | Yes |
+| Keyboard-driven workflow | Every action bound | Yes | Partial, mouse-forward | 100+ hotkeys | Partial |
+| FTP / SFTP built in | No | No | Yes | Yes | Limited |
+| Plugin ecosystem | No | Yes | No | No | Modules |
+| Price model | one-time €9.99 (planned) | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
+| Download size | 1.5 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
+| Available today | No — pre-launch | Yes | Yes | Yes | Yes |
+
+**Sources & verification (read this before trusting a number)**
+
+Prices and download sizes verified 2026-07-11 against the vendors: ForkLift $19.95 (binarynights.com) · Path Finder $32.95 / 1-year licence (cocoatech.io) · Nimble Commander free & open-source, 15.0 MB (GitHub release asset). Sizes for Marta (10.7 MB), ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 1.5 MB is the measured zip of the current build (2026-07-17).
+
+Total Commander's platform support is per the vendor: the ghisler.com download page lists Windows (and a separate Android app) only. Prices change and vendors re-price without notice — check the vendor's own page before you buy anything here.
+
+## Questions people actually ask
+
+### Can I run Total Commander on a Mac with Wine or CrossOver?
+
+Yes, and people do. Total Commander is a small, old-school Win32 application, which is the class of software Wine handles best. You give up native menu-bar integration, Finder tag and Quick Look support, and you take on a compatibility layer to maintain. A Windows VM (Parallels, VMware, UTM) is the more reliable version of the same trade — heavier, but it behaves like Windows because it is Windows.
+
+Worth being clear about the trade: this route is right if you depend on specific Total Commander plugins. If you mainly want the two-panel workflow, a native tool will be faster and less fragile.
+
+### Which Mac file manager is closest to Total Commander?
+
+Depends which part of Total Commander you mean:
+
+- The keyboard-first two-panel core → Marta or Nimble Commander. Both are native, both are free to start with.
+- The built-in FTP/SFTP and archive handling → ForkLift 4 or Nimble Commander. This is the part Total Commander users miss most.
+- The plugin ecosystem → nothing on macOS matches it. Marta has plugins, but it is a smaller ecosystem.
+
+Double Commander and muCommander are also worth a look: both are free, open-source and cross-platform, which makes them the most literal ports of the idea — at the cost of not feeling especially Mac-native.
+
+### Do the F5 / F6 copy and move keys work on a Mac?
+
+Not out of the box in Finder, and not identically anywhere. macOS reserves the function-key row for system features by default, so most Mac dual-pane managers use their own bindings rather than reproducing Total Commander's F-key layout literally. Nimble Commander is the closest to the classic Commander key map.
+
+Diptychon uses a modifier chord instead of a function key: ⌥⌘→ sends the selection to the other panel, ⌥⌘← pulls it back. Different keys, same one-keystroke idea.
+
+### Is there a free Total Commander alternative for Mac?
+
+Yes. Marta is free (though not open source), and Nimble Commander is free and open source, with a paid Pro tier for admin/root operations. Double Commander and muCommander are free and open source as well. None of them costs anything to try, so the honest advice is to try the free ones before paying for anything.
+
+### Where does Diptychon fit?
+
+Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 1.5 MB download. It is a one-time purchase (€9.99 planned), not a subscription, and it collects no telemetry.
+
+What it does not do, and this matters for anyone coming from Total Commander: no FTP or SFTP, no plugin system, no archive browsing yet. If those are why you use Total Commander, Diptychon is the wrong tool and ForkLift or Nimble Commander is the right one. It is also still pre-launch — there is no download today, only an email list.
+
+**Come to Diptychon from Total Commander if…**
+
+- You want the two-panel workflow, not the plugin ecosystem.
+- You work on local and mounted drives, not remote servers.
+- You want native and tiny, not Wine or a VM.
+- You want undo on file operations — Total Commander has none.
+
+**Stay where you are if…**
+
+- You depend on Total Commander plugins.
+- You need FTP/SFTP inside the file manager.
+- You need it today — Diptychon has not launched.
+- You want archive browsing as folders.
+- Alternatives to Marta
+- Alternatives to ForkLift
+- Alternatives to Path Finder
+- Diptychon vs all four, side by side
+
+Diptychon is pre-launch and not downloadable yet. If you need a dual-pane manager today, use one of the shipping tools above — that is not a throwaway line, they are good.
+
+
+---
+
+# Looking for a Marta alternative?
+
+Source: https://diptychon.com/marta-alternative
+
+Compare · Marta
+
+Marta is free, native Swift, dual-pane and genuinely fast — for most people it is the right answer, and it costs nothing to try. People go looking for an alternative for two specific reasons, and neither is about speed.
+
+The first is continuity: Marta is a one-person project and development has come in bursts, with long quiet stretches between releases. The second is undo: Marta has no undo for file operations — the request has been open since 2018. Its documentation describes delete as permanent. Batch rename is also absent; the file-operations reference lists single-item rename only.
+
+Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet
+
+|  | Marta | Diptychon | Nimble Commander | ForkLift 4 |
+|---|---|---|---|---|
+| Price | free (not open source) | one-time €9.99 (planned) | free / $29.99 one-time Pro | one-time $19.95 |
+| Undo a file operation | No — open request since 2018 | Yes, multi-level | No | Partial (undocumented) |
+| Batch rename | No | Yes, undoable | Yes | Yes |
+| Finder tags | Not documented | Yes, round-trip | Not documented | Not documented |
+| Remembers your session | Yes, strong | Yes | Yes, default on | Yes (setting) |
+| Plugins | Yes | No | No | No |
+| Download size | 10.7 MB | 1.5 MB | 15.0 MB | 16.3 MB |
+| Available today | Yes | No — pre-launch | Yes | Yes |
+
+**Sources & verification (every claim about Marta is linked)**
+
+Undo: Marta has no file-operation undo — issue #230 has been open since 2018, with #705 as a later duplicate; the docs describe delete as permanent. Batch rename: Marta's file-operations reference lists single-item Rename (⇧F6) only. Session restore: documented and automatic — windows, tabs, folders and cursor position (reset doc). Verified 2026-07-11.
+
+Price and size: Marta free and 10.7 MB via MacUpdate, checked 2026-07-07/11 (marta.sh does not show a price). Diptychon's 1.5 MB is the measured zip of the current build (2026-07-17). "Not documented" in the Finder-tags row means exactly that — the vendor's docs do not cover it, and we are not going to assert a competitor lacks a feature we could not verify.
+
+## Questions people actually ask
+
+### Is Marta still being maintained?
+
+Yes, but in bursts. Marta is developed by a single developer, and its release history has long quiet stretches followed by a new version. That pattern is the single most common worry raised about it in Mac power-user communities — not capability, not speed. If a one-person project with irregular releases is a risk you are comfortable with, it is not a reason to leave.
+
+### Does Marta have undo?
+
+No. There is no undo for file operations. The request has been open since 2018, and Marta's own documentation describes deletion as permanent. In practice this means a mis-aimed move or delete in a keyboard-driven tool is not recoverable from inside the app.
+
+This is the single clearest functional gap between Marta and Diptychon. Diptychon's undo is multi-level across move, copy, trash and rename. Overwrites are the documented exception — they destroy the original and cannot be reversed, in any tool.
+
+### Does Marta have batch rename?
+
+No. Marta's file-operations reference documents single-item rename (⇧F6) only. ForkLift, Nimble Commander and Path Finder all have a batch rename; Diptychon has one too, with Finder-style modes (replace, add text, format with a counter, change case) applied as a single undoable operation. Regex patterns are planned, not shipped.
+
+### What is the closest alternative to Marta?
+
+By philosophy, Nimble Commander — native, keyboard-heavy, free, and open source, so continuity is not a single-developer bet. It is faster still (C++) and has 100+ hotkeys, but the learning curve is steeper and it has no undo either.
+
+By feel, Diptychon is the closer match: same keyboard-first two-panel model, smaller (1.5 MB vs 10.7 MB), with undo and real Finder tags added. It costs money, has no plugin system, and has not launched.
+
+### Is Marta open source?
+
+No. Marta is free but not open source — only its issue tracker is public on GitHub. Nimble Commander is the open-source option in this category.
+
+**Switch from Marta if…**
+
+- You have lost files to a mis-aimed move and want undo.
+- You rename in batches.
+- You use Finder tags and want them round-trip.
+- Single-developer continuity worries you.
+
+**Stay on Marta if…**
+
+- You use its plugins.
+- Free matters more than undo.
+- You need something today.
+- It already does what you need — it is good.
+- Total Commander on a Mac
+- Alternatives to ForkLift
+- Alternatives to Path Finder
+- Diptychon vs all four, side by side
+
+Marta is free and Diptychon is not, and Diptychon has not launched. If the missing undo does not bother you, stay on Marta — this page is not trying to talk you off a tool that works.
+
+
+---
+
+# A lighter ForkLift alternative
+
+Source: https://diptychon.com/forklift-alternative
+
+Compare · ForkLift
+
+If you need remote access, ForkLift 4 is still the right answer and nothing here beats it. SFTP, FTP, WebDAV, S3, Backblaze B2, Google Drive, OneDrive, Dropbox, SMB, AFP, NFS, plus folder sync and multi-rename — that is a genuinely deep feature set for a one-time $19.95.
+
+People look for an alternative when they realise they never use any of it. If your files live on local and mounted drives, you are carrying a 16.3 MB remote-transfer suite to move things between two folders. The lighter native options are Marta (free), Nimble Commander (free, open source) and Diptychon (1.5 MB, pre-launch).
+
+Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet
+
+|  | ForkLift 4 | Diptychon | Marta | Nimble Commander |
+|---|---|---|---|---|
+| Remote (SFTP / WebDAV / S3) | Yes — the whole point | No | No | Yes (mounts) |
+| Folder sync | Yes | No | No | Partial |
+| Download size | 16.3 MB | 1.5 MB | 10.7 MB | 15.0 MB |
+| Price | one-time $19.95 | one-time €9.99 (planned) | free | free / $29.99 one-time Pro |
+| Keyboard-first | Partial — mouse-forward | Every action bound | Yes | 100+ hotkeys |
+| Undo a file operation | Partial (Trash, Multi-Rename) | Yes, multi-level | No | No |
+| Batch rename | Yes | Yes, undoable | No | Yes |
+| Available today | Yes | No — pre-launch | Yes | Yes |
+
+**Sources & verification (including what we could not re-check)**
+
+Price verified 2026-07-11 on the vendor's own store: ForkLift $19.95 single licence (binarynights.com). Download size 16.3 MB via MacUpdate. Undo: ForkLift's release notes document undo for Trash and Multi-Rename; the full scope is not documented in the manual, which is why this page says "partial" rather than "yes" or "no". Session restore via its "Restore Windows and Tabs on Startup" setting. Batch rename documented as Multi-Rename in the same release notes.
+
+Pending re-verification (2026-08-02): BinaryNights' licence appears to be a perpetual-use licence with a limited update window rather than a plain one-time purchase — you keep the version you bought, but a later major update needs a new licence. We could not confirm the current terms against the vendor's own page in this pass, so the table above still shows the figure verified 2026-07-11. Check binarynights.com/store before you buy.
+
+## Questions people actually ask
+
+### Is ForkLift a subscription?
+
+Not in the Path Finder sense — there is no recurring charge to keep using it. As verified on the vendor's store on 2026-07-11, a single licence is a one-time $19.95. Note the caveat above: BinaryNights' model bundles a limited window of updates with the licence, so a much later major version may need a new purchase. That is materially different from a subscription, and materially different from "buy once, updated forever".
+
+### What is a free ForkLift alternative?
+
+Marta (free, not open source) and Nimble Commander (free and open source, with a $29.99 one-time Pro tier for admin/root operations). Nimble Commander is the one to look at if you need the remote side, since it can mount remote locations; Marta is local-only.
+
+### Does ForkLift have undo?
+
+Partially. Its release notes document undo for Trash and Multi-Rename operations. The manual does not document undo at all, so the full extent is unclear. We deliberately do not claim ForkLift "has no undo" — it demonstrably has some.
+
+Diptychon's undo is multi-level and spans move, copy, trash and rename, with overwrites excluded by design because they destroy the original.
+
+### Is ForkLift keyboard-driven?
+
+Partly. ForkLift has shortcuts, but the workflow it is designed around is mouse-forward — drag between panels, click through remote connections. That is a reasonable design for a transfer tool. It is a different thing from a tool where every action has a binding and the mouse is optional, which is what Marta, Nimble Commander and Diptychon are.
+
+### What does Diptychon give up compared to ForkLift?
+
+A lot, on purpose: no remote protocols at all, no folder sync, no archive browsing yet, no cloud-storage integration. What you get back is 1.5 MB instead of 16.3 MB, every action on a key binding, multi-level undo, real Finder tags and no telemetry. It has not launched yet, so today the honest comparison is "ForkLift, which you can buy" against "a mailing list".
+
+**Look for a ForkLift alternative if…**
+
+- You have never opened its remote features.
+- You want the mouse to be optional.
+- You want undo across everything, not some things.
+- The footprint bothers you on principle.
+
+**Keep ForkLift if…**
+
+- You transfer to SFTP, S3 or WebDAV.
+- You rely on folder sync.
+- You want archive handling built in.
+- You need it today.
+- Total Commander on a Mac
+- Alternatives to Marta
+- Alternatives to Path Finder
+- Diptychon vs all four, side by side
+
+This page will not tell you ForkLift is bloated. It is a well-built app that does more than Diptychon ever will. The question is only whether you use the part you paid for.
+
+
+---
+
+# A Path Finder alternative without the subscription
+
+Source: https://diptychon.com/path-finder-alternative
+
+Compare · Path Finder
+
+Path Finder is not abandoned and it is not bad — it has the deepest feature set of any Mac file manager, and version 11 shipped in February 2026. The reason people look for an alternative is the pricing model: Cocoatech moved to recurring licences, and the vendor page showed $32.95 for a one-year licence when we checked on 2026-07-11.
+
+If the recurring charge is your reason for leaving, the one-time-purchase options are ForkLift 4 ($19.95) and Nimble Commander (free, $29.99 one-time Pro). Marta is free. Diptychon is planned as a one-time €9.99 and is pre-launch.
+
+Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet
+
+|  | Path Finder | Diptychon | ForkLift 4 | Nimble Commander |
+|---|---|---|---|---|
+| Price model | recurring — $32.95 / 1-year licence | one-time €9.99 (planned) | one-time $19.95 | free / $29.99 one-time Pro |
+| Download size | 19.4 MB | 1.5 MB | 16.3 MB | 15.0 MB |
+| Remembers your layout | Partial — manual "Save As Default" | Yes, automatic | Yes (setting) | Yes, default on |
+| Undo a file operation | Partial (moves) | Yes, multi-level | Partial (undocumented) | No |
+| Keyboard-first | Partial | Every action bound | Partial | 100+ hotkeys |
+| Feature depth | Deepest of the five | Deliberately narrow | Deep (remote) | Deep |
+| Open source | No | No | No | Yes |
+| Available today | Yes | No — pre-launch | Yes | Yes |
+
+**Sources & verification (including what we could not re-check)**
+
+Price verified 2026-07-11 on the vendor's own page: Path Finder $32.95, "1 Year License" (cocoatech.io). Review sites listed $29.95/yr at the time; the vendor page wins. Download size 19.4 MB via MacUpdate. Undo: Path Finder 8.5 introduced an undo panel for moves and "other undoable operations… whenever possible"; the extent is undocumented and the current knowledge base has no undo article, hence "partial". Layout: the vendor's own support site lists "Doesn't Remember Layout or Windows" among its most common issues, and layout is saved manually via Window → Save As Default.
+
+Pending re-verification (2026-08-02): Cocoatech also offers a monthly subscription and multi-year licences, and the version numbering may have changed since v11 (February 2026). We could not reach the vendor's page in this pass, so the figures above remain the ones verified 2026-07-11. Check cocoatech.io before you buy.
+
+## Questions people actually ask
+
+### Is Path Finder a subscription now?
+
+It is recurring, yes. Cocoatech moved away from a perpetual licence, and the product page showed $32.95 for a one-year licence when we checked on 2026-07-11. There is also a monthly option, and longer multi-year licences. Whichever you pick, continuing to get updates means paying again — that is the change people object to, and it is the reason this page exists.
+
+### Is Path Finder discontinued?
+
+No. That claim circulates because of a quiet period years ago, but version 11 shipped in February 2026 and the product is actively maintained. If you read somewhere that Path Finder is dead, that is out of date.
+
+### Does Path Finder remember your window layout?
+
+Only partially, and it is the complaint the vendor's own support site acknowledges — "Doesn't Remember Layout or Windows" appears among its most common issues. Layout is saved manually through Window → Save As Default, and tab sets are manual presets. There is a "last used folders" preference.
+
+For a tool you open dozens of times a day, this is more annoying than it sounds. Diptychon persists panel paths, sort order, layout and pins automatically, with no save step. So do Marta and Nimble Commander.
+
+### What is the best one-time-purchase alternative to Path Finder?
+
+Depends what you use Path Finder for:
+
+- The remote and transfer features → ForkLift 4, one-time $19.95, deeper remote support than Path Finder's.
+- The power-user depth, for free → Nimble Commander, free and open source, $29.99 one-time for the Pro tier.
+- Just the dual-pane workflow, keyboard-driven → Marta (free) or Diptychon (one-time €9.99 planned, pre-launch).
+
+None of them replaces Path Finder feature-for-feature. If you use its modules, its batch tools and its browser panes together, there is no like-for-like swap — that is the honest answer.
+
+### Is there a free Path Finder alternative?
+
+Marta and Nimble Commander are both free. Nimble Commander is also open source, so it cannot be re-priced out from under you — worth weighing if the pricing change is what pushed you to look.
+
+**Leave Path Finder if…**
+
+- Recurring pricing for a file manager is the dealbreaker.
+- You use maybe five of its features.
+- You want your layout back automatically.
+- You want the keyboard, not the toolbar.
+
+**Keep Path Finder if…**
+
+- You use its modules and browser panes.
+- You want the deepest feature set, full stop.
+- The yearly cost is not a real constraint.
+- You need it today.
+- Total Commander on a Mac
+- Alternatives to Marta
+- Alternatives to ForkLift
+- Diptychon vs all four, side by side
+
+Path Finder does far more than Diptychon will ever do. This page argues about the pricing model and the footprint, not about who has more features — Path Finder wins that one outright.

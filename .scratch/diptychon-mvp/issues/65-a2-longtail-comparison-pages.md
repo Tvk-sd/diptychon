@@ -102,12 +102,91 @@ Noch **nicht deployed** — Dateien liegen in `.scratch/landing-page/` und
 `dist/`, Parität geprüft. `wrangler deploy` läuft von Tills Rechner.
 Der Worker serviert `/foo` → `foo.html` über Cloudflare Assets, wie `/vs` schon.
 
-## Nicht gebaut (bewusst, außerhalb des gewählten Scopes)
+## Nachtrag 2026-08-02 — Maschinen-Layer + llms.txt (Till nachgefordert)
 
-Maschinen-Layer für die bestehenden Seiten: JSON-LD (`SoftwareApplication`,
-`FAQPage`, Vergleichstabelle), `sitemap.xml`, `robots.txt`-Sitemap-Verweis,
-Open-Graph-/Twitter-Cards, benannter Autor. Alles einmalig, ohne Wartung,
-und mit vier neuen Seiten jetzt wertvoller als vorher. Eigenes Issue wert.
+Beides gebaut. Alles wird **aus den gerenderten Seiten generiert**, nicht
+danebengeschrieben — `FAQPage`-Markup, das der sichtbaren Antwort widerspricht,
+ist ein Spam-Signal, und eine handgepflegte `llms-full.txt` driftet nach der
+ersten Änderung ab. Generator ist idempotent (Block ist delimitert).
+
+- **JSON-LD** auf allen sechs öffentlichen Seiten: `Person` + `WebSite` überall,
+  `SoftwareApplication` auf `/`, `FAQPage` mit je 5 echten Q&A auf den vier
+  A2-Seiten (Antworttext wird aus dem sichtbaren DOM gezogen).
+  **Kein `aggregateRating`** — es gibt keine Reviews, und erfundene sind der
+  häufigste Weg, sich damit eine Abstrafung einzufangen. `offers` steht auf
+  `PreOrder`, weil es nichts zu kaufen gibt.
+- **Open Graph + Twitter Cards** auf allen sechs Seiten; `demo-poster.jpg`
+  (1920×1080) als Card-Bild — war schon da, kein neues Asset nötig.
+- **`sitemap.xml`** (6 URLs, Impressum/Datenschutz raus, die sind `noindex`),
+  **`robots.txt`** mit Sitemap-Verweis und den AI-Crawlern explizit gelistet
+  statt nur über den Wildcard — damit die Absicht dokumentiert ist.
+- **`canonical`** auf `/` und `/vs`, sichtbare Autorenzeile + Datum auf `/`
+  (Footer) und `/vs` (unter der Lede). E-E-A-T-Signal, das ChatGPT stark wiegt.
+- **`llms.txt` + `llms-full.txt`** — Till wollte sie trotz der Datenlage.
+  **Zur Erinnerung im Klartext: unbelegt.** ~97 % der veröffentlichten
+  `llms.txt` bekommen null Requests, kein großer Anbieter liest sie zugesagt,
+  Korrelationsstudien finden keinen Citation-Lift. Kosten hier ≈ null (fällt
+  aus dem Generator mit ab), Nutzen unbewiesen. **Nicht als Erfolgsfaktor
+  interpretieren, wenn die Reichweite steigt** — die Ursache wäre dann fast
+  sicher woanders. Falls jemand später aufräumt: das hier ist der Kandidat.
+  `llms-full.txt` ist 28 KB und enthält alle sechs Seiten als Markdown
+  inklusive Tabellen — der Teil hat unabhängig davon Wert als zitierfähige
+  Volltextquelle.
+
+## Der Wedge, den die Recherche freigelegt hat
+
+Unter den *bezahlten* Mac-Dateimanagern ist „einmal kaufen" weitgehend Fiktion:
+Path Finder ist offen wiederkehrend ($32.95 / 1-Jahres-Lizenz), und ForkLifts
+„one-time" kauft offenbar nur ein **befristetes Update-Fenster** (1–2 Jahre) —
+danach neue Lizenz für neue Versionen. Nimble Commander Pro ($29.99) ist die
+Ausnahme, die wirklich einmalig ist; Marta ist gratis.
+
+Vorschlag: **den Gegner benennen, nicht das Produkt.** Der Begriff, um den sich
+alles dreht, ist das **„Update-Fenster" / "the update window"** — die Klausel,
+die aus einem Kauf eine Miete mit Extraschritten macht. Diptychons Versprechen
+dagegen in einer Zeile: **„Buy once, updates included. No expiry date."**
+
+Warum diese Form: eine Kategorie zu benennen ist selbst ein zitierfähiges
+Asset (ein Erklärstück „was ein Update-Fenster ist und wie du deins prüfst"
+ist genau das, was AI-Antworten aufgreifen), und sie passt zur Hausmarke —
+sie beschreibt eine überprüfbare Vertragsklausel, nicht einen Marketing-Feind.
+
+⚠️ **Noch nicht veröffentlichen.** Der Wedge steht und fällt mit dem
+ForkLift-Befund, und der ist bisher nur websuchbasiert (siehe Abschnitt oben).
+Erst vendor-direkt bestätigen, dann in Copy gießen.
+
+## A3 ist tot — was an seine Stelle tritt
+
+Till hat die Roundup-Ziele durchgesehen: fast alles Eigen- oder Vendor-
+Publikationen, keine ernstzunehmenden Redaktionen; die einzige echte war ein
+brasilianischer Blog ohne nennenswerte Reichweite. Damit fällt der bislang
+größte angenommene Hebel weg — die Recherche vom 2026-07-12 hatte das schon
+angedeutet (nur 2 von 7 Zielen echte Redaktionen), Tills Durchsicht bestätigt
+die schärfere Version.
+
+Tills Gedanke war, „fast selber headless Blogs zu bauen und das Thema da zu
+nennen". Zwei Varianten, die sehr unterschiedlich ausgehen:
+
+- **Eigener Content-Hub unter der eigenen Domain** (`diptychon.com/blog`),
+  klar als Diptychon gekennzeichnet. Funktioniert: die A2-Seiten sind bereits
+  genau das in klein, Perplexity zitiert nachweislich spezifische Primär-
+  quellen, und ein Erklärstück zum Update-Fenster wäre ein starker Kandidat.
+  Kein Reputationsrisiko, weil nichts vorgibt, jemand anderes zu sein.
+- **Ein Netz scheinbar unabhängiger Satelliten-Blogs**, die Diptychon
+  „empfehlen". Das ist ein PBN. Suchmaschinen behandeln es als Manipulation,
+  und für ein Produkt, dessen ganze Positionierung „record-don't-market" und
+  belegte Zahlen sind, ist es das teuerste denkbare Eigentor: der Wert der
+  `/vs`-Seite liegt darin, dass man ihr glaubt. **Nicht empfohlen.**
+
+Realistische dritte Spur, weil ChatGPT redaktionelle Drittquellen bevorzugt:
+dort auftauchen, wo die Zielgruppe ohnehin schreibt — r/macapps, Hacker News,
+Mastodon, GitHub-Awesome-Listen. Keine Redaktion, aber echte Dritt-Erwähnung.
+Gehört zu `context/channel-plan.md`, nicht in dieses Issue.
+
+## Nicht gebaut
+
+Markdown-Zwillinge je Seite (`/vs.md` o. ä.) über den Worker — `llms-full.txt`
+deckt denselben Bedarf ab, ohne eine zweite Route zu pflegen.
 
 ## Outcome
 
