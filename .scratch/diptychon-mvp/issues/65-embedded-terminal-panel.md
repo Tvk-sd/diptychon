@@ -200,7 +200,9 @@ Commits `f005f77` (Dependency) + `c3038fe` (Feature). **Nicht gemerged.**
 unten rechts wird aktiv eingefärbt, die Shell startet im Ordner des
 aktiven Panels (`DIPTYCHON_DIR`-Probe: Prompt-cwd = Probe-Ordner), und
 der Toggle spawnt genau einen `/bin/zsh -l` als Kindprozess.
-221 Unit-Tests grün (210 vorher + 11 neue).
+**Volle Suite grün: 221 Unit** (210 vorher + 11 neue) **+ 13 UI.** Die
+UI-Suite bewusst mitgelaufen, weil dieser Change die Bottom-Bar anfasst —
+genau die Stelle, an der #61 hing.
 
 **Noch offen (nicht verifiziert):**
 - Tastatur-Gating im echten Betrieb (Fokus im Terminal → Hotkeys an die
@@ -210,17 +212,29 @@ der Toggle spawnt genau einen `/bin/zsh -l` als Kindprozess.
 - Klick ins Terminal auf der rechten Fensterhälfte ändert das aktive
   Panel nicht
 - Persistenz über App-Neustart
-- UI-Test-Suite (nur Unit-Tests gelaufen)
 
-**Probe-Falle für die nächste Session:** `open -n <pfad>/Diptychon.app`
-startet **nicht** den Debug-Build — LaunchServices löst die Bundle-ID
-`com.diptychon.app` auf die installierte `/Applications`-Kopie auf, und
-`open` reicht außerdem keine Environment-Variablen durch (`DIPTYCHON_DIR`
-verpufft). Stattdessen die Binary direkt starten:
-`DIPTYCHON_DIR=… <app>/Contents/MacOS/Diptychon &`.
-Und: die App aus einer Claude-Code-Session heraus zu starten vererbt
-deren Environment ins eingebettete Terminal — die erste Probe zeigte
-darum eine Claude-Session im Panel. Mit `env -i` ist es eine reine Shell.
+**Beobachtet, aber kein Regress:** bei Fokus im Such-/Filter-Feld kommt
+⌘J nicht an — der `firstResponder is NSText`-Guard im Key-Monitor gibt
+das Event vorher zurück. ⌘B verhält sich identisch; nur ⌘K ist bewusst
+davor ausgenommen (#19). Also bestehendes, konsistentes Verhalten. Falls
+es als Bug zurückkommt: die Entscheidung ist, ob Panel-Toggles generell
+vor den Text-Guard gehören — dann für ⌘B und ⌘J gemeinsam.
+
+**Probe-Fallen für die nächste Session:**
+- `open -n` **reicht keine Environment-Variablen durch** — `DIPTYCHON_DIR=…
+  open -n <app>` startet den richtigen Build, aber ohne die Variable
+  (am Prozess nachgemessen: 0 Treffer). Für seeded Probes die Binary
+  direkt starten: `DIPTYCHON_DIR=… <app>/Contents/MacOS/Diptychon &`.
+- **Instanzen vor dem Screenshot auseinanderhalten.** Hier liefen drei
+  Diptychons gleichzeitig, zwei davon an derselben Fensterposition;
+  `ps -o lstart=,comm= -p <pid>` ordnet zu, `unix id` adressiert gezielt.
+  Ohne das interpretiert man Screenshots der falschen Instanz.
+- **Vor dem Tastendruck prüfen, wer vorn ist** (`frontmost is true`) —
+  ein synthetischer Chord landet sonst in einer fremden App.
+- Die App aus einer Claude-Code-Session heraus zu starten vererbt deren
+  Environment ins eingebettete Terminal; die erste Probe zeigte darum
+  eine Claude-Session im Panel. Mit `env -i` ist es eine reine Shell —
+  nachgemessen: der eingebettete `zsh -l` hat dann keine Kindprozesse.
 
 ## Offene Punkte (nicht blockierend)
 
