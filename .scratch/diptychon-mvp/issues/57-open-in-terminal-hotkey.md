@@ -23,6 +23,11 @@ eingebettete Terminal weitgehend (Einschätzung Session 2026-07-13:
 eingebettet = 1–2 Tage, größte Baustellen Keymap-Gating, VSplitView-Umbau,
 erste SPM-Dependency).
 
+> **Veraltet — nicht weiterzitieren.** Der Demand-Test ist gelaufen
+> (Ergebnis unten), und die Schätzung stimmt nicht mehr: der
+> „VSplitView-Umbau" entfällt, weil `SplitPane` das Problem bereits
+> gelöst hat. Aktueller Stand im Abschnitt „Vorab verifiziert" in **#65**.
+
 ## Entscheidungen (Session mit Till, 2026-07-13)
 
 - **Variante:** externer Terminal-Launch, kein eingebettetes Terminal.
@@ -32,9 +37,89 @@ erste SPM-Dependency).
 - **Default-Hotkey: ⌘⇧T** *(von AI gesetzt, Veto möglich)* — ⌘T bleibt
   für mögliche Tabs reserviert (deferred Feature aus #41-Umfeld);
   Control-Kombos werden auf Tills Mac vor der App abgefangen, also ⌘/⌘⇧.
-- **Terminal-App: Terminal.app als Default, per UserDefaults-String
-  überschreibbar** *(von AI gesetzt, Veto möglich)* — z.B. `iTerm`;
-  gleiches Muster wie der Hotkey-String in #56, kein Settings-UI in v1.
+- **Terminal-App: Terminal.app als Default, überschreibbar** — siehe die
+  überarbeitete Fassung dieser Entscheidung unten (Session 2026-08-02).
+  *(Ursprünglich: UserDefaults-String mit App-**Namen**, z.B. `iTerm`.
+  Verworfen — Namensauflösung ist nicht sauber machbar, siehe unten.)*
+
+## Entscheidungen (Session 2026-08-02)
+
+Anlass: Prüfung, welche Terminals auf der Zielmaschine überhaupt existieren.
+
+- **iTerm ist nicht installiert** — der frühere Verweis war ein False
+  Positive (`/usr/share/terminfo/69/iTerm.app` ist eine terminfo-Datei,
+  kein Bundle). Installiert sind **Terminal.app** (System) und
+  **Ghostty 1.3.1** (`/Applications/Ghostty.app`, `com.mitchellh.ghostty`).
+  Alle iTerm-Referenzen in diesem Issue sind entsprechend ersetzt.
+
+- **Mechanismus verifiziert** (2026-08-02, manuell): `open -a Ghostty <dir>`
+  und `open -a Terminal <dir>` öffnen beide ein Fenster mit cwd = Ordner,
+  auch bei Pfaden mit Leerzeichen und Umlauten (per `lsof -d cwd` am
+  Shell-Prozess bestätigt). Die Annahme im Agent Brief hält also — für
+  Ghostty ebenso wie für Terminal.app.
+
+- **Terminal-Wahl über den vorhandenen App-Chooser, persistiert als
+  App-Pfad** *(von AI gesetzt, Veto möglich)* — **nicht** über einen
+  UserDefaults-String mit App-Namen und **nicht** über eine kuratierte
+  Bundle-ID-Liste. Begründung:
+  1. `NSWorkspace.urlForApplication` löst **Bundle-IDs** auf, keine
+     Anzeigenamen. Aus `"Ghostty"` eine URL zu machen hieße
+     `/Applications/<name>.app` zu raten — bricht bei Apps außerhalb von
+     `/Applications`.
+  2. Auto-Discovery über LaunchServices scheidet aus: gemessen liefert
+     `urlsForApplications(toOpen: <folder>)` auf dieser Maschine 13
+     Kandidaten — Finder, Zed, QuickTime, GitHub Desktop, Diptychon —
+     aber **kein einziges Terminal**. Ghostty deklariert zwar
+     `public.directory` mit `LSHandlerRank = Alternate`, taucht in der
+     Liste trotzdem nicht auf; Terminal.app deklariert Ordner gar nicht.
+     Terminals sind über LaunchServices also nicht auffindbar.
+  3. Eine kuratierte Bundle-ID-Liste (Warp, WezTerm, kitty, Alacritty …)
+     wäre damit die einzige Auto-Detect-Variante — und permanente Pflege
+     für eine Liste, die bei jedem neuen Terminal veraltet.
+  Stattdessen: der Nutzer wählt Terminal-Apps über den bereits
+  existierenden `NSOpenPanel`-Chooser (`chooseApplication()` in
+  `OpenWithController`, #28); gemerkt wird als **App-Pfad** in
+  `UserDefaults` — dieselbe Konvention wie `openWithFavorites`
+  (`[String]` von App-Pfaden), keine dritte Persistenz-Form im Codebase.
+  Deckt jede Terminal-Variante ab, auch unbekannte, ohne Liste.
+
+- **Code-Default bleibt Terminal.app**, aufgelöst über die Bundle-ID
+  `com.apple.Terminal` *(von AI gesetzt, Veto möglich)* — existiert auf
+  jedem Mac, damit zeigt der Default nie ins Leere. Ghostty ist auf
+  dieser Maschine der erwartete Override, nicht der Default.
+
+## Demand-Test: Ergebnis (Till, 2026-08-02)
+
+Der in diesem Issue angelegte Demand-Test ist **gelaufen und beantwortet**.
+Till hat die Gadget-Variante (`open -a Ghostty ${active.folder.path}`,
+Aufruf im echten Code-Pfad verifiziert) eingerichtet und benutzt.
+
+**Befund: reicht nicht.** „Gadgets und dann Ghostty eingeben ist zu viel
+und bereitet mehr Arbeit." Der Palette-Weg kostet zu viele Schritte für
+eine Aktion, die reflexhaft sein muss.
+
+Damit sind zwei Fragen entschieden, die dieses Issue offen hatte:
+
+1. **#57 wird gebaut** — Hotkey **und** Rechtsklick. Der Palette-Umweg
+   ist der Grund, warum es das Issue gibt; er ist jetzt gemessen.
+2. **Ein einzelnes konfiguriertes Terminal reicht nicht** — Till will
+   zwischen mehreren wählen können. Die Chooser-Entscheidung oben gilt
+   weiter, aber sie persistiert eine **Liste** von App-Pfaden statt einer
+   einzelnen. Genau `openWithFavorites`, nur für Terminals.
+3. Der Test hat zusätzlich den **eingebetteten** Terminal-Bedarf
+   bestätigt, den dieses Issue zurückgestellt hatte → **#65**. #57 bleibt
+   trotzdem eigenständig: „volle Terminal-Session außerhalb" ist ein
+   anderer Job als „kurzer Befehl im Kontext". Beide bleiben bestehen.
+
+**Reihenfolge (Till, 2026-08-02): #65 zuerst, #57 danach.** Das
+eingebettete Terminal ist der Job, der den Demand-Test ausgelöst hat.
+
+**Folge für dieses Issue:** die Terminal-Auswahlliste braucht #65 nicht
+(dort läuft die Login-Shell, keine fremde App) — sie liegt also ganz
+hier. Vor dem Bau von #57 neu bewerten: deckt das eingebettete Terminal
+den Alltag ab, schrumpft #57 womöglich auf ⌘⇧T + Rechtsklick mit einem
+einzigen Default-Terminal, und die Liste entfällt ersatzlos. Nicht auf
+Vorrat bauen.
 
 ## Agent Brief
 
@@ -55,14 +140,34 @@ Terminal-Integration.
 - Die Action ermittelt den aktuellen Ordner des **aktiven** Panels und
   öffnet dort ein neues Terminal-Fenster. Empfohlener Mechanismus:
   `NSWorkspace.shared.open([folderURL], withApplicationAt: terminalAppURL, …)`
-  bzw. äquivalent zu `open -a Terminal <ordner>` — Terminal.app und iTerm
-  interpretieren eine übergebene Ordner-URL beide als "neues Fenster,
-  cwd = dieser Ordner". Kein AppleScript, keine Automation-Permission.
-- Die Terminal-App kommt aus einem UserDefaults-String
-  (z.B. `terminalAppName`, Default `"Terminal"`). Auflösung über
-  `NSWorkspace.urlForApplication` o.ä.; ist der Name nicht auflösbar,
-  Fallback auf Terminal.app (kein Silent Fail — einmaliger Hinweis reicht,
-  wiederholtes Nag vermeiden).
+  bzw. äquivalent zu `open -a Terminal <ordner>` — Terminal.app und
+  Ghostty interpretieren eine übergebene Ordner-URL beide als "neues
+  Fenster, cwd = dieser Ordner" (2026-08-02 manuell bestätigt). Kein
+  AppleScript, keine Automation-Permission.
+- Persistenz ist **eine Liste**: `terminalApps`, ein `[String]` von
+  App-Pfaden in `UserDefaults` — exakt die Form von `openWithFavorites`.
+  **Element 0 ist das Default-Terminal**, das ⌘⇧T ohne Rückfrage startet.
+- Auflösung für ⌘⇧T in dieser Reihenfolge:
+  1. `terminalApps[0]`, falls der Pfad existiert.
+  2. das **nächste existierende** Element der Liste — eine gelöschte
+     App darf die anderen konfigurierten nicht mit sich reißen.
+  3. Fallback **Terminal.app** über `NSWorkspace.urlForApplication(
+     withBundleIdentifier: "com.apple.Terminal")`, wenn die Liste leer
+     oder komplett tot ist.
+  Kein Silent Fail: greift Schritt 2 oder 3, genau **ein** sichtbarer
+  Hinweis („Ghostty nicht mehr gefunden — Terminal.app benutzt") samt
+  Angebot, die Liste zu bereinigen. Kein wiederholtes Nag; tote Einträge
+  werden dabei aus `terminalApps` entfernt, nicht stumm übersprungen.
+- **Mehrere Terminals:** die Nicht-Default-Einträge sind über das
+  Kontextmenü erreichbar (siehe unten). Verwalten über einen
+  Palette-Befehl „Manage Terminals…" (Hinzufügen via `NSOpenPanel`-Chooser
+  `OpenWithController.chooseApplication()`, Entfernen, Default setzen) —
+  gleiche Mechanik wie die Open-With-Favoriten aus #28, kein neues UI.
+- **Rechtsklick:** Einstiegspunkt ist `contextMenu(forRow:)` in
+  `NSTableViewFileList.swift` (dort baut bereits das „Open With"-Submenü).
+  Ein Eintrag „Open in Terminal" mit Submenü, wenn mehr als ein Terminal
+  konfiguriert ist — sonst ein direkter Eintrag. App-Icons wie beim
+  Open-With-Submenü (`NSWorkspace.icon(forFile:)`).
 - Die Terminal-App wird dabei aktiv (normales Launch-Verhalten); Diptychon
   behält seinen State unverändert.
 - Selektion im Panel ist irrelevant für den Zielordner (siehe
@@ -82,20 +187,55 @@ Terminal-Integration.
       ist (`pwd` bestätigt es).
 - [ ] Panel-Wechsel (rechtes Panel aktiv) → ⌘⇧T öffnet das Terminal im
       Ordner des rechten Panels.
-- [ ] Selektierter Unterordner ändert das Ziel **nicht** — es zählt der
-      Panel-Ordner, nicht die Selektion.
-- [ ] `defaults write <bundle-id> terminalAppName iTerm` → ⌘⇧T öffnet
-      iTerm statt Terminal.app im richtigen Ordner (manuell verifizieren,
-      iTerm ist installiert — sonst Fallback-Pfad testen).
-- [ ] Nicht auflösbarer App-Name → Fallback Terminal.app + genau ein
-      sichtbarer Hinweis, kein Crash, kein Silent Fail.
-- [ ] Funktioniert in Ordnern mit Leerzeichen/Umlauten im Pfad.
+- [ ] Selektierter Unterordner ändert das Ziel des **Hotkeys** nicht —
+      dort zählt der Panel-Ordner, nicht die Selektion (fürs Kontextmenü
+      siehe offene Frage unten).
+- [ ] „Manage Terminals…" → Ghostty hinzugefügt und als Default gesetzt
+      → ⌘⇧T öffnet Ghostty statt Terminal.app im richtigen Ordner, und
+      die Wahl überlebt einen App-Neustart.
+- [ ] Zwei Terminals konfiguriert (Ghostty + Terminal.app) → Rechtsklick
+      zeigt „Open in Terminal" mit beiden im Submenü, jedes öffnet im
+      richtigen Ordner; ⌘⇧T nimmt weiterhin ohne Rückfrage das Default.
+- [ ] Genau ein Terminal konfiguriert → Rechtsklick zeigt einen direkten
+      Eintrag ohne Submenü (kein Ein-Element-Menü).
+- [ ] Default-Terminal gelöscht/umbenannt, ein zweites noch konfiguriert
+      → ⌘⇧T nimmt das zweite (nicht Terminal.app), genau ein sichtbarer
+      Hinweis, der tote Eintrag verschwindet aus der Liste.
+- [ ] Liste leer oder alle Einträge tot → Fallback Terminal.app, ein
+      Hinweis, kein Crash, kein Silent Fail.
+- [ ] Funktioniert in Ordnern mit Leerzeichen/Umlauten im Pfad
+      *(vorab manuell bestätigt für Terminal.app und Ghostty, 2026-08-02
+      — hier nur noch durch den echten App-Call-Pfad nachziehen)*.
 - [ ] Volle Test-Suite grün vor Merge (nicht nur Keymap-nahe Suites).
 
 **Out of scope:**
-- Eingebettetes Terminal-Panel (SwiftTerm) — eigenes Issue erst, falls
-  dieser Demand-Test zeigt, dass extern nicht reicht.
-- Kontextmenü-Eintrag "Open in Terminal" auf Ordner-Rows (mögliche v2).
-- "Im Ordner der Selektion öffnen"-Modifier-Variante (z.B. ⌥⌘⇧T).
-- Hotkey-Recorder-/Settings-UI.
+- Eingebettetes Terminal-Panel (SwiftTerm) — **jetzt #65**, eigenes Issue.
+  Der Demand-Test hat den Bedarf bestätigt.
+- "Im Ordner der Selektion öffnen"-Modifier-Variante (z.B. ⌥⌘⇧T) für den
+  **Hotkey** — der Rechtsklick-Fall ist eine offene Frage, siehe unten.
+- Hotkey-Recorder-/Settings-Panel. Der App-Chooser („Manage Terminals…")
+  ist **kein** Settings-UI und ist in v1 drin.
 - Tab-Reuse in bereits offenen Terminal-Fenstern.
+
+## Offene Frage — Rechtsklick auf eine Ordner-Row: welcher Ordner?
+
+Der Hotkey ist entschieden: **Panel-Ordner**, Selektion egal, ein
+mentales Modell. Beim Kontextmenü kollidiert das mit der Erwartung.
+`contextMenu(forRow:)` ist row-basiert — Rechtsklick auf `Projekte/`
+heißt für die meisten Nutzer „öffne **Projekte/**", nicht „öffne den
+Ordner, in dem Projekte/ liegt".
+
+Zwei saubere Auflösungen, eine unsaubere:
+
+| Variante | Verhalten | Kosten |
+|---|---|---|
+| **A — row wins** | Rechtsklick auf Ordner-Row → diese Row. Rechtsklick auf Leerfläche/Datei-Row → Panel-Ordner | zwei Regeln, aber jede erwartbar; Finder-Verhalten |
+| **B — immer Panel-Ordner** | Kontextmenü macht exakt dasselbe wie ⌘⇧T | ein Modell, aber Rechtsklick auf einen Ordner tut nicht, was er sagt |
+| ~~C — Eintrag nur auf Ordner-Rows~~ | — | verwirrt: Aktion verschwindet je nach Klickziel |
+
+Empfehlung: **A**. Das „ein mentales Modell"-Argument aus der
+Ursprungsentscheidung zielte auf den *Hotkey*, wo es kein Klickziel
+gibt. Beim Rechtsklick **ist** das Klickziel die Aussage — genau darum
+zeigt das vorhandene „Open With"-Submenü auch die geklickte Row.
+*(von AI empfohlen, Veto möglich — bitte in der nächsten Session
+entscheiden, blockiert die Umsetzung nicht lange.)*

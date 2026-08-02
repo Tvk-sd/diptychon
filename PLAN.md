@@ -13,7 +13,7 @@ Reach-Test (Ads/Outreach → signups) → Demand-Test (5 Sessions → Day-10-Ret
 - [ ] **macOS-Update abschließen** (Softwareupdate → Neustart): gestagte Update-Snapshots (`MSUPrepareUpdate` + 2) pinnen weiter Plattenplatz — letzter offener Punkt vom Platten-Aufräumen (adobeTemp + npm-Cache erledigt, 26 GB frei Stand 2026-07-16)
 
 ## Offen — bei AI
-Nächstes: Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #52 batch-rename [eigener Worktree], #57). #36 Gadgets-lite + #53 abgeschlossen + gemerged 2026-07-15; volle Suite grün auf main `2b8bf08` (210 Unit + 13 UI); #61 als Wedge-Artefakt geschlossen (`pkill testmanagerd` = Recovery).
+Nächstes: **#65 eingebettetes Terminal** (entschieden 2026-08-02: vor #57; SwiftTerm = erste SPM-Dependency, Risiko liegt im Tastatur-Gating). Danach #57 (Hotkey + Rechtsklick; Terminal-Liste erst nach Neubewertung). Restliche Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #52 batch-rename [eigener Worktree]). #36 Gadgets-lite + #53 abgeschlossen + gemerged 2026-07-15; volle Suite grün auf main `2b8bf08` (210 Unit + 13 UI); #61 als Wedge-Artefakt geschlossen (`pkill testmanagerd` = Recovery).
 
 ## Aktiver Task
 <!-- AI-Arbeitsstand; bei Done leeren + Issue schließen -->
