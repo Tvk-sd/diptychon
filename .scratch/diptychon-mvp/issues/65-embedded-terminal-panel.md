@@ -71,6 +71,27 @@ gedacht:
   Eintrag in `project.yml` + `xcodegen generate`; die `.xcodeproj` ist
   generiert und gitignored, **niemals** pbxproj von Hand anfassen.
 
+### SwiftTerm ist auf **exactVersion 1.11.2** gepinnt — mit Absicht
+
+Gemessen 2026-08-02 beim Einbau, nicht theoretisch:
+
+| Version | Ergebnis |
+|---|---|
+| 1.12.0 – 1.15.0 | **Build bricht ab**: `Apple/Metal/Shaders.metal` als Package-Resource verlangt die Metal-Toolchain (`cannot execute tool 'metal' … use: xcodebuild -downloadComponent MetalToolchain`) |
+| ≤ 1.9.0 | **Resolve bricht ab**: hängt an einer unstable-version von `swift-subprocess`, mit einem stable-gepinnten Root nicht auflösbar |
+| **1.11.2** | **BUILD SUCCEEDED** — letzte Version vor dem Metal-Shader, ohne die kaputte Dependency |
+
+Warum nicht einfach die Metal-Toolchain nachinstallieren: mehrere GB
+Download auf einer Platte mit **12 GB frei** (Stand 2026-08-02; das
+gestagte macOS-Update hält zusätzlich Platz). Für einen Dateimanager ist
+eine Metal-Toolchain als *Build*-Voraussetzung ohnehin ein hoher Preis —
+sie träfe jeden, der das Repo baut, und später CI.
+
+**Upgrade-Regel:** über 1.11.x hinaus geht nur mit installierter
+Metal-Toolchain. Wer das anfasst, prüft vorher `df -h /`. `exactVersion`
+statt `from:` ist bewusst gewählt, damit ein Resolve nicht still auf eine
+nicht baubare Version springt.
+
 **Risiko konzentriert sich damit auf das Tastatur-Gating**, nicht auf
 das Layout.
 
