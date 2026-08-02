@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Total Commander for Mac? There isn't one — the native alternatives (2026)</title>
+<meta name="description" content="Total Commander is Windows-only; there has never been a native macOS build. Your options are Wine, CrossOver or a VM — or a native Mac dual-pane file manager. An honest rundown of what carries over from Total Commander and what does not." />
+<link rel="canonical" href="https://diptychon.com/total-commander-for-mac" />
+<link rel="icon" type="image/png" href="icon.png" />
+<link rel="stylesheet" href="page.css" />
+<script>
+  // Apply a saved theme override before first paint (no flash). Default: system.
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+</head>
+<body>
+
+<div class="rails" aria-hidden="true"></div>
+
+<nav>
+  <div class="in nav-in">
+    <a class="brand" href="/"><img src="icon.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <span class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+        <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
+      </button>
+      <a class="nav-cta" href="/?src=tcmac#notify">Email me at launch</a>
+    </span>
+  </div>
+</nav>
+
+<main>
+
+<header>
+  <div class="in">
+    <p class="label">Switching · Windows → macOS</p>
+    <h1>Is there a Total Commander for Mac?</h1>
+    <div class="answer">
+      <p><strong>No — Total Commander is Windows-only.</strong> Christian Ghisler has never shipped a macOS build, and there is no official port planned. You have two routes: run the Windows version through a compatibility layer (Wine, CrossOver) or a Windows VM, or switch to a file manager built natively for the Mac.</p>
+      <p>The compatibility route keeps your muscle memory but gives up native Finder integration, retina rendering and Apple Silicon performance. The native route means learning a new tool, but every native Mac dual-pane manager below gives you the thing you actually came for: two directories side by side, keyboard-driven.</p>
+    </div>
+    <p class="stamp">Written 2026-08-02 · competitor figures verified 2026-07-11 · Diptychon is pre-launch, there is no download yet</p>
+  </div>
+</header>
+
+<div class="table-band">
+<div class="in">
+  <div class="tablewrap" role="region" aria-label="What carries over from Total Commander to native Mac file managers, scrolls horizontally" tabindex="0">
+    <table>
+      <caption class="sr-caption">Which Total Commander habits carry over to native macOS dual-pane file managers</caption>
+      <thead>
+        <tr><td></td><th scope="col" class="me">Diptychon</th><th scope="col">Marta</th><th scope="col">ForkLift&nbsp;4</th><th scope="col">Nimble&nbsp;Commander</th><th scope="col">Path&nbsp;Finder</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row" class="row-h">Two panels side by side</th><td class="me yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+        <tr><th scope="row" class="row-h">Keyboard-driven workflow</th><td class="me yes">Every action bound</td><td class="yes">Yes</td><td class="dim">Partial, mouse-forward</td><td class="yes">100+ hotkeys</td><td class="dim">Partial</td></tr>
+        <tr><th scope="row" class="row-h">FTP / SFTP built in</th><td class="me no">No</td><td class="no">No</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="dim">Limited</td></tr>
+        <tr><th scope="row" class="row-h">Plugin ecosystem</th><td class="me no">No</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="dim">Modules</td></tr>
+        <tr><th scope="row" class="row-h">Price model</th><td class="me">one-time €9.99 <span class="dim">(planned)</span></td><td class="yes">free</td><td class="dim">one-time $19.95</td><td class="dim">free / $29.99 one-time Pro</td><td class="sub">subscription $32.95/yr</td></tr>
+        <tr><th scope="row" class="row-h">Download size</th><td class="me">1.5 MB</td><td class="dim">10.7 MB</td><td class="dim">16.3 MB</td><td class="dim">15.0 MB</td><td class="dim">19.4 MB</td></tr>
+        <tr><th scope="row" class="row-h">Available today</th><td class="me no">No — pre-launch</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<div class="in">
+  <details class="sources">
+  <summary>Sources &amp; verification (read this before trusting a number)</summary>
+  <p class="verify">Prices and download sizes verified 2026-07-11 against the vendors: <a href="https://binarynights.com/store" rel="noopener">ForkLift $19.95 (binarynights.com)</a> · <a href="https://cocoatech.io/product/path-finder/" rel="noopener">Path Finder $32.95 / 1-year licence (cocoatech.io)</a> · <a href="https://github.com/mikekazakov/nimble-commander/releases" rel="noopener">Nimble Commander free &amp; open-source, 15.0 MB (GitHub release asset)</a>. Sizes for <a href="https://marta.macupdate.com/" rel="noopener">Marta (10.7 MB)</a>, ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 1.5 MB is the measured zip of the current build (2026-07-17).</p>
+  <p class="verify">Total Commander's platform support is per the vendor: the <a href="https://www.ghisler.com/" rel="noopener">ghisler.com</a> download page lists Windows (and a separate Android app) only. Prices change and vendors re-price without notice — check the vendor's own page before you buy anything here.</p>
+  </details>
+
+  <h2>Questions people actually ask</h2>
+
+  <div class="faq">
+    <h3>Can I run Total Commander on a Mac with Wine or CrossOver?</h3>
+    <p>Yes, and people do. Total Commander is a small, old-school Win32 application, which is the class of software Wine handles best. You give up native menu-bar integration, Finder tag and Quick Look support, and you take on a compatibility layer to maintain. A Windows VM (Parallels, VMware, UTM) is the more reliable version of the same trade — heavier, but it behaves like Windows because it is Windows.</p>
+    <p>Worth being clear about the trade: this route is right if you depend on specific Total Commander <em>plugins</em>. If you mainly want the two-panel workflow, a native tool will be faster and less fragile.</p>
+  </div>
+
+  <div class="faq">
+    <h3>Which Mac file manager is closest to Total Commander?</h3>
+    <p>Depends which part of Total Commander you mean:</p>
+    <ul>
+      <li><strong>The keyboard-first two-panel core</strong> → Marta or Nimble Commander. Both are native, both are free to start with.</li>
+      <li><strong>The built-in FTP/SFTP and archive handling</strong> → ForkLift 4 or Nimble Commander. This is the part Total Commander users miss most.</li>
+      <li><strong>The plugin ecosystem</strong> → nothing on macOS matches it. Marta has plugins, but it is a smaller ecosystem.</li>
+    </ul>
+    <p>Double Commander and muCommander are also worth a look: both are free, open-source and cross-platform, which makes them the most literal ports of the idea — at the cost of not feeling especially Mac-native.</p>
+  </div>
+
+  <div class="faq">
+    <h3>Do the F5 / F6 copy and move keys work on a Mac?</h3>
+    <p>Not out of the box in Finder, and not identically anywhere. macOS reserves the function-key row for system features by default, so most Mac dual-pane managers use their own bindings rather than reproducing Total Commander's F-key layout literally. Nimble Commander is the closest to the classic Commander key map.</p>
+    <p>Diptychon uses a modifier chord instead of a function key: <code>⌥⌘→</code> sends the selection to the other panel, <code>⌥⌘←</code> pulls it back. Different keys, same one-keystroke idea.</p>
+  </div>
+
+  <div class="faq">
+    <h3>Is there a free Total Commander alternative for Mac?</h3>
+    <p>Yes. Marta is free (though not open source), and Nimble Commander is free and open source, with a paid Pro tier for admin/root operations. Double Commander and muCommander are free and open source as well. None of them costs anything to try, so the honest advice is to try the free ones before paying for anything.</p>
+  </div>
+
+  <div class="faq">
+    <h3>Where does Diptychon fit?</h3>
+    <p>Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 1.5 MB download. It is a one-time purchase (€9.99 planned), not a subscription, and it collects no telemetry.</p>
+    <p>What it does <em>not</em> do, and this matters for anyone coming from Total Commander: <strong>no FTP or SFTP, no plugin system, no archive browsing yet.</strong> If those are why you use Total Commander, Diptychon is the wrong tool and ForkLift or Nimble Commander is the right one. It is also still pre-launch — there is no download today, only an email list.</p>
+  </div>
+</div>
+
+<div class="forwho-band">
+<div class="in">
+  <div class="forwho">
+    <div>
+      <h4 class="yeshead">Come to Diptychon from Total Commander if…</h4>
+      <ul>
+        <li>You want the two-panel workflow, not the plugin ecosystem.</li>
+        <li>You work on local and mounted drives, not remote servers.</li>
+        <li>You want native and tiny, not Wine or a VM.</li>
+        <li>You want undo on file operations — Total Commander has none.</li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="nohead">Stay where you are if…</h4>
+      <ul>
+        <li>You depend on Total Commander plugins.</li>
+        <li>You need FTP/SFTP inside the file manager.</li>
+        <li>You need it today — Diptychon has not launched.</li>
+        <li>You want archive browsing as folders.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<div class="in">
+  <div class="crosslinks">
+    <h2>Other comparisons</h2>
+    <ul>
+      <li><a href="/marta-alternative?src=tcmac">Alternatives to Marta</a></li>
+      <li><a href="/forklift-alternative?src=tcmac">Alternatives to ForkLift</a></li>
+      <li><a href="/path-finder-alternative?src=tcmac">Alternatives to Path Finder</a></li>
+      <li><a href="/vs?src=tcmac">Diptychon vs all four, side by side</a></li>
+    </ul>
+  </div>
+
+  <div class="cta">
+    <a class="btn" href="/?src=tcmac#notify">Email me at launch →</a>
+  </div>
+  <p class="honesty">Diptychon is pre-launch and not downloadable yet. If you need a dual-pane manager today, use one of the shipping tools above — that is not a throwaway line, they are good.</p>
+</div>
+
+</main>
+
+<footer>
+  <div class="in foot-in">
+    <span>© Diptychon, native macOS, ~1.5 MB</span>
+    <span class="foot-links">
+      <a href="/">Home</a>
+      <a href="/vs">Compare</a>
+      <a href="/#shortcuts">Keyboard shortcuts</a>
+      <a href="/impressum">Impressum</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  // Theme toggle, same behavior as the homepage.
+  (function(){
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var effective = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = effective === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+    });
+  })();
+</script>
+
+</body>
+</html>
