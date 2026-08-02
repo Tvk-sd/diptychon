@@ -67,6 +67,13 @@ final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
         shellDirectory = folder
     }
 
+    /// The shell's own name (`zsh`, `fish`, …) for the header title — Zed's
+    /// "<folder> — <shell>" format, so the panel reads like the terminal it replaces.
+    var shellName: String {
+        URL(fileURLWithPath: ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh")
+            .lastPathComponent
+    }
+
     /// Hand key focus back to the window when the panel closes. Without this the
     /// hidden terminal stays first responder and the key monitor keeps deferring to
     /// it — every hotkey would die silently after closing the panel.

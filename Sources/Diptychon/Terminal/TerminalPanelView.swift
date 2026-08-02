@@ -12,49 +12,85 @@ struct TerminalPanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            header
+            Divider()
             TerminalHost(session: session, panelFolder: panelFolder)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            if session.shellHasExited {
-                notice("Shell beendet — Panel schließen und neu öffnen startet sie neu.")
-            } else if session.panelDiverges(from: panelFolder) {
-                cdBar
-            }
         }
     }
 
-    /// Offers the jump, never performs it on its own. Nothing is written to the shell
-    /// until this is clicked — a running command must not have a `cd` typed into it.
-    private var cdBar: some View {
-        Button {
-            session.cd(to: panelFolder)
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "arrow.turn.down.right")
-                Text("Panel ist in \(panelFolder.lastPathComponent)")
-                Text("cd ⏎").foregroundStyle(.secondary)
-                Spacer(minLength: 0)
-            }
-            .font(.system(size: 11))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .contentShape(Rectangle())
+    /// Zed's terminal header: the session's identity on the left, a mini toolbar on
+    /// the right. The "cd here" action lives in that toolbar rather than in a bar of
+    /// its own — a full-width bar appearing under the terminal shifted the content
+    /// every time you navigated, which is exactly the twitch a quiet panel shouldn't have.
+    private var header: some View {
+        HStack(spacing: 0) {
+            titleTab
+            Spacer(minLength: 8)
+            toolbar
         }
-        .buttonStyle(.plain)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .overlay(alignment: .top) { Divider() }
-        .help("Die Shell in den Ordner des aktiven Panels wechseln")
-        .accessibilityIdentifier("terminal-cd-here")
+        .frame(height: 28)
+        .background(Color(nsColor: .underPageBackgroundColor))
     }
 
-    private func notice(_ text: String) -> some View {
-        HStack {
-            Text(text).font(.system(size: 11)).foregroundStyle(.secondary)
-            Spacer(minLength: 0)
+    /// Reads like Zed's tab — icon plus "<folder> — <shell>". One session for now, so
+    /// it is a label, not a control; a real tab strip is deferred until the tab
+    /// question is answered from practice.
+    private var titleTab: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "apple.terminal")
+                .font(.system(size: 11))
+            Text("\(shellFolderName) — \(session.shellName)")
+                .font(.system(size: 11))
+                .lineLimit(1)
+                .truncationMode(.middle)
         }
+        .foregroundStyle(.secondary)
         .padding(.horizontal, 10)
-        .padding(.vertical, 4)
+        .frame(maxHeight: .infinity)
         .background(Color(nsColor: .controlBackgroundColor))
-        .overlay(alignment: .top) { Divider() }
+        .accessibilityIdentifier("terminal-title")
+    }
+
+    /// Right-hand mini toolbar. Empty in the common case — it only ever holds state
+    /// the user needs to act on, so the header stays quiet while the shell and the
+    /// Panel agree.
+    @ViewBuilder
+    private var toolbar: some View {
+        if session.shellHasExited {
+            Label("beendet", systemImage: "stop.circle")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .labelStyle(.titleAndIcon)
+                .padding(.horizontal, 10)
+                .help("Die Shell ist beendet. Panel schließen und neu öffnen startet sie neu.")
+        } else if session.panelDiverges(from: panelFolder) {
+            Button {
+                session.cd(to: panelFolder)
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.turn.down.right")
+                    Text(panelFolder.lastPathComponent)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                .font(.system(size: 11))
+                .padding(.horizontal, 8)
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Color.accentColor)
+            .help("cd in \(panelFolder.path) — die Shell wechselt erst auf Klick")
+            .accessibilityIdentifier("terminal-cd-here")
+            .padding(.trailing, 6)
+        }
+    }
+
+    /// The folder the *shell* is in, which is what the title should name — not the
+    /// Panel's, or the title would claim a directory the prompt isn't in.
+    private var shellFolderName: String {
+        (session.shellDirectory ?? panelFolder).lastPathComponent
     }
 }
 
