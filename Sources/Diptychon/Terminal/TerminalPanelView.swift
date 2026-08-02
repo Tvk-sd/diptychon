@@ -1,96 +1,64 @@
 import SwiftUI
 import SwiftTerm
 
-/// The embedded terminal panel that spans both Panels (issue 65): the terminal itself
-/// plus a "cd here" bar that appears only when the Active Panel has walked away from
-/// the shell's directory.
+/// The embedded terminal panel that spans both Panels (issue 65).
+///
+/// Deliberately chrome-less: no tab, no header band. The only separator is the
+/// `VSplitPane` hairline above it — the same 1pt `separatorColor` seam the sidebar,
+/// the panels and the bottom bar use, so the terminal reads as another region of the
+/// window rather than a widget bolted into it.
 struct TerminalPanelView: View {
     let session: TerminalSession
     /// The Active Panel's current folder — the terminal's cwd on first open and the
-    /// target the "cd here" bar offers.
+    /// target the "cd" action offers.
     let panelFolder: URL
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
-            TerminalHost(session: session, panelFolder: panelFolder)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
+        TerminalHost(session: session, panelFolder: panelFolder)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Overlaid, not stacked: a row that appears and disappears would push the
+            // terminal's contents around every time the Panel navigates.
+            .overlay(alignment: .topTrailing) { statusAction }
     }
 
-    /// Zed's terminal header: the session's identity on the left, a mini toolbar on
-    /// the right. The "cd here" action lives in that toolbar rather than in a bar of
-    /// its own — a full-width bar appearing under the terminal shifted the content
-    /// every time you navigated, which is exactly the twitch a quiet panel shouldn't have.
-    private var header: some View {
-        HStack(spacing: 0) {
-            titleTab
-            Spacer(minLength: 8)
-            toolbar
-        }
-        .frame(height: 28)
-        .background(Color(nsColor: .underPageBackgroundColor))
-    }
-
-    /// Reads like Zed's tab — icon plus "<folder> — <shell>". One session for now, so
-    /// it is a label, not a control; a real tab strip is deferred until the tab
-    /// question is answered from practice.
-    private var titleTab: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "apple.terminal")
-                .font(.system(size: 11))
-            Text("\(shellFolderName) — \(session.shellName)")
-                .font(.system(size: 11))
-                .lineLimit(1)
-                .truncationMode(.middle)
-        }
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 10)
-        .frame(maxHeight: .infinity)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .accessibilityIdentifier("terminal-title")
-    }
-
-    /// Right-hand mini toolbar. Empty in the common case — it only ever holds state
-    /// the user needs to act on, so the header stays quiet while the shell and the
-    /// Panel agree.
+    /// Shown only when there is something to act on, so the terminal is bare in the
+    /// common case.
     @ViewBuilder
-    private var toolbar: some View {
+    private var statusAction: some View {
         if session.shellHasExited {
-            Label("beendet", systemImage: "stop.circle")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .labelStyle(.titleAndIcon)
-                .padding(.horizontal, 10)
-                .help("Die Shell ist beendet. Panel schließen und neu öffnen startet sie neu.")
+            chrome {
+                Label("exited", systemImage: "stop.circle")
+                    .foregroundStyle(.secondary)
+            }
+            .help("The shell has exited. Close and reopen the panel to start a new one.")
         } else if session.panelDiverges(from: panelFolder) {
-            Button {
-                session.cd(to: panelFolder)
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.turn.down.right")
-                    Text(panelFolder.lastPathComponent)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
+            Button { session.cd(to: panelFolder) } label: {
+                chrome {
+                    // The verb carries the meaning: this *performs* a directory change,
+                    // it does not report which Panel is active. Without "cd" the label
+                    // reads as a folder indicator.
+                    Label("cd \(panelFolder.lastPathComponent)", systemImage: "arrow.turn.down.right")
+                        .foregroundStyle(Color.accentColor)
                 }
-                .font(.system(size: 11))
-                .padding(.horizontal, 8)
-                .frame(maxHeight: .infinity)
-                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .foregroundStyle(Color.accentColor)
-            .help("cd in \(panelFolder.path) — die Shell wechselt erst auf Klick")
+            .help("Run cd \(panelFolder.path) in the terminal")
             .accessibilityIdentifier("terminal-cd-here")
-            .padding(.trailing, 6)
         }
     }
 
-    /// The folder the *shell* is in, which is what the title should name — not the
-    /// Panel's, or the title would claim a directory the prompt isn't in.
-    private var shellFolderName: String {
-        (session.shellDirectory ?? panelFolder).lastPathComponent
+    /// Shared padding/legibility treatment. A slight tint keeps the label readable
+    /// over whatever the shell has drawn underneath it.
+    private func chrome<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        content()
+            .font(.system(size: 11))
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.92))
+            .overlay(Rectangle().strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1))
+            .padding(8)
     }
 }
 

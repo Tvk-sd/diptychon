@@ -40,6 +40,13 @@ final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
 
         let view = DiptychonTerminalView(frame: .zero)
         view.processDelegate = self
+        // The terminal is a region of the window, not a black box dropped into it:
+        // it takes the same background as the file lists (`controlBackgroundColor`)
+        // and the same text colour as the rest of the UI. Both are dynamic system
+        // colours, so light/dark follow the app without a second theme to maintain.
+        view.nativeBackgroundColor = .controlBackgroundColor
+        view.nativeForegroundColor = .labelColor
+        view.caretColor = .controlAccentColor
         terminalView = view
         shellDirectory = folder
         shellHasExited = false
@@ -65,13 +72,6 @@ final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
         guard let terminalView else { return }
         terminalView.send(txt: "cd \(Self.shellQuoted(folder.path))\n")
         shellDirectory = folder
-    }
-
-    /// The shell's own name (`zsh`, `fish`, …) for the header title — Zed's
-    /// "<folder> — <shell>" format, so the panel reads like the terminal it replaces.
-    var shellName: String {
-        URL(fileURLWithPath: ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh")
-            .lastPathComponent
     }
 
     /// Hand key focus back to the window when the panel closes. Without this the
