@@ -7,44 +7,12 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 
 ## Offen — bei Till
 <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
-- [ ] **Reach-Test starten:** Google Ads + Roundup-Outreach live → `signups:src:*` lesen → GO/ITERATE/STOP (`context/reach-test.md`, `google-ads-setup.md`, `roundup-outreach.md`)
-- [ ] **Demand-Test starten:** Screener finalisieren, 5 rekrutieren (2 Netzwerk + 3 cold) → Sessions Woche 1, Retention-Check ~Tag 10 (`context/demand-test.md`; Preis-Frage: €9.99 one-time)
+- [ ] **Notarisierung abschließen (#69):** Enrollment-Status prüfen (kann 48 h „pending" stehen), Developer-ID-Application-Zertifikat in Xcode erzeugen, Notary-API-Key in App Store Connect holen (die `.p8` lädt genau einmal), `xcrun notarytool store-credentials`. Danach die Ausgabe von `security find-identity -v -p codesigning` durchgeben — daraus kommt die Team-ID. Blockiert #71
+- [ ] **Doku regenerieren und platzieren (#42):** die Referenz ist nicht ungeprüft, sondern falsch — sie nennt `⌘[`/`⌘]`, seit #60 gilt ⌘←/⌘→; Terminal, Gadgets, Suche und Queue kommen null Mal vor. Generator neu laufen lassen, dann Platzierung entscheiden (Empfehlung: `diptychon.com/docs`)
+- [ ] **Menüeintrag gegentesten (#74):** Hilfe ▸ Keyboard Shortcuts… ist gebaut und per UI-Test belegt, aber noch nie von Hand gesehen — beim Bauen lief deine eigene Instanz
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 
 ## Offen — bei AI
-Nächstes: Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #52 batch-rename [eigener Worktree], #57). #36 Gadgets-lite + #53 abgeschlossen + gemerged 2026-07-15; volle Suite grün auf main `2b8bf08` (210 Unit + 13 UI); #61 als Wedge-Artefakt geschlossen (`pkill testmanagerd` = Recovery).
+Nächstes: **#68 Teil 2** — der empirische Erstlauf (Start ohne `workspaceState`, Timing der macOS-Zugriffsdialoge, Lesbarkeit der Zwei-Panel-Anordnung ohne Vorwissen, Rest der Standardmenüs). Braucht Tills Bildschirm, deshalb terminiert. Danach **#71** (Startseite umbauen), sobald #69 durch ist.
 
-## Aktiver Task
-<!-- AI-Arbeitsstand; bei Done leeren + Issue schließen -->
-
-**Reach-Test starten** (2026-07-12, Woche-1-Schritte aus `context/channel-plan.md`)
-
-Infrastruktur end-to-end verifiziert (2026-07-12): Seite öffentlich, Capture-Form
-+ `?src`-Attribution + `/vs` live, Signup→KV smoke-getestet und wieder auf
-**null** zurückgesetzt. Zählerstand = sauber.
-
-- [x] Cloudflare-Web-Analytics-Beacon entdeckt (lief seit ~07.07., injiziert
-      nur bei Browser-UA — deshalb zuerst übersehen) → Till hat RUM
-      deaktiviert (2026-07-13), Beacon-Entfernung auf /, /vs, /impressum
-      live verifiziert. NIE reaktivieren (Datenschutz § 4).
-      Mess-Runbook: `context/reach-test-messung.md`.
-
-- [x] Impressum + Datenschutz LIVE (2026-07-12): Till entschied nach
-      Abwägung doch eigene Wohnadresse (Service-Adresse verworfen);
-      Seiten gefüllt, Footer auf / und /vs verlinkt, deployed + live
-      verifiziert (beide 200, Adresse drin, keine Platzhalter).
-      Cloudflare „Web Analytics" NIE aktivieren — sonst wird
-      Datenschutz §4 falsch. Dateien uncommitted in `.scratch/landing-page/`.
-- [ ] **Till (JETZT entblockt):** Google-Ads-Kampagne durchklicken
-      (`context/google-ads-setup.md` ist paste-ready, €10/Tag)
-- [x] AI: Roundup-Outreach-Pitches personalisiert (2026-07-12) → 6 Drafts +
-      Re-Priorisierung in `context/outreach-drafts-2026-07-12.md` (Recherche:
-      nur XDA + TheSweetBits sind echte Redaktionen; 3 Ziele sind Vendor-/
-      Konkurrenz-Blogs, SimplyMac gestrichen — kein Kontaktweg)
-- [ ] Till: Welle-1-Drafts reviewen (XDA, TheSweetBits, FileMinutes) +
-      entscheiden ob Welle 2 (Konkurrenten) mitgeht → versenden
-- [x] GO-Bar entschieden (Till, 2026-07-12): Competitor-Intent Capture-Rate
-      ≥8 %, Cost-per-Signup ≤ €5, Lesefenster 2 Wochen → festgehalten in
-      Issue #55 (`.scratch/diptychon-mvp/issues/55-reach-test-execution.md`)
-- [ ] Wöchentlich: `signups:src:*` ÷ Klicks pro Kanal → GO/ITERATE/STOP
-      (Outcome landet in #55)
+Eingefroren bis echter Nutzer-Input da ist: **#39** (Recent Locations) und **#40** (Ladepfad). Beide sind Vermutungen aus der Netnographie, und ADR 0008 stellt die Reihenfolge künftig auf das um, was Nutzer schreiben. Auftau-Bedingung ist deshalb nicht „nach #71", sondern: die ersten Freitextantworten aus **#72** liegen vor. Nennt sie niemand, sind sie nicht dran.
