@@ -1,64 +1,55 @@
 import SwiftUI
 import SwiftTerm
 
-/// The embedded terminal panel that spans both Panels (issue 65).
+/// The embedded terminal panel that spans both Panels (issue 65): a 32pt name bar,
+/// then the terminal.
 ///
-/// Deliberately chrome-less: no tab, no header band. The only separator is the
-/// `VSplitPane` hairline above it — the same 1pt `separatorColor` seam the sidebar,
-/// the panels and the bottom bar use, so the terminal reads as another region of the
-/// window rather than a widget bolted into it.
+/// The bar matches the header and bottom bands exactly — same height, same plain
+/// window background — so the terminal reads as another region of the window. The
+/// only separator is the `VSplitPane` hairline above it, the same 1pt seam used
+/// everywhere else.
+///
+/// **The shell is fixed to the folder it was opened in.** Nothing here follows the
+/// Active Panel: no target to keep in sync, no control that changes meaning when you
+/// switch panes. The bar states where the shell *is*; if you want it elsewhere, you
+/// `cd` — same as any terminal.
 struct TerminalPanelView: View {
     let session: TerminalSession
-    /// The Active Panel's current folder — the terminal's cwd on first open and the
-    /// target the "cd" action offers.
+    /// The folder the terminal opens in — read once, when the panel is first shown.
     let panelFolder: URL
 
     var body: some View {
-        TerminalHost(session: session, panelFolder: panelFolder)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // Overlaid, not stacked: a row that appears and disappears would push the
-            // terminal's contents around every time the Panel navigates.
-            .overlay(alignment: .topTrailing) { statusAction }
-    }
-
-    /// Shown only when there is something to act on, so the terminal is bare in the
-    /// common case.
-    @ViewBuilder
-    private var statusAction: some View {
-        if session.shellHasExited {
-            chrome {
-                Label("exited", systemImage: "stop.circle")
-                    .foregroundStyle(.secondary)
-            }
-            .help("The shell has exited. Close and reopen the panel to start a new one.")
-        } else if session.panelDiverges(from: panelFolder) {
-            Button { session.cd(to: panelFolder) } label: {
-                chrome {
-                    // The verb carries the meaning: this *performs* a directory change,
-                    // it does not report which Panel is active. Without "cd" the label
-                    // reads as a folder indicator.
-                    Label("cd \(panelFolder.lastPathComponent)", systemImage: "arrow.turn.down.right")
-                        .foregroundStyle(Color.accentColor)
-                }
-            }
-            .buttonStyle(.plain)
-            .help("Run cd \(panelFolder.path) in the terminal")
-            .accessibilityIdentifier("terminal-cd-here")
+        VStack(spacing: 0) {
+            nameBar
+            TerminalHost(session: session, panelFolder: panelFolder)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
-    /// Shared padding/legibility treatment. A slight tint keeps the label readable
-    /// over whatever the shell has drawn underneath it.
-    private func chrome<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        content()
-            .font(.system(size: 11))
-            .lineLimit(1)
-            .truncationMode(.middle)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.92))
-            .overlay(Rectangle().strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1))
-            .padding(8)
+    /// Names the session the way a terminal tab would — "<folder> — <shell>" — but
+    /// without a tab's chrome: no chip, no border, just the label in the band.
+    private var nameBar: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "apple.terminal")
+            Text(session.shellHasExited
+                 ? "\(folderName) — \(session.shellName) (exited)"
+                 : "\(folderName) — \(session.shellName)")
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer(minLength: 0)
+        }
+        .font(.system(size: 11))
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 12)
+        .frame(height: 32)
+        .accessibilityIdentifier("terminal-name")
+    }
+
+    /// The folder the *shell* is in. Tracked rather than assumed: a shell that reports
+    /// its directory (OSC 7) after a manual `cd` updates the name, so the bar can't
+    /// claim a folder the prompt has left.
+    private var folderName: String {
+        (session.shellDirectory ?? panelFolder).lastPathComponent
     }
 }
 
@@ -70,8 +61,8 @@ private struct TerminalHost: NSViewRepresentable {
     let panelFolder: URL
 
     func makeNSView(context: Context) -> NSView {
-        // Starting here rather than in the model keeps the shell tied to the panel
-        // actually appearing on screen.
+        // Starting here rather than in the model is what pins the cwd to "the folder
+        // the panel was opened from" — this runs once, on first appearance.
         session.startIfNeeded(in: panelFolder)
         let container = NSView()
         if let terminal = session.terminalView {

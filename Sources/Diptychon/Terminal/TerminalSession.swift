@@ -7,9 +7,10 @@ import SwiftTerm
 /// while the panel is toggled — closing the panel hides the terminal, it does not kill
 /// the shell. A build running behind a collapsed panel keeps running.
 ///
-/// **The shell is autonomous.** Navigating a Panel never `cd`s the shell (decision
-/// 2026-08-02): an auto-`cd` would overwrite a manual `cd` and type into a running
-/// command. `panelDivergesFromShell` drives a click-to-`cd` affordance instead.
+/// **The shell is fixed to the folder it was opened in** (decision 2026-08-03).
+/// Nothing follows the Active Panel — no auto-`cd` that would overwrite a manual one
+/// or type into a running command, and no affordance that changes meaning when the
+/// active side changes. Moving elsewhere is the user's `cd`, as in any terminal.
 @MainActor
 @Observable
 final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
@@ -18,19 +19,17 @@ final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
     /// open the panel.
     private(set) var terminalView: DiptychonTerminalView?
 
-    /// Where we believe the shell's cwd is.
+    /// Where the shell is, as far as we can tell — the name bar's source.
     ///
-    /// Two sources, in order of trust: OSC 7 (`hostCurrentDirectoryUpdate`) if the
-    /// shell emits it, otherwise our own optimistic bookkeeping from `start` / `cd`.
-    /// macOS ties its stock OSC 7 emitter (`update_terminal_cwd` in `/etc/zshrc`) to
-    /// `TERM_PROGRAM=Apple_Terminal`, so in *our* terminal it usually never fires —
-    /// hence the fallback rather than a hard dependency on it. A manual `cd` typed by
-    /// the user therefore may go unnoticed, which is why the affordance only ever
-    /// *offers* a `cd` and never asserts where the shell is.
+    /// Set to the opening folder, then refined by OSC 7 (`hostCurrentDirectoryUpdate`)
+    /// if the shell reports directory changes. macOS ties its stock OSC 7 emitter
+    /// (`update_terminal_cwd` in `/etc/zshrc`) to `TERM_PROGRAM=Apple_Terminal`, so in
+    /// *our* terminal it often never fires — the name can therefore lag behind a
+    /// manual `cd`. That is why it is only ever a name, never something the app acts on.
     private(set) var shellDirectory: URL?
 
-    /// The shell has exited (`exit`, or it crashed). The panel shows a restart hint
-    /// rather than a dead black rectangle.
+    /// The shell has exited (`exit`, or it crashed). Surfaced in the name bar so a
+    /// silent, unresponsive terminal is explained rather than just dead.
     private(set) var shellHasExited = false
 
     /// Start the shell if it isn't running yet. Idempotent — reopening the panel
@@ -59,19 +58,10 @@ final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
         view.startProcess(executable: shell, args: ["-l"], currentDirectory: folder.path)
     }
 
-    /// True when the active Panel is somewhere other than where we last knew the
-    /// shell to be — the condition the "cd here" affordance appears under.
-    func panelDiverges(from panelFolder: URL) -> Bool {
-        guard let shellDirectory, terminalView != nil else { return false }
-        return shellDirectory.standardizedFileURL != panelFolder.standardizedFileURL
-    }
-
-    /// Send a `cd` for the given folder. Only ever called from an explicit user
-    /// action — never on navigation.
-    func cd(to folder: URL) {
-        guard let terminalView else { return }
-        terminalView.send(txt: "cd \(Self.shellQuoted(folder.path))\n")
-        shellDirectory = folder
+    /// The shell's own name (`zsh`, `fish`, …) for the name bar.
+    var shellName: String {
+        URL(fileURLWithPath: ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh")
+            .lastPathComponent
     }
 
     /// Hand key focus back to the window when the panel closes. Without this the
@@ -101,16 +91,6 @@ final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
             return false
         }
         return responder === terminalView || responder.isDescendant(of: terminalView)
-    }
-
-    /// POSIX single-quote quoting: wrap in `'…'` and rewrite any embedded `'` as
-    /// `'\''`. Handles spaces, umlauts, `$`, backticks and newlines alike — the
-    /// paths a file manager routinely deals with.
-    /// `nonisolated` because it touches nothing on the actor — the same
-    /// pure-and-therefore-testable split the rest of the codebase uses
-    /// (`FavoriteApps`, `GadgetSubstitution`, `SplitPane`'s layout math).
-    nonisolated static func shellQuoted(_ path: String) -> String {
-        "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 
     // MARK: - LocalProcessTerminalViewDelegate
