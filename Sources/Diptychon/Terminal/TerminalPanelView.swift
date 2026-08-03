@@ -18,10 +18,22 @@ struct TerminalPanelView: View {
     /// The folder the terminal opens in — read once, when the panel is first shown.
     let panelFolder: URL
 
+    /// Left rail shared with the file list: the terminal's first column and the name
+    /// bar's icon line up with the row icons in the panels above.
+    ///
+    /// A measured constant, not a derived one — SwiftTerm draws its first cell at x=0
+    /// with no padding API, and the table's rail comes out of `NSTableView`'s own
+    /// layout rather than a value we set. Measured on the running app by pixel probe:
+    /// row icons sit at x=210, and this inset puts the terminal's first glyph on the
+    /// same column. If the file list's leading inset ever changes, re-measure rather
+    /// than nudge by eye.
+    static let contentInset: CGFloat = 9
+
     var body: some View {
         VStack(spacing: 0) {
             nameBar
-            TerminalHost(session: session, panelFolder: panelFolder)
+            TerminalHost(session: session, panelFolder: panelFolder,
+                         leadingInset: Self.contentInset)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
@@ -40,7 +52,8 @@ struct TerminalPanelView: View {
         }
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 12)
+        .padding(.leading, Self.contentInset)
+        .padding(.trailing, 12)
         .frame(height: 32)
         .accessibilityIdentifier("terminal-name")
     }
@@ -59,17 +72,23 @@ struct TerminalPanelView: View {
 private struct TerminalHost: NSViewRepresentable {
     let session: TerminalSession
     let panelFolder: URL
+    let leadingInset: CGFloat
 
     func makeNSView(context: Context) -> NSView {
         // Starting here rather than in the model is what pins the cwd to "the folder
         // the panel was opened from" — this runs once, on first appearance.
         session.startIfNeeded(in: panelFolder)
         let container = NSView()
+        // The inset strip must not read as a gap: the container carries the terminal's
+        // own background so the two are one surface.
+        container.wantsLayer = true
+        container.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
         if let terminal = session.terminalView {
             terminal.translatesAutoresizingMaskIntoConstraints = false
             container.addSubview(terminal)
             NSLayoutConstraint.activate([
-                terminal.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                terminal.leadingAnchor.constraint(equalTo: container.leadingAnchor,
+                                                  constant: leadingInset),
                 terminal.trailingAnchor.constraint(equalTo: container.trailingAnchor),
                 terminal.topAnchor.constraint(equalTo: container.topAnchor),
                 terminal.bottomAnchor.constraint(equalTo: container.bottomAnchor),
