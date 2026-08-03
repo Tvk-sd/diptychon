@@ -1,19 +1,18 @@
 # PLAN
 
 ## Roadmap-lite
-Reach-Test (Ads/Outreach → signups) → Demand-Test (5 Sessions → Day-10-Retention) → GO? → Notarisierung ($99) → Launch (Access-Wall weg)
+**Entschieden 2026-08-04 (ADR 0008): die Website verteilt und lernt, sie validiert nicht mehr.** Membership ist gekauft, damit wird der Download echt; Signups als Validierungs-Proxy sind hinfällig, ein Download ist das stärkere Signal.
+
+Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite auf „free while in beta" umbauen (#71) → Downloads + Freitext lesen (#70/#72/#73) → Preismodell (#66)
 
 ## Offen — bei Till
 <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
 - [ ] **Reach-Test starten:** Google Ads + Roundup-Outreach live → `signups:src:*` lesen → GO/ITERATE/STOP (`context/reach-test.md`, `google-ads-setup.md`, `roundup-outreach.md`)
 - [ ] **Demand-Test starten:** Screener finalisieren, 5 rekrutieren (2 Netzwerk + 3 cold) → Sessions Woche 1, Retention-Check ~Tag 10 (`context/demand-test.md`; Preis-Frage: €9.99 one-time)
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
-- [ ] **pm-skills-Repo committen:** Deprecation (conductor + project-handoff → `_deprecated/`, entschieden statt Migration 2026-07-12) + project-setup v3.0.0 / project-resume v2.0.0 liegen uncommitted in `~/.claude/skills/user/` — dort warten auch ältere Änderungen (README, brainstorming-ideation, design-analysis); reviewen + committen
-- [ ] **Setup-Skills nachziehen** (Backlog, nicht dringend): `~/.claude/skills/user/project-setup` auf das neue Ruleset umstellen — PLAN-Struktur (Roadmap-lite / Offen-Till / Offen-AI / Aktiver Task), End-of-task-Issue-Close statt PROJECT-TRACKER-Scaffold; dabei alle Skills nach `PROJECT-TRACKER` greppen (auch `conductor`, `project-handoff`) — sonst regeneriert das nächste Projekt die alte Konvention (transferable-learnings §26)
-- [ ] **macOS-Update abschließen** (Softwareupdate → Neustart): gestagte Update-Snapshots (`MSUPrepareUpdate` + 2) pinnen weiter Plattenplatz — letzter offener Punkt vom Platten-Aufräumen (adobeTemp + npm-Cache erledigt, 26 GB frei Stand 2026-07-16)
 
 ## Offen — bei AI
-Nächstes: **#57** (Hotkey + Rechtsklick „Open in Terminal"; ob es die Terminal-Auswahlliste überhaupt noch braucht, erst nach ein paar Tagen mit #65 bewerten — nicht auf Vorrat bauen). Restliche Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #52 batch-rename [eigener Worktree]). #65 eingebettetes Terminal abgeschlossen + gemerged 2026-08-03 (`c8f3f69`, 216 Unit + 13 UI grün, **nicht gepusht**); SwiftTerm ist die erste SPM-Dependency, auf 1.11.2 gepinnt — Upgrade nur mit Metal-Toolchain, siehe Issue #65. #36 Gadgets-lite + #53 gemerged 2026-07-15; #61 als Wedge-Artefakt geschlossen (`pkill testmanagerd` = Recovery).
+Nächstes: Queue in `.scratch/diptychon-mvp/issues/` (ready-for-agent: #39, #40, #52 batch-rename [eigener Worktree], #57). #36 Gadgets-lite + #53 abgeschlossen + gemerged 2026-07-15; volle Suite grün auf main `2b8bf08` (210 Unit + 13 UI); #61 als Wedge-Artefakt geschlossen (`pkill testmanagerd` = Recovery).
 
 ## Aktiver Task
 <!-- AI-Arbeitsstand; bei Done leeren + Issue schließen -->

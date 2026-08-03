@@ -1,6 +1,12 @@
 # 43 — Local instant search (not Spotlight-dependent)
 
-Status: needs-triage (2026-07-02) — drafted from netnography finding N5
+Status: **done — geliefert, geschlossen 2026-08-04 bei der Readiness-Triage (#68).**
+Rekursive lokale Suche liegt auf main: `Sources/Diptychon/Panel/RecursiveSearch.swift`
+plus `FuzzyMatch.swift` (Fuzzy-Matcher + Ranking, Pfad-Suche, struktureller
+Score-Floor). Spotlight-unabhängig wie gefordert. Das Issue stand nur deshalb
+noch offen, weil es nie zugeklappt wurde.
+
+Ursprünglicher Stand: needs-triage (2026-07-02) — drafted from netnography finding N5
 (`context/netnography/04-diptychon-mapping.md` §3) / JTBD-6, P9
 (`context/netnography/03-synthese-kundenwuensche.md`). Validate demand in our own
 segment before heavy build (see below).

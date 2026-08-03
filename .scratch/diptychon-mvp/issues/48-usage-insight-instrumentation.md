@@ -1,6 +1,17 @@
 # 48 — Usage insight instrumentation (local-first, understand real user needs)
 
-Status: needs-triage (2026-07-06) — drafted to answer a recurring PM gap: nearly every
+Status: **wontfix — geschlossen 2026-08-04 bei der Readiness-Triage (#68).**
+Zwei Gründe. Erstens kollidiert es mit der Positionierung: Diptychon wirbt mit
+„keine Telemetrie", Cloudflare Web Analytics wurde 2026-07-13 bewusst abgeschaltet
+und Datenschutz § 4 sagt es zu. Ein offenes Ticket, das Nutzungsmessung plant,
+liest sich wie ein Widerspruch dazu — auch wenn es local-first gemeint war.
+Zweitens ist die Frage dahinter („woher erfahre ich, was Nutzer brauchen") von
+**#72** übernommen, und zwar über den einzigen Weg, der zur Position passt:
+Menschen schreiben es einem selbst.
+
+Falls das je wiederkommt, muss es als ADR entschieden werden, nicht als Ticket.
+
+Ursprünglicher Stand: needs-triage (2026-07-06) — drafted to answer a recurring PM gap: nearly every
 recent issue (43, 40, 35, 38, …) carries a "validate demand in our own segment before
 heavy build" note, but we have **no instrument** to observe what users actually do. This
 issue proposes one — built to fit Diptychon's privacy-first positioning, not fight it.

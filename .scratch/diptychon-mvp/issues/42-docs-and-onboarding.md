@@ -1,6 +1,31 @@
 # 42 — Docs & onboarding (tiered)
 
-Status: **Tier 2 draft delivered 2026-07-03 — awaiting human review.** Files:
+Status: **ready-for-agent — der Entwurf ist nicht mehr nur ungeprüft, er ist
+falsch. Neu bewertet 2026-08-04 in der Readiness-Triage (#68), Blocker B2.**
+
+Letzte Änderung an `docs/user-guide.md` und `docs/keyboard-reference.md`:
+**2026-07-03** (`b9f0dc1`), seitdem null. Zwei belegte Fehler:
+
+1. `docs/keyboard-reference.md:17-18` nennt `⌘[` / `⌘]` für zurück/vorwärts.
+   **#60 hat das am 2026-07-15 auf ⌘←/⌘→ umgestellt**, genau weil `[` auf
+   deutschem Layout ⌥5 ist und die Zeichen-Chord dort nie matcht. Die Referenz
+   dokumentiert den US-Alias und lässt die Primärbelegung weg — dokumentiert
+   also eine Taste, die auf dem Rechner des Autors nicht funktioniert.
+2. Vier ausgelieferte Features kommen in beiden Dateien **null Mal** vor:
+   eingebettetes Terminal (#65), Gadgets (#36), Suche (#43-Funktionalität),
+   Operation Queue (#34, Slice 1).
+
+Die Referenz war „aus `Keymap.default` generiert". Der Generator muss also neu
+laufen, es reicht nicht, jemanden drüberlesen zu lassen.
+
+**Platzierungs-Entscheidung (offen, Empfehlung):** die Doku gehört auf
+`diptychon.com/docs`, nicht ins App-Bundle und nicht nur ins Repo. Repo erreicht
+den Zip-Lader nie, Bundle lässt sich nur mit einem Release korrigieren. Die
+Website erreicht beide, ist jederzeit korrigierbar, und ein User-Guide ist
+zusätzlich genau die zitierfähige Primärquelle, auf die der AI-Search-Befund aus
+#67 zeigt. Die App verlinkt dorthin — die Tür dafür baut **#74**.
+
+Ursprünglicher Stand: Tier 2 draft delivered 2026-07-03 — awaiting human review. Files:
 `README.md`, `docs/user-guide.md`, `docs/keyboard-reference.md` (keyboard table
 generated from `Keymap.default`; deliberately documents shipped behavior only — e.g.
 undo/redo, **not** the not-yet-shipped operation queue #34). Tier 1 blocked-by #41;
