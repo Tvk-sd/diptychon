@@ -143,6 +143,37 @@ Zwei Issues stehen offen, sind aber faktisch geliefert:
   Terminal (#65, `4043372`) abgelöst; auf dem verwaisten Branch
   `claude/open-tickets-triage-r8tzl1` liegt eine zweite, nie gemergte Lösung.
 
+## Ablauf für Teil 2 (terminiert 2026-08-04, 17:00)
+
+Vorbereitet, damit der Lauf nicht an einem Gesprächskontext hängt.
+
+**Vorher**
+1. Tills laufende Instanz beenden — **pid am Start merken und nur die killen**.
+   Kein `pkill -f`, kein `killall`: das Muster trifft Tills eigenes Diptychon
+   und hat es schon einmal erwischt.
+2. Frischen Build von main nehmen. Gleiche Bundle-ID heißt: läuft noch eine
+   Instanz, holt `open` nur die alte nach vorn und der Lauf misst nichts.
+3. Seed-Ordner anlegen und `DIPTYCHON_DIR` setzen — das schaltet zugleich die
+   Persistenz ab (`WorkspaceModel.swift:246`), man bekommt also verlässlich
+   einen Erstlauf-Zustand, ohne Tills echten `workspaceState` anzufassen.
+4. Fenster auf {60,60} schieben; auf einem Zweitmonitor greifen die
+   Klick-Koordinaten daneben. Werkzeug: `.scratch/demo-video/harness/poke`.
+
+**Zu beobachten — die vier offenen Fragen**
+- **Allererster Start ohne gespeicherten Zustand:** was steht da? Wirkt es
+  leer, kaputt oder absichtlich?
+- **macOS-Zugriffsdialoge:** an welcher Stelle kommen sie, und sieht die App
+  davor so aus, als würde sie nichts können? Der Full-Disk-Access-Pfad aus #10
+  ist gebaut — die Frage ist das Timing, nicht die Existenz.
+- **Zwei-Panel-Anordnung ohne Vorwissen:** ist erkennbar, dass es zwei Seiten
+  gibt, welche aktiv ist und wie man wechselt?
+- **Restliche Standardmenüs** (Ablage/Bearbeiten/Darstellung/Fenster): führt
+  ein Eintrag ins Leere? Nur das Hilfe-Menü ist bisher angesehen (#74).
+
+**Nachher**
+Ergebnis als Blocker-Liste unten anhängen, jeder Punkt mit Issue-Nummer oder
+neu angelegt. Erst dann ist das Gate durch.
+
 ## Noch offen — Teil 2: der empirische Erstlauf
 
 Die Aktenlage kann nur beantworten, was jemand schon aufgeschrieben hat. Drei
