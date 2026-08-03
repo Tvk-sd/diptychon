@@ -33,6 +33,23 @@ struct DiptychonApp: App {
         // (TopBarView). hiddenTitleBar also lets content rise full-height so the
         // sidebar/panel seams run up through the title-bar band.
         .windowStyle(.hiddenTitleBar)
+        // The whole promise is keyboard-first, but the keymap was only reachable
+        // through ⌘, or ⌘K — both of which you have to already know. The menu bar
+        // is the one surface a first-time user does look at, and ours was the
+        // untouched SwiftUI default (issue 74).
+        //
+        // Replacing .help rather than adding to it: without CFBundleHelpBookName
+        // the stock "Diptychon Help" item opens "Help isn't available", and a menu
+        // entry that leads to an error is worse in a first session than none.
+        //
+        // Deliberately no .keyboardShortcut here — the NSEvent monitor owns the
+        // keyboard (Keymap/AppAction), so a SwiftUI shortcut would be a second
+        // path that the shortcut editor can't rebind.
+        .commands {
+            CommandGroup(replacing: .help) {
+                SettingsLink { Text("Keyboard Shortcuts…") }
+            }
+        }
 
         // Settings window (⌘,) — the shortcut editor (issue 44) plus the Full Disk
         // Access deep-link (issue 10), which used to live on ⌘, in the app menu but

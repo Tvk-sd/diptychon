@@ -583,6 +583,52 @@ final class DiptychonUITests: XCTestCase {
         return tagNames(of: path) == expected
     }
 
+    /// Issue 74: the menu bar is the one surface a first-time user looks at, and
+    /// ours was the untouched SwiftUI default — so the keymap was only reachable
+    /// via ⌘, or ⌘K, both of which you have to already know. Asserts the door
+    /// exists *and* that the broken stock entry is gone: without
+    /// `CFBundleHelpBookName`, "Diptychon Help" opens "Help isn't available",
+    /// which is worse in a first session than no entry at all.
+    func testHelpMenuOffersKeyboardShortcutsAndNotTheBrokenDefault() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-help-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let help = app.menuBars.menuBarItems["Help"]
+        XCTAssertTrue(help.waitForExistence(timeout: 10), "Expected a Help menu in the menu bar")
+        help.click()
+
+        // Ellipsis is U+2026, matching `SettingsLink { Text("Keyboard Shortcuts…") }`.
+        let shortcuts = app.menuBars.menuItems["Keyboard Shortcuts…"]
+        XCTAssertTrue(
+            shortcuts.waitForExistence(timeout: 5),
+            "Expected Help ▸ Keyboard Shortcuts… — the only in-app pointer to the keymap"
+        )
+        XCTAssertFalse(
+            app.menuBars.menuItems["Diptychon Help"].exists,
+            "The stock help-book entry must be replaced, not sitting next to ours: it opens an error"
+        )
+
+        // The claim in issue 74 is "keymap in at most two clicks", so assert the
+        // second click actually lands somewhere — the entry opening nothing would
+        // pass every check above.
+        shortcuts.click()
+        // A macOS Settings window takes the selected tab as its title, so the
+        // window titled "Shortcuts" is both assertions in one: Settings opened,
+        // and it opened on the keymap tab. First run has no stored selection and
+        // Shortcuts is declared first in `SettingsRootView`; a returning user who
+        // last used Full Disk Access lands there instead (see issue 74).
+        XCTAssertTrue(
+            app.windows["Shortcuts"].waitForExistence(timeout: 10),
+            "Keyboard Shortcuts… must open Settings on the Shortcuts tab\n\(app.debugDescription)"
+        )
+    }
+
     /// Tag names parsed straight from the `_kMDItemUserTags` xattr (no app module).
     private func tagNames(of path: String) -> [String] {
         let name = "com.apple.metadata:_kMDItemUserTags"
