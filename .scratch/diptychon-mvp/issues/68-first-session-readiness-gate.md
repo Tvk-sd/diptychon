@@ -174,18 +174,95 @@ Vorbereitet, damit der Lauf nicht an einem Gesprächskontext hängt.
 Ergebnis als Blocker-Liste unten anhängen, jeder Punkt mit Issue-Nummer oder
 neu angelegt. Erst dann ist das Gate durch.
 
-## Noch offen — Teil 2: der empirische Erstlauf
+## Teil 2 — Ergebnis (2026-08-04, vorgezogen)
 
-Die Aktenlage kann nur beantworten, was jemand schon aufgeschrieben hat. Drei
-Fragen aus der Aufgabenstellung brauchen einen echten Start:
+**Methode.** Tills laufende Instanz wurde *nicht* angefasst. Stattdessen der
+Debug-Build kopiert, `CFBundleIdentifier` der Kopie auf `com.diptychon.probe1`
+gesetzt und ad-hoc neu signiert. Eigene Bundle-ID heißt eigene
+UserDefaults-Domain (`defaults read` bestätigte: „does not exist") — also ein
+**echter** Erstlauf ohne gespeicherten `workspaceState`, ohne Tills Zustand zu
+berühren und ohne Bundle-ID-Kollision. Fensterbilder gezielt per CG-Window-ID,
+nie der ganze Bildschirm. Menüs über System Events ausgelesen statt geklickt.
 
-- allererster Start **ohne** gespeicherten `workspaceState` — was sieht man?
-- an welcher Stelle kommen die macOS-Zugriffsdialoge, und wirkt die App davor
-  kaputt?
-- ist ohne Vorwissen erkennbar, dass es zwei Panels gibt und wie man wechselt?
+### T1 — Blocker: beide Panels zeigen beim Erstlauf denselben Ordner
 
-Läuft über den Probe-Harnisch (`DIPTYCHON_DIR`-Seed, Fenster auf {60,60},
-`poke`). Greift Tills Bildschirm ab, deshalb nicht nebenbei.
+Der allererste Start öffnet **links und rechts das Home-Verzeichnis**. Zwei
+identische Listen nebeneinander. Genau in dem Moment, in dem das Produktkonzept
+landen müsste, sieht es aus wie ein Darstellungsfehler oder eine sinnlose
+Verdopplung — nicht wie zwei unabhängige Arbeitsflächen.
+
+Sobald man in einem Panel navigiert, wird die Sache sofort klar (links Desktop,
+rechts Home, aktives Panel blau umrandet). Das Konzept ist also gut gebaut und
+schlecht eingeführt. Kleinster Fix: unterschiedliche Startordner, etwa links
+Home und rechts Dokumente.
+
+### T2 — Blocker: das Bearbeiten-Menü behauptet, die App könne nichts
+
+Ausgelesener Zustand: **Undo, Redo, Cut, Copy, Paste, Delete sind alle
+dauerhaft `enabled: false`**, also grau. Nur „Select All" ist aktiv.
+
+Die App kann all das — über ⌘Z, ⌘C, ⌘V, ⌘⌫. Das Menü sagt das Gegenteil, und
+zwar über genau die Eigenschaft, die ADR 0004 zur Kernidee erklärt
+(umkehrbare Operationen). Wer als Erstnutzer ins Menü schaut, liest dort:
+dieses Programm kann nicht kopieren und nichts rückgängig machen.
+
+Gleiche Wurzel wie B1: der `NSEvent`-Monitor besitzt die Tastatur, an die
+Responder-Chain ist nichts angeschlossen. Der Fix in #74 hat die Tür zur
+Tastaturbelegung gebaut, aber die Menüs selbst stimmen weiter nicht.
+
+### T3 — Fenster-Tabbing in einer App ohne Tabs
+
+„Show Tab Bar" und „Show All Tabs" (Darstellung) sowie „Show Previous Tab",
+„Merge All Windows", „Remove Window from Set" (Fenster) sind aktiv. Das ist
+AppKits automatisches Fenster-Tabbing. Diptychon hat kein Tab-Konzept
+(#38 steht auf `needs-triage`), und wer das anklickt, bekommt eine
+Systemfunktion, die zur Zwei-Panel-Anordnung quer steht.
+
+### T4 — das Produkt kommt in der Menüleiste nicht vor
+
+Vollständige Menüs: Diptychon (Standard), Ablage (New Window/Close/Close All),
+Bearbeiten (grau, siehe T2), Darstellung (Tabs/Vollbild), Fenster (Standard),
+Hilfe (**„Keyboard Shortcuts…"** — der #74-Fix, hier unabhängig von XCUITest
+bestätigt).
+
+Nirgends: Navigation (zurück/vorwärts/aufwärts), Neuer Ordner, Umbenennen,
+Vorschau, Ausgeblendetes zeigen, Terminal, Staging, Gadgets. Wer die App über
+die Menüleiste erkundet — der klassische Mac-Reflex — findet das Produkt nicht.
+
+### T5 — TCC-Timing: **nicht belastbar geprüft**, bleibt offen
+
+Die Probe hat Desktop und Dokumente **ohne jeden Dialog** gelistet. Das ist
+aber kein Ergebnis: die Probe wurde aus meiner Shell gestartet, und die darf
+Desktop und Dokumente bereits (nachgeprüft; Full Disk Access hat sie nicht,
+aber die Ordner-Dienste sind eigene TCC-Einträge). macOS rechnet den Zugriff
+teils dem verantwortlichen Elternprozess zu, die Probe hat also vermutlich
+geerbt.
+
+**Wie es sauber geht:** Till startet
+`…/scratchpad/probe/DiptychonProbe.app` einmal per Doppelklick im Finder —
+dann ist der verantwortliche Prozess nicht mein Terminal. Dreißig Sekunden,
+und die Frage ist beantwortet.
+
+### Positiv, ohne Fund
+
+- Aktives Panel ist mit blauem Rahmen klar markiert
+- Der leere Zustand ist ehrlich beschriftet („PINNED — No pinned folders")
+- Die Liste steht sofort da, kein Ladehänger, kein Leerbild
+
+## Werkzeuge aus Teil 2 (wiederverwendbar)
+
+Im Scratchpad gebaut, weil `poke` andere Argumente erwartet:
+
+- `winid <pid>` — CG-Window-IDs und Rahmen eines Prozesses; Grundlage für
+  `screencapture -l<id>`, damit nie der ganze Bildschirm im Bild landet
+- `rclick <pid> <dx> <dy> [klicks]` — Klick **relativ zum Fenster**, gemessen
+  **nach** dem Aktivieren. Der erste Anlauf hat vorher gemessen und danach
+  aktiviert; das Fenster wandert beim Aktivieren, und der Klick landete zwei
+  Zeilen daneben (öffnete `Public` statt `Desktop`). Reihenfolge ist der Fix
+- `key <pid> <keycode>` — CGEvent-Taste; erreicht den `NSEvent`-Monitor
+
+Die Bundle-ID-Kopie ist der eigentliche Trick: eigene Defaults-Domain =
+echter Erstlauf, kein Anfassen des laufenden Diptychon.
 
 ## Outcome — **Gate ist noch OFFEN**
 
@@ -199,13 +276,30 @@ sich als Karteileichen erwiesen (#63, #53 längst gemergt). Übrig:
   (dokumentiert `⌘[`/`⌘]`, seit #60 gilt ⌘←/⌘→; vier Features fehlen ganz).
   Generator neu laufen lassen, Platzierung entscheiden.
 
-**Das Gate ist damit nicht durch.** Teil 2 — der empirische Erstlauf — hat nicht
-stattgefunden. Solange er fehlt, sind drei Fragen unbeantwortet, die kein
-Ticket beantworten kann: erster Start ohne `workspaceState`, Timing der
-macOS-Zugriffsdialoge, und ob die Zwei-Panel-Anordnung ohne Vorwissen lesbar
-ist. Zusätzlich offen aus #74: die übrigen SwiftUI-Standardmenüs
-(Ablage/Bearbeiten/Darstellung/Fenster) sind nie daraufhin angesehen worden, ob
-ein Eintrag ins Leere führt.
+Teil 2 (empirischer Erstlauf) ebenfalls am 2026-08-04 gelaufen, vorgezogen.
+Er hat zwei Blocker gefunden, die in keinem Ticket standen:
 
-**#69 und #71 dürfen erst starten, wenn Teil 2 gelaufen ist** — sonst verspricht
-die Website einen Download, dessen Erstkontakt nie jemand angesehen hat.
+- **T1** — Erstlauf zeigt links und rechts denselben Ordner; das Zwei-Panel-
+  Konzept ist genau im ersten Moment unsichtbar
+- **T2** — Bearbeiten-Menü hat Undo/Redo/Cut/Copy/Paste/Delete dauerhaft grau,
+  obwohl die App all das kann. Das Menü behauptet das Gegenteil des Produkts
+
+Dazu zwei Warzen ohne Blocker-Rang (**T3** natives Fenster-Tabbing in einer App
+ohne Tabs, **T4** kein einziger Produkt-Befehl in der Menüleiste) und eine
+**offene Frage**: **T5**, das TCC-Timing, ist nicht belastbar geprüft — die
+Probe lief aus einer Shell, die Desktop und Dokumente schon darf, und hat den
+Zugriff vermutlich geerbt.
+
+### Offene Blocker-Liste (das Gate)
+
+| | | |
+|---|---|---|
+| **B1** | Tastaturbelegung nicht auffindbar | ✅ #74, gemergt |
+| **B2** | Doku falsch und nicht platziert | offen, #42 |
+| **T1** | Erstlauf zeigt zweimal denselben Ordner | offen, braucht Ticket |
+| **T2** | Bearbeiten-Menü widerspricht dem Produkt | offen, braucht Ticket |
+| **T5** | TCC-Timing ungeprüft | offen, 30 s bei Till |
+
+**#69 und #71 dürfen erst starten, wenn diese Liste leer ist** — sonst
+verspricht die Website einen Download, dessen erste dreißig Sekunden gegen das
+Produkt arbeiten.
