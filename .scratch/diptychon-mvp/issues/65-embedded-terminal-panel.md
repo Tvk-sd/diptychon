@@ -71,6 +71,27 @@ gedacht:
   Eintrag in `project.yml` + `xcodegen generate`; die `.xcodeproj` ist
   generiert und gitignored, **niemals** pbxproj von Hand anfassen.
 
+### SwiftTerm ist auf **exactVersion 1.11.2** gepinnt — mit Absicht
+
+Gemessen 2026-08-02 beim Einbau, nicht theoretisch:
+
+| Version | Ergebnis |
+|---|---|
+| 1.12.0 – 1.15.0 | **Build bricht ab**: `Apple/Metal/Shaders.metal` als Package-Resource verlangt die Metal-Toolchain (`cannot execute tool 'metal' … use: xcodebuild -downloadComponent MetalToolchain`) |
+| ≤ 1.9.0 | **Resolve bricht ab**: hängt an einer unstable-version von `swift-subprocess`, mit einem stable-gepinnten Root nicht auflösbar |
+| **1.11.2** | **BUILD SUCCEEDED** — letzte Version vor dem Metal-Shader, ohne die kaputte Dependency |
+
+Warum nicht einfach die Metal-Toolchain nachinstallieren: mehrere GB
+Download auf einer Platte mit **12 GB frei** (Stand 2026-08-02; das
+gestagte macOS-Update hält zusätzlich Platz). Für einen Dateimanager ist
+eine Metal-Toolchain als *Build*-Voraussetzung ohnehin ein hoher Preis —
+sie träfe jeden, der das Repo baut, und später CI.
+
+**Upgrade-Regel:** über 1.11.x hinaus geht nur mit installierter
+Metal-Toolchain. Wer das anfasst, prüft vorher `df -h /`. `exactVersion`
+statt `from:` ist bewusst gewählt, damit ein Resolve nicht still auf eine
+nicht baubare Version springt.
+
 **Risiko konzentriert sich damit auf das Tastatur-Gating**, nicht auf
 das Layout.
 
@@ -169,6 +190,51 @@ SPM-Dependencies.
 - Shell-Konfigurations-UI (Profile, Farben, Schriftgrad).
 - Terminal-Output zurück in die Dateiliste (z.B. Auto-Refresh nach `mv`)
   — verlockend, aber eigener Scope; erst nachdem das Panel steht.
+
+## Stand 2026-08-02 — gebaut, teilweise verifiziert
+
+Branch `feat/65-embedded-terminal` (Worktree `../diptychon-65-terminal`),
+Commits `f005f77` (Dependency) + `c3038fe` (Feature). **Nicht gemerged.**
+
+**Am laufenden Build bestätigt:** Panel öffnet unter beiden Panes, Toggle
+unten rechts wird aktiv eingefärbt, die Shell startet im Ordner des
+aktiven Panels (`DIPTYCHON_DIR`-Probe: Prompt-cwd = Probe-Ordner), und
+der Toggle spawnt genau einen `/bin/zsh -l` als Kindprozess.
+**Volle Suite grün: 221 Unit** (210 vorher + 11 neue) **+ 13 UI.** Die
+UI-Suite bewusst mitgelaufen, weil dieser Change die Bottom-Bar anfasst —
+genau die Stelle, an der #61 hing.
+
+**Noch offen (nicht verifiziert):**
+- Tastatur-Gating im echten Betrieb (Fokus im Terminal → Hotkeys an die
+  Shell, ⌘J kommt trotzdem durch)
+- „cd hierher"-Leiste: erscheint/verschwindet korrekt, `cd` mit
+  Sonderzeichen im echten Pfad
+- Klick ins Terminal auf der rechten Fensterhälfte ändert das aktive
+  Panel nicht
+- Persistenz über App-Neustart
+
+**Beobachtet, aber kein Regress:** bei Fokus im Such-/Filter-Feld kommt
+⌘J nicht an — der `firstResponder is NSText`-Guard im Key-Monitor gibt
+das Event vorher zurück. ⌘B verhält sich identisch; nur ⌘K ist bewusst
+davor ausgenommen (#19). Also bestehendes, konsistentes Verhalten. Falls
+es als Bug zurückkommt: die Entscheidung ist, ob Panel-Toggles generell
+vor den Text-Guard gehören — dann für ⌘B und ⌘J gemeinsam.
+
+**Probe-Fallen für die nächste Session:**
+- `open -n` **reicht keine Environment-Variablen durch** — `DIPTYCHON_DIR=…
+  open -n <app>` startet den richtigen Build, aber ohne die Variable
+  (am Prozess nachgemessen: 0 Treffer). Für seeded Probes die Binary
+  direkt starten: `DIPTYCHON_DIR=… <app>/Contents/MacOS/Diptychon &`.
+- **Instanzen vor dem Screenshot auseinanderhalten.** Hier liefen drei
+  Diptychons gleichzeitig, zwei davon an derselben Fensterposition;
+  `ps -o lstart=,comm= -p <pid>` ordnet zu, `unix id` adressiert gezielt.
+  Ohne das interpretiert man Screenshots der falschen Instanz.
+- **Vor dem Tastendruck prüfen, wer vorn ist** (`frontmost is true`) —
+  ein synthetischer Chord landet sonst in einer fremden App.
+- Die App aus einer Claude-Code-Session heraus zu starten vererbt deren
+  Environment ins eingebettete Terminal; die erste Probe zeigte darum
+  eine Claude-Session im Panel. Mit `env -i` ist es eine reine Shell —
+  nachgemessen: der eingebettete `zsh -l` hat dann keine Kindprozesse.
 
 ## Offene Punkte (nicht blockierend)
 

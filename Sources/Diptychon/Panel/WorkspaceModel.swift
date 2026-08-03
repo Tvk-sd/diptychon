@@ -150,6 +150,15 @@ final class WorkspaceModel {
         operationSourceModel.selectedItems.filter { !$0.isMissing }.map(\.url)
     }
 
+    /// Toggle the embedded terminal panel (⌘J / bottom-bar, issue 65). Closing only
+    /// hides it — the shell keeps running, so a build survives a collapsed panel.
+    /// Closing also returns key focus to the file list; otherwise the terminal would
+    /// stay first responder and keep swallowing every hotkey after it vanished.
+    func toggleTerminal() {
+        terminalVisible.toggle()
+        if !terminalVisible { terminal.resignKeyFocus() }
+    }
+
     /// Toggle the file preview in the right pane (⇧⌘P / bottom-bar). Off-swaps staging.
     func togglePreviewPane() { rightPane = (rightPane == .preview) ? .none : .preview }
     /// Toggle the staging set in the right pane (⌘⇧B / bottom-bar). Off-swaps preview.
@@ -210,6 +219,18 @@ final class WorkspaceModel {
     /// widths at layout time, so an out-of-range value can never open a broken pane.
     var splitRatio: Double = WorkspaceModel.defaultSplitRatio
 
+    /// Whether the embedded terminal panel is shown (issue 65). Hiding it keeps the
+    /// shell alive — a running build survives a collapsed panel.
+    var terminalVisible = false
+
+    /// Vertical fraction (0…1) taken by the file panels above the terminal.
+    /// `VSplitPane` clamps it every layout, same contract as `splitRatio`.
+    var terminalSplitRatio: Double = WorkspaceModel.defaultTerminalSplitRatio
+
+    /// The embedded terminal's shell. Created eagerly, but it spawns no process until
+    /// the panel is first shown (`startIfNeeded`).
+    let terminal = TerminalSession()
+
     init() {
         let staging = StagingStore()
         self.staging = staging
@@ -255,6 +276,13 @@ final class WorkspaceModel {
         // ignored; `SplitPane` does the final window-aware clamp at layout time.
         if let ratio = saved?.splitRatio, (0...1).contains(ratio) {
             splitRatio = ratio
+        }
+        // Terminal panel (issue 65), same contract: the ratio is sanity-checked here,
+        // window-aware clamping happens in `VSplitPane`. The shell itself is not
+        // restored — reopening spawns a fresh one in the restored folder.
+        terminalVisible = saved?.terminalVisible ?? false
+        if let ratio = saved?.terminalSplitRatio, (0...1).contains(ratio) {
+            terminalSplitRatio = ratio
         }
 
         // One place decides when the UI re-lists: every Operation that settles
@@ -382,6 +410,10 @@ final class WorkspaceModel {
     /// Even split — the default when there's no snapshot (issue 45).
     static let defaultSplitRatio = 0.5
 
+    /// The file panels keep ~70% by default; a terminal wants less room than a
+    /// file list does (issue 65).
+    static let defaultTerminalSplitRatio = 0.7
+
     /// Build and persist the current snapshot. Cheap; called on quit and (debounced)
     /// on change.
     /// Start the save path exactly once, from the rendered view's `.onAppear`. Guarded
@@ -401,7 +433,9 @@ final class WorkspaceModel {
             left: left.paneState,
             right: right.paneState,
             splitRatio: splitRatio,
-            staging: staging.urls.map(\.path)
+            staging: staging.urls.map(\.path),
+            terminalVisible: terminalVisible,
+            terminalSplitRatio: terminalSplitRatio
         )
         WorkspaceStateStore.save(state)
     }
@@ -494,6 +528,8 @@ final class WorkspaceModel {
             _ = right.sortOrder
             _ = staging.urls
             _ = splitRatio
+            _ = terminalVisible
+            _ = terminalSplitRatio
         } onChange: { [weak self] in
             Task { @MainActor in
                 self?.scheduleSave()
@@ -607,6 +643,7 @@ final class WorkspaceModel {
         case .toggleStaging: toggleStaging()
         case .removeFromStaging: removeStagingSelection()
         case .toggleSidebar: sidebarVisible.toggle()
+        case .toggleTerminal: toggleTerminal()
         }
     }
 
