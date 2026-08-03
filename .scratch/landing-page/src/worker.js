@@ -12,7 +12,7 @@ export default {
     if (url.pathname === "/download") {
       if (request.method === "GET") {
         // Don't make the user wait for the bookkeeping
-        ctx.waitUntil(recordDownload(env));
+        ctx.waitUntil(recordDownload(env, normalizeSrc(url.searchParams.get("src"))));
       }
       // Serve the zip directly (no redirect hop) so an Access login
       // round-trip can land back here and still end in the download
@@ -32,12 +32,26 @@ export default {
   },
 };
 
-async function recordDownload(env) {
+// A download is a real commitment act, unlike an email address — so it is the
+// signal worth splitting by channel. Existing bare `total` / `day:*` keys stay
+// untouched; the per-channel counter is namespaced so a KV listing stays
+// readable next to `signups:src:*`.
+async function recordDownload(env, src) {
   const day = new Date().toISOString().slice(0, 10);
-  for (const key of ["total", `day:${day}`]) {
-    const current = parseInt((await env.DOWNLOADS.get(key)) ?? "0", 10);
-    await env.DOWNLOADS.put(key, String(current + 1));
+  for (const key of ["total", `day:${day}`, `downloads:src:${src}`]) {
+    await bump(env, key);
   }
+}
+
+// One normalizer for both routes: lowercase, drop anything that would make a KV
+// key awkward, cap the length, and fall back to "direct" when empty or missing.
+function normalizeSrc(raw) {
+  return (
+    String(raw ?? "direct")
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]/g, "")
+      .slice(0, 40) || "direct"
+  );
 }
 
 async function handleNotify(request, env) {
@@ -57,9 +71,7 @@ async function handleNotify(request, env) {
     ? [...new Set(body.wishes.map((w) => String(w).slice(0, 40)))].slice(0, 12)
     : existing?.wishes ?? [];
   // Channel of the *first* touch wins — a later wishes POST never rewrites it.
-  const src =
-    existing?.src ??
-    (String(body.src ?? "direct").toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 40) || "direct");
+  const src = existing?.src ?? normalizeSrc(body.src);
   await env.DOWNLOADS.put(
     key,
     JSON.stringify({ ts: existing?.ts ?? new Date().toISOString(), wishes, src })
