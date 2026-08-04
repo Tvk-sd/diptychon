@@ -296,8 +296,8 @@ Zugriff vermutlich geerbt.
 |---|---|---|
 | **B1** | Tastaturbelegung nicht auffindbar | ✅ #74, gemergt |
 | **B2** | Doku falsch und nicht platziert | offen, #42 |
-| **T1** | Erstlauf zeigt zweimal denselben Ordner | offen, braucht Ticket |
-| **T2** | Bearbeiten-Menü widerspricht dem Produkt | offen, braucht Ticket |
+| **T1** | Erstlauf zeigt zweimal denselben Ordner | offen, **#75** |
+| **T2** | Bearbeiten-Menü widerspricht dem Produkt | offen, **#76** (mit T3/T4) |
 | **T5** | TCC-Timing ungeprüft | offen, 30 s bei Till |
 
 **#69 und #71 dürfen erst starten, wenn diese Liste leer ist** — sonst
