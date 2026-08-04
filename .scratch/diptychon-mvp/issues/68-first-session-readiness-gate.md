@@ -258,6 +258,24 @@ geerbt.
 dann ist der verantwortliche Prozess nicht mein Terminal. Dreißig Sekunden,
 und die Frage ist beantwortet.
 
+### T6 — Nachtrag 2026-08-04: der Kaltstart braucht länger als gedacht
+
+Beim Bauen von #75 aufgefallen und mit einer Gegenprobe abgesichert: im
+Erstlauf steht das Home-Panel nach **4 und nach 8 Sekunden** noch auf
+„Loading…" und ist erst zwischen 8 und 16 Sekunden fertig. Der Kontrolllauf mit
+dem alten Verhalten (beide Panels auf Home) zeigt dasselbe — es liegt nicht an
+#75.
+
+Einordnung mit Vorsicht: der allererste Probelauf am selben Tag hatte Home nach
+4 Sekunden vollständig gelistet. Zwischen den Läufen liegen viele App-Kopien
+und Signaturen auf derselben Maschine, das kann Spotlight oder Gatekeeper
+beschäftigt haben. **Vor einer Bewertung auf einer ruhigen Maschine
+nachmessen.**
+
+Falls es sich bestätigt, ist es ein Erstkontakt-Blocker eigener Güte: acht
+Sekunden Spinner statt des eigenen Home-Ordners ist das erste, was ein Fremder
+sieht. Gehört dann zu #40 (Ladepfad), das bisher nur den 50k-Fall betrachtet.
+
 ### Positiv, ohne Fund
 
 - Aktives Panel ist mit blauem Rahmen klar markiert

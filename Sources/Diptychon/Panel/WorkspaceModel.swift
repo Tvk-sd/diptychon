@@ -248,8 +248,13 @@ final class WorkspaceModel {
         let saved = persistenceEnabled ? WorkspaceStateStore.load() : nil
         let home = URL.startDirectory
         let mounted = Self.mountedVolumeRoots()
-        let leftPlan = Self.plan(saved?.left, home: home, mounted: mounted)
-        let rightPlan = Self.plan(saved?.right, home: home, mounted: mounted)
+        // `home` stays the last-resort fallback for a saved folder that no longer
+        // resolves; `firstRun` is only used when there is nothing saved at all. The two
+        // differ on the right pane so a first launch shows two *different* folders
+        // (issue 75) without sending a moved-folder fallback somewhere surprising.
+        let leftPlan = Self.plan(saved?.left, home: home, firstRun: home, mounted: mounted)
+        let rightPlan = Self.plan(saved?.right, home: home,
+                                  firstRun: .secondPaneStartDirectory, mounted: mounted)
 
         left = PanelModel(directory: leftPlan.directory)
         right = PanelModel(directory: rightPlan.directory)
@@ -323,8 +328,9 @@ final class WorkspaceModel {
         let pendingTarget: URL?
     }
 
-    private static func plan(_ pane: PaneState?, home: URL, mounted: [String]) -> PanePlan {
-        guard let pane else { return PanePlan(directory: home, sort: .default, pendingTarget: nil) }
+    private static func plan(_ pane: PaneState?, home: URL, firstRun: URL,
+                             mounted: [String]) -> PanePlan {
+        guard let pane else { return PanePlan(directory: firstRun, sort: .default, pendingTarget: nil) }
         switch RestorePath.resolve(path: pane.directoryPath, home: home,
                                    fileExists: Self.directoryExists,
                                    mountedVolumeRoots: mounted) {

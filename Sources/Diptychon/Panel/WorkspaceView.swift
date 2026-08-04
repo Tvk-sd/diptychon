@@ -530,6 +530,32 @@ extension URL {
         }
         return URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
     }
+
+    /// Where the **right** Panel opens on a first launch, when there is no saved
+    /// workspace to restore (issue 75).
+    ///
+    /// Both panels used to start on home, so the very first screen was two identical
+    /// lists — the one moment the two-pane idea has to land, and it read as a
+    /// rendering glitch instead. A different folder on the right shows the point
+    /// without a single word of onboarding.
+    ///
+    /// `/Applications` rather than the obvious Documents or Downloads: those are
+    /// TCC-protected, and issue 77 has the app already asking for folder access at
+    /// launch. A first run that opens straight into another permission dialog is
+    /// worse than two identical panels. `/Applications` is unprotected, always
+    /// present, and somewhere people actually browse.
+    ///
+    /// `DIPTYCHON_DIR` still wins for both panes — the override means "open here,
+    /// deterministically", and the UI tests rely on both panels sharing a directory.
+    static var secondPaneStartDirectory: URL {
+        if ProcessInfo.processInfo.environment["DIPTYCHON_DIR"] != nil { return startDirectory }
+        let applications = URL(fileURLWithPath: "/Applications", isDirectory: true)
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: applications.path, isDirectory: &isDirectory),
+              isDirectory.boolValue
+        else { return startDirectory }
+        return applications
+    }
 }
 
 /// The recursive Search field (issue 21), promoted into the header's left cell

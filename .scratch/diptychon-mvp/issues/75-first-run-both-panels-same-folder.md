@@ -102,6 +102,36 @@ vor dem Start ebenfalls leer war und die **beide Panels auf Home** zeigte.
 - [ ] Fehlt der Zweitordner, fällt das rechte Panel still auf Home zurück
 - [ ] Volle Suite grün vor dem Merge
 
-## Outcome
+## Outcome (2026-08-04) — gebaut, Suite grün
 
-_(offen)_
+`URL.secondPaneStartDirectory` (`WorkspaceView.swift`) liefert `/Applications`,
+fällt auf Home zurück, wenn der Ordner fehlt, und gibt bei gesetztem
+`DIPTYCHON_DIR` beide Panels wieder auf denselben Ordner — der Override heißt
+„öffne hier, deterministisch", und die UI-Tests hängen daran.
+
+In `WorkspaceModel` ist `plan(...)` um einen `firstRun`-Parameter erweitert,
+getrennt vom `home`-Parameter. Der Unterschied ist der Punkt: `home` bleibt der
+Notnagel für einen **gespeicherten** Ordner, der nicht mehr auflösbar ist —
+dort wäre `/Applications` eine Überraschung. `firstRun` greift nur, wenn gar
+nichts gespeichert ist.
+
+Drei Unit-Tests in `StartDirectoryTests.swift`; sie überspringen sich selbst,
+wenn `DIPTYCHON_DIR` gesetzt ist. Volle Suite **219 Unit + 16 UI** grün.
+
+Am echten Erstlauf verifiziert (frische Bundle-ID, leere Domain): links Home,
+rechts Applications.
+
+### Fehlalarm, der sich gelohnt hat
+
+Im Erstlauf-Bild stand das linke Panel nach 4 und nach 8 Sekunden auf
+„Loading…" und war erst zwischen 8 und 16 Sekunden fertig. Verdacht war, dass
+`/Applications` — viele App-Bundles, teure Typauflösung — das andere Panel
+aushungert.
+
+**Zwei Gegenproben widerlegen das:**
+1. zweites Panel auf `/` (vier Einträge, sofort geladen) — Home hängt trotzdem
+2. Kontrolllauf mit dem alten Verhalten, **beide Panels auf Home** — beide
+   hängen bei „Loading…"
+
+Die Verzögerung ist also unabhängig von diesem Ticket. Sie ist aber real und
+gehört beobachtet: siehe Nachtrag in #68, Kandidat für #40.
