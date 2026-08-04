@@ -33,6 +33,47 @@ Tier 3 needs an infra decision. From netnography finding N3
 (`context/netnography/04-diptychon-mapping.md` §3) / theme T4 (`02-analyse-und-befunde.md`).
 Tier-split precedent: #18.
 
+## Outcome (2026-08-04) — Inhalt regeneriert und gegen Drift gesichert
+
+**Es gab nie einen Generator.** „Generiert aus `Keymap.default`" war Handarbeit
+mit einem Versprechen davor — genau deshalb ist die Datei gedriftet. Statt sie
+ein zweites Mal von Hand zu schreiben, ist die Garantie jetzt ein Test:
+`DocsKeyboardReferenceTests` prüft **beide Richtungen** und druckt bei
+Abweichung die korrekte Tabelle, damit die Korrektur ein Einfügen ist.
+
+Was der Test beim ersten Lauf gefunden hat:
+
+- **11 gebundene Kürzel fehlten** in der Doku: ⌘←/⌘→ (History seit #60), ⇥,
+  ⇧⌘N, ⇧⌘G, ⇧⌘., ⇧⌘I, ⇧⌘F, ⇧⌘S, ⇧⌘B und ⌘J (Terminal).
+- **7 dokumentierte Kürzel dispatcht niemand** — überwiegend Notation: die Doku
+  schrieb `⌘⇧N`, die App rendert `⇧⌘N`. Die Reihenfolge ⌃⌥⇧⌘ ist das, was
+  Menüs und Shortcut-Editor zeigen; eine zweite Schreibweise in der Doku ist
+  eine Falle beim Vergleichen.
+- Ein inhaltlicher Fehler obendrein: die Doku erklärte `⌘F` als „Filter". `⌘F`
+  ist **Suche** (rekursiv ab Home), `⇧⌘F` ist der Filter. Zwei verschiedene
+  Werkzeuge, und die Verwechslung ist die häufigste Anfangsverwirrung.
+
+Geändert:
+- `docs/keyboard-reference.md` — vollständig gegen `Keymap.default` gezogen,
+  kanonische Glyphenreihenfolge, US-Alias als solcher gekennzeichnet, Hinweis
+  auf Umbelegbarkeit
+- `docs/user-guide.md` — veraltete Chords korrigiert, vier neue Abschnitte:
+  Suche vs. Filter, eingebettetes Terminal, Gadgets, Activity-Pane. Bewusst
+  ohne Überversprechen: die Queue aus #34 ist Slice 1, also „eine Operation zur
+  Zeit, sichtbar statt versteckt"
+- `README.md` — dieselben Features in der Übersicht, Menüleiste und
+  Umbelegbarkeit ergänzt (#74/#76)
+
+Volle Suite **221 Unit + 16 UI** grün.
+
+### Offen: die Platzierung
+
+Till hat die Empfehlung `diptychon.com/docs` abgenickt (Repo erreicht den
+Zip-Lader nie, ein App-Bundle ist nur per Release korrigierbar). Gebaut ist
+sie noch nicht. Sie hängt sinnvoll an **#71**, weil derselbe `wrangler deploy`
+sie mitnimmt — und weil ein Menüeintrag „User Guide" in der App (#74) erst
+sinnvoll ist, wenn die Seite existiert.
+
 ## Parent
 
 `.scratch/diptychon-mvp/PRD.md`

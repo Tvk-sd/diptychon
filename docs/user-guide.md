@@ -13,7 +13,7 @@ Diptychon shows two **Panels** side by side, each listing one directory. Exactly
 the **Active Panel** (marked with an accent border) — it has focus and is the source of
 keyboard-driven Operations. The other is the **Inactive Panel**.
 
-- **Switch which Panel is Active:** `Tab`, or click into a Panel.
+- **Switch which Panel is Active:** `⇥` (Tab), or click into a Panel.
 - **Why two?** So the source and the destination are both on screen. Moving files is a
   single gesture, not a copy-paste round trip through one window.
 
@@ -30,19 +30,22 @@ The **Destination** of an Operation is resolved *per gesture*, not fixed:
 ## 2. Navigating
 
 - **Open / enter:** `↩` or double-click. **Go up:** `⌘↑`.
-- **Back / forward:** `⌘[` / `⌘]` (Finder convention).
+- **Back / forward:** `⌘←` / `⌘→`. The bracket pair `⌘[` / `⌘]` still works as a
+  US-layout alias — on a German keyboard `[` is ⌥8 5, so that chord can never match.
 - **Path bar:** the breadcrumb above each Panel is clickable — jump to any ancestor.
-- **Go to Folder:** `⌘⇧G`, then type or paste a path.
+  Paste an absolute path into Search and it navigates there directly.
+- **Go to Folder:** `⇧⌘G`, then type or paste a path.
 - **Sidebar:** `⌘B` shows/hides a left sidebar of places you pin. It's deliberately
   smaller than Finder's — just the jumping-off points people actually use.
-- **Type-ahead Filter:** `⌘F` focuses the Filter; start typing to narrow the current
-  Panel by name. **Show hidden files:** `⌘⇧.`.
+- **Show hidden files:** `⇧⌘.`.
+- **Menu bar:** every command above also sits in the menus (**Go**, **File**, **View**),
+  each labelled with *your* current binding — handy while the chords are still new.
 
 ---
 
 ## 3. Selecting
 
-Selection is independent of opening. Use `⌘A` (all), `⎋` (none), `⌘⇧I` (invert), plus
+Selection is independent of opening. Use `⌘A` (all), `⎋` (none), `⇧⌘I` (invert), plus
 the usual click / `⇧`-click / `⌘`-click. Most Operations act on the **selection** if
 there is one, otherwise on the item under the cursor.
 
@@ -57,7 +60,7 @@ select in the Active Panel, then:
 - `⌥⇧⌘→` / `⌥⇧⌘←` — **move** it instead.
 
 **The Finder way (clipboard):** `⌘C` to copy, `⌘V` to paste into the Active Panel, or
-`⌥⌘V` to paste-move. Also: `⌘D` duplicate, `⌘⌫` move to Trash, `⌘⇧N` new folder,
+`⌥⌘V` to paste-move. Also: `⌘D` duplicate, `⌘⌫` move to Trash, `⇧⌘N` new folder,
 `⌃⌘N` new file.
 
 **Name collisions** are caught *before* anything is written — you choose overwrite,
@@ -92,8 +95,8 @@ just the tagged items.
 Staging is a virtual set you fill from anywhere, then operate on as a group — useful when
 the files you care about are scattered across folders.
 
-- **Add selection to Staging:** `⌘⇧S`.
-- **Show/hide the Staging panel:** `⌘⇧B`.
+- **Add selection to Staging:** `⇧⌘S`.
+- **Show/hide the Staging panel:** `⇧⌘B`.
 - **Remove from Staging:** `⌫` while the Staging panel is focused.
 
 Staging collects *references* to files — it doesn't move or copy anything until you run
@@ -134,7 +137,52 @@ tool while you learn the chords.
 
 ---
 
-## 12. What Diptychon doesn't do (on purpose)
+## 12. Finding files — Search and Filter are different tools
+
+Two fields, two jobs. Mixing them up is the most common early confusion:
+
+| | `⌘F` **Search** | `⇧⌘F` **Filter** |
+|---|---|---|
+| Where it looks | recursively, from your Home folder | the Active Panel's current folder |
+| What it's for | "where did I put that?" | "narrow what I'm looking at" |
+| Matching | fuzzy — typed letters in order, not a substring | name contains |
+
+Search also understands paths: type or paste an absolute path (or one starting with
+`~`) and the Panel navigates there instead of searching. Matching a folder in the
+path counts, so `proj/inv` finds `Projects/invoices`. Hidden files stay out unless
+you flip the eye toggle.
+
+---
+
+## 13. The embedded terminal
+
+`⌘J` opens a terminal across the bottom of both Panels, already `cd`-ed into the
+**Active Panel's** folder — no copying paths around. `⌘J` again hides it; the shell
+keeps running.
+
+---
+
+## 14. Gadgets — bring your own tools
+
+A gadget runs an external app or command-line tool against your selection, straight
+from the command palette. They are **declarative** — a JSON entry, no plugin API and
+no scripting language, which is deliberate: the tool stays inspectable.
+
+`⌘K → "Gadgets: Edit Config…"` writes a working starter on first use. Full syntax and
+examples: [gadgets.md](gadgets.md).
+
+---
+
+## 15. Watching long operations
+
+Copying a large folder doesn't block the app. The **Activity** pane (the list icon in
+the header) shows what's running and lets you cancel it; progress also surfaces as a
+toast. Diptychon deliberately has no background queue yet — one Operation runs at a
+time, and that's visible rather than hidden.
+
+---
+
+## 16. What Diptychon doesn't do (on purpose)
 
 - **No remote / cloud mounts** (SFTP, S3, WebDAV) — Diptychon is local-first.
 - **No archive-as-folder**, no folder **sync/compare**.

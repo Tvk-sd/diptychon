@@ -16,7 +16,7 @@ destination at once and move files between them without copy-paste juggling.
 - **Two Panels, always.** The Commander workflow: the **Active Panel** is your source,
   the **Inactive Panel** your destination. One keystroke sends files across.
 - **Keyboard-first, not keyboard-hostile.** Chorded gestures for power, but Finder's
-  own conventions (`⌘C`/`⌘V`, `⌘⇧G`, `Space` for QuickLook) so muscle memory transfers.
+  own conventions (`⌘C`/`⌘V`, `⇧⌘G`, `␣` for QuickLook) so muscle memory transfers.
 - **You can't easily mess it up.** File operations are a **reversible Operation** model:
   multi-level `⌘Z` across move / copy / trash / rename, with a toast telling you exactly
   what was undone.
@@ -61,7 +61,7 @@ how to package a build and hand it to testers (and the Gatekeeper step they'll h
 ## The 60-second model
 
 1. **Two Panels, side by side.** Each shows one directory.
-2. **One is Active** (accent border). Press **`Tab`** to switch which Panel is Active.
+2. **One is Active** (accent border). Press **`⇥`** (Tab) to switch which Panel is Active.
 3. **The Active Panel is the source; the Inactive Panel is the destination** for the
    Commander gesture: **`⌥⌘→` / `⌥⌘←`** copies the Active selection into the Inactive
    Panel. (`⇧` added → *move* instead of copy.)
@@ -75,21 +75,31 @@ Every shortcut → **[docs/keyboard-reference.md](docs/keyboard-reference.md)**.
 
 ## What it does
 
-- **Dual Panels** with an Active/Inactive focus model (`Tab` to switch).
+- **Dual Panels** with an Active/Inactive focus model (`⇥` to switch).
 - **Commander gestures** — copy (`⌥⌘→/←`) or move (`⌥⇧⌘→/←`) to the Inactive Panel.
 - **Reversible operations** — multi-level undo/redo (`⌘Z` / `⇧⌘Z`) with an on-screen
   toast naming what was reversed.
 - **Finder tags** — set/clear real Apple tags that round-trip with Finder; filter a
   Panel by tag.
 - **Staging** — collect files from anywhere into a virtual set, then act on them
-  together (`⌘⇧S` to stage, `⌘⇧B` to show/hide).
+  together (`⇧⌘S` to stage, `⇧⌘B` to show/hide).
 - **QuickLook** (`Space`) and an inline **preview / inspector** pane.
-- **Navigation** — clickable path bar, Go to Folder (`⌘⇧G`), back/forward (`⌘[` / `⌘]`),
-  a left sidebar of places, and **type-ahead filter** (`⌘F`).
+- **Navigation** — clickable path bar, Go to Folder (`⇧⌘G`), back/forward
+  (`⌘←` / `⌘→`), and a left sidebar of places.
+- **Search and Filter, kept apart** — `⌘F` searches recursively from Home with fuzzy,
+  path-aware matching; `⇧⌘F` filters the folder you're looking at.
+- **Embedded terminal** (`⌘J`) — opens across both Panels, already in the Active
+  Panel's folder.
+- **Gadgets** — declarative external-tool actions you define in JSON and run from the
+  palette. No plugin API, no scripting language, on purpose.
+- **Activity pane** — see a running copy and cancel it; nothing blocks the window.
 - **Renaming** — inline single-file rename (`⌘R`) and multi-file **batch rename** with
   live preview.
 - **Drag & drop** to and from Finder.
-- **Command palette** (`⌘K`) — run any action by name.
+- **Command palette** (`⌘K`) — run any action by name, each showing its current
+  shortcut. Every command also sits in the menu bar, labelled with *your* binding.
+- **Remappable keyboard** — rebind anything in Settings (`⌘,`), except the structural
+  keys navigation depends on.
 
 ---
 

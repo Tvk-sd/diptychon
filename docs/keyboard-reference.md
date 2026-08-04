@@ -1,25 +1,48 @@
 # Keyboard reference
 
-Every default shortcut in Diptychon, grouped by task. Bindings are **data-driven** —
-this table is generated from the same `Keymap.default` the app dispatches against
-(`Sources/Diptychon/Operations/Keymap.swift`), so it stays honest.
+Every default shortcut in Diptychon, grouped by task. Bindings are **data-driven**:
+they come from `Keymap.default` (`Sources/Diptychon/Operations/Keymap.swift`), the same
+table the app dispatches against.
 
-> Notation: `⌘` Command · `⌥` Option · `⇧` Shift · `⌃` Control · `↩` Return · `␣` Space
-> · `⌫` Delete/Backspace · `⎋` Escape.
+This file used to *claim* it was generated from that table and then drift anyway — it
+documented `⌘[` for history months after ⌘← took over, and missed eleven bindings.
+`DocsKeyboardReferenceTests` now checks both directions on every test run: no binding
+missing here, nothing here that the app doesn't dispatch. When it fails it prints the
+correct table.
+
+> Notation: `⌃` Control · `⌥` Option · `⇧` Shift · `⌘` Command — always in that order,
+> matching what the menus and the shortcut editor show. `↩` Return · `␣` Space ·
+> `⇥` Tab · `⌫` Delete/Backspace · `⎋` Escape.
+
+**Everything below can be rebound** in Settings (`⌘,`) → Shortcuts, except the
+structural keys `⇥`, `↩`, `␣`, `⌫` and `⎋`, which navigation and selection depend on.
+The menus show your *current* binding, not the default.
 
 ## Panels & navigation
 
 | Shortcut | Action |
 |----------|--------|
-| `Tab` | Switch the Active Panel |
+| `⇥` | Switch the Active Panel |
 | `↩` | Open the selected folder/file |
 | `⌘↑` | Go up (leave the current directory) |
-| `⌘[` | Go back |
-| `⌘]` | Go forward |
-| `⌘⇧G` | Go to Folder (type a path) |
-| `⌘F` | Focus the type-ahead Filter |
-| `⌘⇧.` | Show/hide hidden files |
+| `⌘←` | Back in this panel's history |
+| `⌘→` | Forward in this panel's history |
+| `⌘[` | Back — US-layout alias |
+| `⌘]` | Forward — US-layout alias |
+| `⇧⌘G` | Go to Folder (type a path) |
+| `⇧⌘.` | Show/hide hidden files |
 | `⌘B` | Show/hide the sidebar |
+
+> History runs on ⌘←/⌘→ because they work on every keyboard layout. The bracket pair is
+> kept as an alias for US layouts — on a German layout `[` is ⌥5, so that chord can
+> never match.
+
+## Search & filter
+
+| Shortcut | Action |
+|----------|--------|
+| `⌘F` | Focus **Search** — recursive, from the sidebar |
+| `⇧⌘F` | Focus **Filter** — narrows the Active Panel's current folder |
 
 ## Selection
 
@@ -27,7 +50,7 @@ this table is generated from the same `Keymap.default` the app dispatches agains
 |----------|--------|
 | `⌘A` | Select all |
 | `⎋` | Clear selection |
-| `⌘⇧I` | Invert selection |
+| `⇧⌘I` | Invert selection |
 
 ## Commander gestures (across Panels)
 
@@ -48,8 +71,8 @@ direction is simply which side is inactive.
 | `⌥⌘V` | Paste-**move** into the Active Panel |
 | `⌘D` | Duplicate |
 | `⌘⌫` | Move to Trash |
-| `⌘R` | Rename (inline) |
-| `⌘⇧N` | New folder |
+| `⌘R` | Rename (inline for one item, batch sheet for several) |
+| `⇧⌘N` | New folder |
 | `⌃⌘N` | New file |
 | `⌘Z` | Undo the last operation |
 | `⇧⌘Z` | Redo |
@@ -60,12 +83,15 @@ direction is simply which side is inactive.
 
 ## Tags & staging
 
+Staging is a holding pen: collect files from different folders, then operate on the
+set as one.
+
 | Shortcut | Action |
 |----------|--------|
 | `⌘T` | Show/edit Finder tags for the selection |
-| `⌘⇧S` | Add the selection to Staging |
-| `⌘⇧B` | Show/hide the Staging panel |
-| `⌫` | Remove from Staging (when the Staging panel is focused) |
+| `⇧⌘S` | Add the selection to Staging |
+| `⇧⌘B` | Show/hide the Staging panel |
+| `⌫` | Remove from Staging (when the Staging panel is focused — no disk delete) |
 
 ## View & tools
 
@@ -76,10 +102,11 @@ direction is simply which side is inactive.
 | `⌘↩` | Open With… |
 | `⇧⌘R` | Reveal in Finder |
 | `⌥⌘C` | Copy path(s) |
+| `⌘J` | Show/hide the embedded terminal, opened in the Active Panel's folder |
 | `⌘K` | Command palette (run any action by name) |
 
 ---
 
-Prefer the mouse? Everything here is also reachable by click, context menu, or the
-command palette (`⌘K`). See the **[user guide](user-guide.md)** for the workflows these
-shortcuts serve.
+Prefer the mouse? Everything here is also reachable by click, context menu, the menu
+bar, or the command palette (`⌘K`). See the **[user guide](user-guide.md)** for the
+workflows these shortcuts serve.
