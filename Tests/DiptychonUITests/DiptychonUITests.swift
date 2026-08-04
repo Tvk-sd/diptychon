@@ -613,6 +613,8 @@ final class DiptychonUITests: XCTestCase {
             app.menuBars.menuItems["Diptychon Help"].exists,
             "The stock help-book entry must be replaced, not sitting next to ours: it opens an error"
         )
+        app.typeKey(.escape, modifierFlags: [])
+        app.menuBars.menuBarItems["Help"].click()
 
         // The claim in issue 74 is "keymap in at most two clicks", so assert the
         // second click actually lands somewhere — the entry opening nothing would
@@ -627,6 +629,74 @@ final class DiptychonUITests: XCTestCase {
             app.windows["Shortcuts"].waitForExistence(timeout: 10),
             "Keyboard Shortcuts… must open Settings on the Shortcuts tab\n\(app.debugDescription)"
         )
+    }
+
+    /// Issue 76: the stock Edit menu had Undo/Redo/Cut/Copy/Paste/Delete permanently
+    /// greyed, because they ask the responder chain and the NSEvent monitor owns the
+    /// keyboard instead — so the menu denied exactly the reversible-operation story of
+    /// ADR 0004. Asserts the rows are back, enabled, and titled with their current
+    /// chord, and that no product command carries a `.keyboardShortcut` (which would be
+    /// a second, unrebindable keyboard path next to the monitor).
+    func testEditMenuOffersEnabledProductCommands() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-edit-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let edit = app.menuBars.menuBarItems["Edit"]
+        XCTAssertTrue(edit.waitForExistence(timeout: 10), "Expected an Edit menu")
+        edit.click()
+
+        // Titles carry the chord read back from HotkeyManager, so match by prefix —
+        // a rebind changes the suffix and must not break the test.
+        for name in ["Undo", "Redo", "Copy", "Paste", "Move to Trash", "Select All"] {
+            let item = app.menuBars.menuItems.matching(
+                NSPredicate(format: "title BEGINSWITH %@", name)
+            ).firstMatch
+            XCTAssertTrue(item.waitForExistence(timeout: 3), "Edit menu is missing \(name)")
+            XCTAssertTrue(item.isEnabled, "\(name) is greyed out — the menu denies what the app does")
+        }
+        // Close the menu: an open menu bar menu swallows clicks, and the next test in
+        // the run pays for it (two sheet tests failed only in the full-suite order).
+        app.typeKey(.escape, modifierFlags: [])
+    }
+
+    /// Issue 76: walking the menu bar is how a Mac user meets an app, and ours listed
+    /// no product command at all — no navigation, no New Folder, no terminal.
+    func testGoMenuExistsAndWindowTabbingIsGone() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-go-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+
+        let go = app.menuBars.menuBarItems["Go"]
+        XCTAssertTrue(go.waitForExistence(timeout: 10), "Expected a Go menu for navigation")
+        go.click()
+        for name in ["Back", "Forward", "Go Up"] {
+            let item = app.menuBars.menuItems.matching(
+                NSPredicate(format: "title BEGINSWITH %@", name)
+            ).firstMatch
+            XCTAssertTrue(item.waitForExistence(timeout: 3), "Go menu is missing \(name)")
+        }
+
+        // AppKit's automatic window tabbing is off (issue 76): Diptychon has no tab
+        // concept, and stacking windows as tabs fights the two-panel layout.
+        let view = app.menuBars.menuBarItems["View"]
+        XCTAssertTrue(view.waitForExistence(timeout: 3))
+        view.click()
+        XCTAssertFalse(
+            app.menuBars.menuItems["Show Tab Bar"].exists,
+            "Window tabbing must not appear in an app that has no tabs"
+        )
+        app.typeKey(.escape, modifierFlags: [])
     }
 
     /// Tag names parsed straight from the `_kMDItemUserTags` xattr (no app module).

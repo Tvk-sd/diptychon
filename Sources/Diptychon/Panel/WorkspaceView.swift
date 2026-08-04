@@ -27,8 +27,11 @@ struct WorkspaceView: View {
         @Bindable var model = model
         content
         .background(WindowMinWidth(minWidth: minContentWidth))
-        .onAppear { installMonitors(); model.startPersistence() }
-        .onDisappear(perform: removeMonitors)
+        // Menu commands are declared on the scene and need a workspace to act on
+        // (issue 76). Connected here rather than in an init: SwiftUI discards
+        // throwaway @State instances, and one of those must never answer the menu.
+        .onAppear { installMonitors(); model.startPersistence(); MenuCommands.shared.connect { model.perform($0) } }
+        .onDisappear { removeMonitors(); MenuCommands.shared.disconnect() }
         // Folders/files opened from outside (Dock drop, `open`, Launch Services
         // when Diptychon is the user's default folder viewer). SwiftUI's own
         // app delegate owns the odoc Apple Event and only surfaces it here —

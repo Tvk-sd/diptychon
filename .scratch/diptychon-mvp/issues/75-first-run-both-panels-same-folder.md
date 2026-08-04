@@ -55,6 +55,27 @@ Fundstelle für den Default: `WorkspaceModel.swift:242 ff.` — dort wird der
   sofort in einem Berechtigungsdialog endet. Erst T5 klären, dann den Ordner
   festlegen.
 
+## ⚠️ Unerklärter Nebenbefund (2026-08-04, beim Bauen von #76)
+
+Eine dritte Probe-Kopie (`com.diptychon.probe3`, **frische** Bundle-ID, Domain
+vor dem Start nachweislich leer) startete **nicht** auf Home, sondern tief in
+`~/Desktop/Archiv 2020-21/PM Frameworks` — mit selektierter Zeile.
+
+Geprüft und ausgeschlossen: kein Eintrag unter
+`~/Library/Saved Application State/com.diptychon.probe3`, und
+`~/Library/Application Support/Diptychon/` enthält nur `gadgets.json`.
+`WorkspaceState.key` ist `"workspaceState"` in `UserDefaults`, also
+domänengebunden. Woher der Pfad kam, ist damit offen.
+
+Das berührt dieses Ticket direkt: wenn eine leere Domain trotzdem irgendwo
+Zustand findet, ist „Erstlauf" nicht das, wofür wir es halten, und ein neuer
+Default könnte davon überschrieben werden. **Vor dem Fix reproduzieren** — Kopie
+mit neuer Bundle-ID anlegen, `defaults read` als leer bestätigen, starten,
+Pfad notieren.
+
+Der Befund T1 selbst bleibt gültig: er wurde an `probe1` erhoben, deren Domain
+vor dem Start ebenfalls leer war und die **beide Panels auf Home** zeigte.
+
 ## Acceptance criteria
 
 - [ ] Erster Start ohne gespeicherten `workspaceState` zeigt in den beiden

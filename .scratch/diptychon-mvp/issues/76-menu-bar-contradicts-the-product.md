@@ -105,6 +105,83 @@ Ablage reichen; mehr wird Pflege ohne Gegenwert.
       `testHelpMenuOffersKeyboardShortcutsAndNotTheBrokenDefault`
 - [ ] Volle Suite grün vor dem Merge
 
-## Outcome
+## Outcome (2026-08-04) — gebaut, Weg B, Suite grün
 
-_(offen)_
+Gewählt wurde **Weg B**. Neue Datei `Sources/Diptychon/App/MenuCommands.swift`:
+ein `@Observable`-Singleton als Naht zwischen Szene und Workspace, verbunden in
+`WorkspaceView.onAppear` (nicht in einem `init` — SwiftUI verwirft
+`@State`-Wegwerfinstanzen, und eine davon darf nie fürs Menü antworten), plus
+`ActionMenuItem`, das den Titel um die **aktuelle** Belegung aus dem
+`HotkeyManager` ergänzt.
+
+**Der Einpfad-Nachweis, den die Akzeptanzbedingung verlangt hat:** am laufenden
+Build ausgelesen, jeder eigene Eintrag hat `AXMenuItemCmdChar = missing value`.
+Das Menü trägt also gar kein Tastenkürzel und *kann* auf einen Tastendruck nicht
+reagieren — nur der `NSEvent`-Monitor kann. Nicht angenommen, gemessen. Zum
+Vergleich melden die Systemeinträge echte Werte (`Start Dictation` → `D`,
+`Emoji & Symbols` → `🌐`).
+
+**Eine begründete Ausnahme:** „Select All" behält ⌘A und schickt
+`selectAll:` die Responder-Chain hinunter, statt eine `AppAction` zu fahren.
+Grund siehe unten — der Bestandstest `testGoToFolderNavigates` hat das erzwungen.
+
+Weiter erledigt:
+- `NSWindow.allowsAutomaticWindowTabbing = false` — „Show Tab Bar", „Show All
+  Tabs" und die Tab-Zeilen im Fenster-Menü sind verschwunden (T3). Übrig bleibt
+  ein ausgegrautes „Remove Window from Set", das AppKit nicht hergibt; grau,
+  also keine Falschaussage
+- Neues **Go**-Menü (zurück/vorwärts/aufwärts, Gehe zu Ordner, Suche,
+  Im Finder zeigen, Öffnen mit), Ablage um Neuer Ordner/Neue Datei/Umbenennen/
+  Tags/Informationen ergänzt, Darstellung um Sidebar/Terminal/Ausgeblendete/
+  Quick Look, Hilfe um die Command-Palette (T4)
+
+### Am echten Aufrufpfad verifiziert
+
+Wieder per Bundle-ID-Kopie (`com.diptychon.probe3`), Menüs über System Events
+ausgelesen — Tills laufende Instanz blieb unberührt.
+
+Vorher/nachher im Bearbeiten-Menü:
+
+| | vorher | nachher |
+|---|---|---|
+| Undo, Redo, Copy, Paste, Delete | `enabled=false` | `enabled=true`, mit Kürzel im Titel |
+| Produktbefehle | keine | Trash, Duplicate, Copy Path(s), In/aus Inaktives Panel, Auswahl |
+
+Und ein Klick löst wirklich aus: „Darstellung ▸ Toggle Sidebar" per System
+Events geklickt, Fensterbild vorher/nachher — die Sidebar verschwindet.
+
+### Zwei Fehler, die der Bestand gefangen hat
+
+1. **`.pasteboard` zu ersetzen entfernt auch „Select All".** Erst nur
+   kosmetisch aufgefallen (⌘A fehlte im Menü), dann hat
+   `testGoToFolderNavigates` den echten Schaden gezeigt: das ⌘A-Kürzel dieses
+   Eintrags ist tragend. Der Key-Monitor lässt ⌘A durch, solange ein Textfeld
+   den Fokus hat, und **das Menü** hat bisher den Text selektiert. Ohne den
+   Eintrag selektiert ⌘A im Pfadfeld von „Gehe zu Ordner" nichts mehr. Deshalb
+   die Ausnahme oben — mit Fokus im Feld antwortet der Field-Editor, mit Fokus
+   in der Tabelle hat der Monitor ⌘A längst geschluckt. Beide Fälle verhalten
+   sich wie vorher.
+2. **Meine eigenen neuen Tests haben zwei fremde Tests umgebracht.** Sie öffnen
+   ein Menü und ließen es offen stehen; ein offenes Menü frisst Klicks, und
+   `testBatchRenameUndoRedo` und `testSetAndUndoTagViaPicker` fielen **nur in
+   der vollen Reihenfolge** um, einzeln waren sie grün. Ein `Escape` am Testende
+   behebt es. Merkposten: „einzeln grün" ist kein Beweis in einer UI-Suite.
+
+Nebenbei: der bekannte Runner-Wedge („Timed out while enabling automation
+mode") trat auf und brauchte **rund 20 Sekunden** Wartezeit nach
+`pkill -x testmanagerd` — die sechs Sekunden aus dem bisherigen Runbook
+reichten nicht.
+
+### Acceptance criteria
+
+- [x] Kein Menüeintrag behauptet etwas Falsches
+- [x] Undo/Redo/Kopieren/Einfügen/Löschen aus dem Menü ausführbar; genau ein
+      Tastaturpfad, per `AXMenuItemCmdChar` belegt
+- [x] Nach einer Umbelegung zeigt das Menü die neue Belegung — der Titel wird
+      bei jedem Aufbau aus `HotkeyManager.glyphs(for:)` gelesen
+- [x] Fenster-Tabbing weg (bis auf einen ausgegrauten Rest)
+- [x] Navigation, Neuer Ordner, Umbenennen, Ausgeblendete, Terminal über die
+      Menüleiste erreichbar
+- [x] UI-Tests: `testEditMenuOffersEnabledProductCommands`,
+      `testGoMenuExistsAndWindowTabbingIsGone`
+- [x] Volle Suite grün: **216 Unit + 16 UI**
