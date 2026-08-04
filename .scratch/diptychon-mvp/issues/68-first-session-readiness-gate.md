@@ -229,7 +229,22 @@ Nirgends: Navigation (zurück/vorwärts/aufwärts), Neuer Ordner, Umbenennen,
 Vorschau, Ausgeblendetes zeigen, Terminal, Staging, Gadgets. Wer die App über
 die Menüleiste erkundet — der klassische Mac-Reflex — findet das Produkt nicht.
 
-### T5 — TCC-Timing: **nicht belastbar geprüft**, bleibt offen
+### T5 — **beantwortet 2026-08-04 durch Till: die Dialoge kommen.**
+
+Till hat eine Kopie mit frischer Bundle-ID per Doppelklick im Finder gestartet
+— verantwortlicher Prozess also Finder, nicht mein Terminal — und **es kamen
+Berechtigungsdialoge**.
+
+Damit ist der Befund unten widerlegt: die Probe hatte den Zugriff geerbt. Für
+einen Fremden gilt das Gegenteil dessen, was meine Messung zeigte. Ebenfalls
+von Till im selben Lauf bestätigt: **beide Panels starteten auf demselben
+Ordner** (T1), unabhängig von meiner Messung.
+
+Noch offen und für #75 entscheidend: **an welcher Stelle** die Dialoge kommen —
+schon beim Auflisten von Home, oder erst beim Betreten von Desktop/Dokumente/
+Downloads. Davon hängt ab, ob ein Startordner überhaupt frei wählbar ist.
+
+### T5 — die ursprüngliche, widerlegte Messung
 
 Die Probe hat Desktop und Dokumente **ohne jeden Dialog** gelistet. Das ist
 aber kein Ergebnis: die Probe wurde aus meiner Shell gestartet, und die darf

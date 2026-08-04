@@ -30,9 +30,20 @@ Defaults-Domain) — siehe Methode in #68.
 
 Absteigend nach Aufwand-Nutzen:
 
-1. **Unterschiedliche Startordner.** Links Home, rechts Dokumente (oder
-   Downloads). Ein Default-Wert, kein neues Konzept, keine UI. Die Zwei-Flächen-
-   Idee steht damit im ersten Bild. **Empfohlen.**
+1. **Unterschiedliche Startordner.** Ein Default-Wert, kein neues Konzept,
+   keine UI. Die Zwei-Flächen-Idee steht damit im ersten Bild. **Empfohlen.**
+
+   ⚠️ **Der zweite Ordner darf nicht Dokumente, Downloads oder Schreibtisch
+   sein.** Till hat am 2026-08-04 bestätigt (#68 › T5): beim Doppelklick einer
+   frisch signierten Kopie **kommen Berechtigungsdialoge**. Alle drei
+   naheliegenden Kandidaten sind TCC-geschützt — ein Erstlauf, der direkt in
+   einem Systemdialog endet, ist schlechter als zwei gleiche Panels.
+
+   Nicht geschützt und damit brauchbar: **`/Applications`** (existiert immer,
+   ist ein echter Ort zum Stöbern und zeigt sofort zwei verschiedene Flächen).
+   `~/Public` wäre ebenfalls frei, ist aber ein toter Ordner.
+
+   Vorschlag: links Home, rechts `/Applications`.
 2. **Rechts der zuletzt genutzte Ordner** — greift beim Erstlauf nicht, hilft
    also genau da nicht, wo das Problem sitzt. Verworfen.
 3. **Onboarding-Overlay/Tour.** Ungefragt, teurer als das Problem, und es
@@ -50,10 +61,15 @@ Fundstelle für den Default: `WorkspaceModel.swift:242 ff.` — dort wird der
   anderem `testLaunchesWithTwoPanels`.
 - Existiert der gewählte zweite Ordner nicht (kein `~/Documents`), muss der
   Fallback Home sein — kein leeres Panel, keine Fehlermeldung.
-- Der Zweitordner ist potenziell TCC-geschützt. Falls #68 › T5 ergibt, dass
-  ein Dialog kommt, darf der Default nicht so gewählt sein, dass der Erstlauf
-  sofort in einem Berechtigungsdialog endet. Erst T5 klären, dann den Ordner
-  festlegen.
+- **T5 ist geklärt: die Dialoge kommen.** Der Zweitordner muss deshalb außerhalb
+  von Dokumente/Downloads/Schreibtisch liegen — siehe oben.
+- **Offen und vor dem Fix zu klären:** kommt der Dialog schon beim Auflisten von
+  **Home**, oder erst beim Betreten eines geschützten Unterordners? Wenn schon
+  Home ihn auslöst, hilft kein anderer Startordner und das eigentliche Thema
+  ist die Reihenfolge von Onboarding und erstem Listing (#10 baute den
+  Full-Disk-Access-Pfad, aber nicht dessen Timing). Till per Doppelklick
+  prüfbar; von hier aus nicht messbar, weil ein aus dem Terminal gestarteter
+  Prozess den Zugriff erbt.
 
 ## ⚠️ Unerklärter Nebenbefund (2026-08-04, beim Bauen von #76)
 
