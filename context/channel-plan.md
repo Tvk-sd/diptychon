@@ -1,5 +1,9 @@
 # Channel Plan — feed the capture page, measure capture-rate
 
+> **2026-08-06:** superseded in part — ADR 0008 retired the capture page this
+> plan feeds. The post-download channel picture is `distribution-playbook.md`;
+> Track B's ads structure below remains the reference for a paid test.
+
 > Snapshot: 2026-07-07. Executes `reach-test.md` now that the capture page is live
 > (diptychon.com). Two tracks in parallel: **SEO/AI slow-burn** (backbone) + **Google
 > Search Ads** (fast read). Grounded in the netnography segment and a SERP scan
