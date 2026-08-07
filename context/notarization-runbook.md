@@ -201,11 +201,16 @@ Nur gültig, solange `.build-dd` unangetastet ist. Ein neuer Build erzeugt ein
 anderes Binary, dessen Hash nicht zum Ticket passt.
 
 **Achtung:** `scripts/release.sh` beginnt mit `rm -rf .build-dd`. Ein neuer
-Lauf zerstört also stillschweigend den Rettungsweg für eine noch offene
-Einreichung. Wer nach einem Netzabbruch das Skript neu startet, statt von Hand
-zu stapeln, verliert das Ticket und darf neu einreichen. Der `--resume`-Pfad
-aus Grenze 4 muss deshalb beides festhalten: die Submission ID **und** genau
-dieses `.app`.
+Lauf zerstört also den Rettungsweg für eine noch offene Einreichung. Nach einem
+Netzabbruch deshalb **nicht** neu starten, sondern:
+
+```bash
+./scripts/release.sh --resume
+```
+
+Das macht dasselbe wie der Block oben, nur mit der gespeicherten Submission ID
+und anschließendem Sanity-Check. Der Handweg bleibt für den Fall, dass die ID
+verloren ging und du sie aus `notarytool history` heraussuchst.
 
 Am 2026-08-07 auf diesem Weg nachgeholt und bewiesen — der Stapel- und
 Zip-Teil des Skripts war bis dahin nie gelaufen.
@@ -239,22 +244,37 @@ installierte Kopie. Vorher fragen.
 
 ## Bekannte Grenzen des Skripts
 
-Offen, in dieser Reihenfolge zu beheben:
+### Behoben am 2026-08-07
 
-1. **Kein Branch- und Sauberkeitszwang.** Bei fremdem Branch oder schmutzigem
-   Arbeitsbaum warnt das Skript nur und baut weiter. Genau so entstand am
-   2026-08-05 ein notarisiertes Artefakt ohne zugehörigen Commit. Soll
-   abbrechen, mit `RELEASE_ALLOW_DIRTY=1` als bewusstem Übersteuerer.
-2. **Kein Worktree.** Solange eine zweite Claude-Session im selben
-   Arbeitsverzeichnis arbeitet, ist jeder Release-Build ein Glücksspiel.
-   Release gehört in einen eigenen Worktree auf `main`.
-3. **Status wird nicht ausgewertet.** Das Skript verlässt sich auf den
-   Exit-Code von `notarytool`. Ob der bei `Invalid` ungleich 0 ist, ist
-   ungeprüft. Wenn nicht, läuft es weiter und scheitert erst beim Stapeln —
-   mit einer schlechteren Meldung als dem Notarisierungs-Log.
-4. **Kein Wiederaufsetzen.** Ein Netzabbruch beim Pollen wirft den ganzen Lauf
-   weg, obwohl die Einreichung bei Apple weiterläuft. Submission ID
-   persistieren, `--resume` nachrüsten, das dann nur noch wartet und stapelt.
+- **Branch- und Sauberkeitszwang.** Das Skript bricht jetzt ab, wenn der
+  Branch nicht `main` ist oder der Arbeitsbaum schmutzig. Übersteuern nur
+  bewusst: `RELEASE_ALLOW_DIRTY=1` oder `RELEASE_BRANCH=<name>`. Genau diese
+  Lücke erzeugte am 2026-08-05 ein notarisiertes Artefakt ohne Commit.
+- **Status wird ausgewertet.** Der Exit-Code von `notarytool` gilt nicht mehr
+  als Urteil; das Skript liest `status:` aus der Ausgabe und lässt nur
+  `Accepted` weiter. Bei `Invalid` oder `Rejected` nennt es den passenden
+  `notarytool log`-Befehl, bei allem anderen den `info`-Befehl.
+- **Wiederaufsetzen.** Die Submission ID landet vor dem Warten in
+  `build/release/last-submission-id.txt`. Nach einem Netzabbruch:
+
+  ```bash
+  ./scripts/release.sh --resume
+  ```
+
+  Das baut und signiert **nicht** neu — es wartet auf dieselbe Einreichung,
+  stapelt und zippt. Bedingung: `.build-dd` ist unangetastet, denn das Ticket
+  hängt an genau diesem Binary. Fehlt das Bundle, sagt das Skript das und
+  verlangt eine neue Einreichung.
+
+  Am 2026-08-07 gegen die Einreichung vom 05. durchgespielt: wartet, erkennt
+  `Accepted`, stapelt, zippt neu, Sanity-Check grün.
+
+### Weiterhin offen
+
+- **Kein Worktree.** Solange eine zweite Session im selben Arbeitsverzeichnis
+  arbeitet, kann sie zwischen Preflight und Build den Branch wechseln. Der
+  Zwang oben fängt den Normalfall, aber nicht das Rennen. Release gehört in
+  einen eigenen Worktree auf `main`.
 
 ### Falle beim Beobachten
 

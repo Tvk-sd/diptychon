@@ -26,6 +26,19 @@ ENTITLEMENTS="Resources/Diptychon.entitlements"
 OUT_DIR="build/release"
 SUBMIT_ZIP="$OUT_DIR/Diptychon-submit.zip"
 FINAL_ZIP="$OUT_DIR/Diptychon.zip"
+NOTARY_LOG="$OUT_DIR/notarytool.log"
+SUBMISSION_FILE="$OUT_DIR/last-submission-id.txt"
+RELEASE_BRANCH="${RELEASE_BRANCH:-main}"
+
+# --resume picks up an in-flight submission whose poller died (network drop).
+# It does NOT rebuild — the ticket is bound to the exact binary that was
+# submitted, so a fresh build would invalidate it.
+RESUME=0
+case "${1:-}" in
+  --resume) RESUME=1 ;;
+  "") ;;
+  *) echo "usage: $0 [--resume]" >&2; exit 2 ;;
+esac
 
 step() { printf '\n\033[1m==> %s\033[0m\n' "$1"; }
 fail() { printf '\n\033[1;31mrelease.sh: %s\033[0m\n' "$1" >&2; exit 1; }
@@ -68,15 +81,38 @@ fi
 
 [ -f "$ENTITLEMENTS" ] || fail "entitlements missing at $ENTITLEMENTS"
 
+# A release artifact nobody can tie to a commit is worthless — you cannot say
+# what is in it. On 2026-08-05 a run built from a foreign branch with a dirty
+# tree and produced a notarized bundle that had to be thrown away.
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+DIRTY="$(git status --porcelain)"
 echo "branch:   $BRANCH ($(git rev-parse --short HEAD))"
-if [ -n "$(git status --porcelain)" ]; then
-  echo "warning:  working tree is dirty — the shipped build will not match any commit"
+
+if [ "${RELEASE_ALLOW_DIRTY:-0}" = "1" ]; then
+  echo "warning:  RELEASE_ALLOW_DIRTY=1 — build may not match any commit"
+elif [ "$RESUME" = "1" ]; then
+  : # resume does not build, so branch and tree state are irrelevant
+else
+  [ "$BRANCH" = "$RELEASE_BRANCH" ] || fail "on branch '$BRANCH', expected '$RELEASE_BRANCH'.
+A release must be traceable to a commit. Switch branches, or set
+RELEASE_BRANCH=$BRANCH to release from here on purpose."
+  [ -z "$DIRTY" ] || fail "working tree is dirty — the build would match no commit:
+$(printf '%s\n' "$DIRTY" | head -10)
+Commit or stash first, or set RELEASE_ALLOW_DIRTY=1 to override on purpose."
 fi
 
 # --- 1. Build -----------------------------------------------------------------
 # Fresh from the current checkout. Issue 69 is explicit: never notarize the old
 # zip, it predates the embedded terminal (#65) and everything after it.
+
+if [ "$RESUME" = "1" ]; then
+  [ -d "$APP" ] || fail "--resume needs the app bundle from the interrupted run at
+$APP
+It is gone (a later run's 'rm -rf $DERIVED_DATA' deletes it). The notarization
+ticket is bound to that exact binary, so there is nothing to resume — rebuild
+and submit again."
+  echo "resume:   skipping build and signing, reusing $APP"
+else
 
 step "Building Release"
 rm -rf "$DERIVED_DATA"
@@ -119,14 +155,54 @@ codesign -dv --verbose=4 "$APP" 2>&1 | grep -E 'Authority|TeamIdentifier|flags|T
 # --- 3. Notarize --------------------------------------------------------------
 # notarytool will not accept a bare .app — it wants a zip/dmg/pkg container.
 
-step "Notarizing (this waits on Apple, usually 1-5 min)"
+step "Notarizing (this waits on Apple; usually 1-5 min, first-ever submission took 40)"
 mkdir -p "$OUT_DIR"
 rm -f "$SUBMIT_ZIP" "$FINAL_ZIP"
 ditto -c -k --keepParent "$APP" "$SUBMIT_ZIP"
 
+# notarytool's exit code is not a reliable verdict, so the status is parsed out
+# of the output. The submission ID is written to disk before the wait, so a
+# dropped connection can be picked up with --resume.
+set +e
 xcrun notarytool submit "$SUBMIT_ZIP" \
   --keychain-profile "$NOTARY_PROFILE" \
-  --wait
+  --wait 2>&1 | tee "$NOTARY_LOG"
+set -e
+
+SUBMISSION_ID="$(grep -m1 -E '^ +id: ' "$NOTARY_LOG" | awk '{print $2}')"
+[ -n "$SUBMISSION_ID" ] && printf '%s\n' "$SUBMISSION_ID" > "$SUBMISSION_FILE"
+
+fi  # end of the non-resume path
+
+if [ "$RESUME" = "1" ]; then
+  SUBMISSION_ID="$(cat "$SUBMISSION_FILE" 2>/dev/null || true)"
+  [ -n "$SUBMISSION_ID" ] || fail "no submission ID recorded at $SUBMISSION_FILE — nothing to resume."
+  step "Resuming submission $SUBMISSION_ID"
+  set +e
+  xcrun notarytool wait "$SUBMISSION_ID" --keychain-profile "$NOTARY_PROFILE" 2>&1 | tee "$NOTARY_LOG"
+  set -e
+fi
+
+# --- 3b. Verdict --------------------------------------------------------------
+# Accepted is the only status that may proceed to stapling.
+
+STATUS="$(grep -E '^ +status: ' "$NOTARY_LOG" | tail -1 | awk '{print $2}')"
+case "$STATUS" in
+  Accepted)
+    echo "notarization: Accepted (submission $SUBMISSION_ID)"
+    ;;
+  Invalid|Rejected)
+    fail "notarization came back '$STATUS'. Read the reason:
+  xcrun notarytool log $SUBMISSION_ID --keychain-profile $NOTARY_PROFILE"
+    ;;
+  *)
+    fail "no usable status in the notary output (got: '${STATUS:-none}').
+The submission may still be running at Apple. Check:
+  xcrun notarytool info ${SUBMISSION_ID:-<id>} --keychain-profile $NOTARY_PROFILE
+If it turns Accepted, pick this run back up without rebuilding:
+  $0 --resume"
+    ;;
+esac
 
 # --- 4. Staple ----------------------------------------------------------------
 # The ticket is stapled onto the .app, then the .app is zipped AGAIN. Shipping
