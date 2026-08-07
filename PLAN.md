@@ -13,7 +13,7 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 
 ## Offen — bei AI
-Vor #71: **#69 sauber zu Ende bringen** — eigener Worktree auf `main`, `scripts/release.sh` vorher um Branch- und Sauberkeitszwang härten. Die vier bekannten Lücken stehen in `context/notarization-runbook.md` › „Bekannte Grenzen".
+Vor #71: **#69 sauber zu Ende bringen** — `feat/69-notarization` nach `main` mergen, dann einen Release-Lauf von sauberem `main`, Zip deployen, Größen in #78 nachziehen, Abnahme über echten Download. Pipeline und Skript stehen, Runbook: `context/notarization-runbook.md`.
 
 Nächstes: **#68 Teil 2** — der empirische Erstlauf (Start ohne `workspaceState`, Timing der macOS-Zugriffsdialoge, Lesbarkeit der Zwei-Panel-Anordnung ohne Vorwissen, Rest der Standardmenüs). Braucht Tills Bildschirm, deshalb terminiert. Danach **#71** (Startseite umbauen), sobald #69 durch ist.
 
