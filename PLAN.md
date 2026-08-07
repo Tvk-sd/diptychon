@@ -7,12 +7,14 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 
 ## Offen — bei Till
 <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
-- [ ] **Notarisierung abschließen (#69):** Enrollment-Status prüfen (kann 48 h „pending" stehen), Developer-ID-Application-Zertifikat in Xcode erzeugen, Notary-API-Key in App Store Connect holen (die `.p8` lädt genau einmal), `xcrun notarytool store-credentials`. Danach die Ausgabe von `security find-identity -v -p codesigning` durchgeben — daraus kommt die Team-ID. Blockiert #71
+- [ ] **Abnahme-Download freigeben (#69):** Notarisierung ist technisch bewiesen (Einreichung `Accepted`), aber der Testlauf baute vom falschen Branch — kein auslieferbares Artefakt. Nach dem sauberen Lauf prüft die Abnahme `spctl` auf einer von diptychon.com geladenen Kopie, das überschreibt dein installiertes `/Applications/Diptychon.app`. Runbook: `context/notarization-runbook.md`
 - [ ] **Doku regenerieren und platzieren (#42):** die Referenz ist nicht ungeprüft, sondern falsch — sie nennt `⌘[`/`⌘]`, seit #60 gilt ⌘←/⌘→; Terminal, Gadgets, Suche und Queue kommen null Mal vor. Generator neu laufen lassen, dann Platzierung entscheiden (Empfehlung: `diptychon.com/docs`)
 - [ ] **Menüeintrag gegentesten (#74):** Hilfe ▸ Keyboard Shortcuts… ist gebaut und per UI-Test belegt, aber noch nie von Hand gesehen — beim Bauen lief deine eigene Instanz
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 
 ## Offen — bei AI
+Vor #71: **#69 sauber zu Ende bringen** — eigener Worktree auf `main`, `scripts/release.sh` vorher um Branch- und Sauberkeitszwang härten. Die vier bekannten Lücken stehen in `context/notarization-runbook.md` › „Bekannte Grenzen".
+
 Nächstes: **#68 Teil 2** — der empirische Erstlauf (Start ohne `workspaceState`, Timing der macOS-Zugriffsdialoge, Lesbarkeit der Zwei-Panel-Anordnung ohne Vorwissen, Rest der Standardmenüs). Braucht Tills Bildschirm, deshalb terminiert. Danach **#71** (Startseite umbauen), sobald #69 durch ist.
 
 Eingefroren bis echter Nutzer-Input da ist: **#39** (Recent Locations) und **#40** (Ladepfad). Beide sind Vermutungen aus der Netnographie, und ADR 0008 stellt die Reihenfolge künftig auf das um, was Nutzer schreiben. Auftau-Bedingung ist deshalb nicht „nach #71", sondern: die ersten Freitextantworten aus **#72** liegen vor. Nennt sie niemand, sind sie nicht dran.

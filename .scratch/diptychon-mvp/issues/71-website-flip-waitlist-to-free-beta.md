@@ -9,6 +9,11 @@ Strategiewechsel 2026-08-03 (#66). **Hart blockiert von #68 und #69** — erst
 darf der Download echt und der Erstkontakt tragfähig sein, dann darf die Seite
 ihn versprechen. Nie umgekehrt.
 
+Beim Umbau mit erledigen: **#78** — die Copy widerspricht sich heute selbst
+(1,4 gegen 1,5 MB, 5 gegen 6 MB installiert) und behauptet an zwei Stellen
+einen Einmalkauf, obwohl der Preis in #66 offen ist. Dieselben Dateien, gleiche
+Durchsicht.
+
 ## Was sich ändert — und warum es größer ist als zwei Zeilen
 
 Die Seite hat heute den Job „überzeuge einen Fremden, dass Warten sich lohnt".

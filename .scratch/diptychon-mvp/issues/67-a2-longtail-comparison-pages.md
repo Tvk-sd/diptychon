@@ -9,6 +9,10 @@ Category: gtm
 
 `context/channel-plan.md` › Track A (A2) · `context/reach-test.md` (SEO/AI-Search-Zeile)
 
+Siehe **#78**: `dir-a/b/c.html` tragen Größen- und Preisangaben, die der Rest
+der Seite anders nennt. Wer diese Dateien anfasst, zieht sie dort mit nach —
+sie liegen im Worktree `a2-seo-pages`, Änderungen in `main` kollidieren.
+
 ## Auslöser
 
 Till fragte nach „headless pages, die die Reichweite in AI-Searches erhöhen".

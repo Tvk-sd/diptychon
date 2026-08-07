@@ -86,10 +86,20 @@ Send `Diptychon.zip`.
 
 ---
 
-## Target path — notarized, Releases + Cask (deferred)
+## Target path — notarized (in progress)
 
-When we join the Apple Developer Program ($99/yr), the tester friction
-disappears. Outline, to be fleshed out when we get there:
+We joined the Apple Developer Program on 2026-08-04. Signing and notarization
+now have a working script and their own runbook:
+
+> **[`context/notarization-runbook.md`](../context/notarization-runbook.md)** —
+> the standing document for signing, notarizing and shipping. `scripts/release.sh`
+> is the executable form of it.
+
+Until a zip downloaded from diptychon.com passes `spctl -a -vv` (issue 69), the
+**current path above still applies** — the served download is not yet notarized
+and testers still need the bypass.
+
+Outline of what remains after that:
 
 1. **Sign** with a Developer ID Application certificate.
 2. **Notarize** — `xcrun notarytool submit … --wait`, then
