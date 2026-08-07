@@ -66,13 +66,29 @@ Geändert:
 
 Volle Suite **221 Unit + 16 UI** grün.
 
-### Offen: die Platzierung
+### Platzierung — entschieden 2026-08-07: mit #71 gebündelt
 
-Till hat die Empfehlung `diptychon.com/docs` abgenickt (Repo erreicht den
-Zip-Lader nie, ein App-Bundle ist nur per Release korrigierbar). Gebaut ist
-sie noch nicht. Sie hängt sinnvoll an **#71**, weil derselbe `wrangler deploy`
-sie mitnimmt — und weil ein Menüeintrag „User Guide" in der App (#74) erst
-sinnvoll ist, wenn die Seite existiert.
+Zielort ist `diptychon.com/docs` (Repo erreicht den Zip-Lader nie, ein
+App-Bundle ist nur per Release korrigierbar). **Gebaut wird sie zusammen mit
+dem Website-Flip (#71)**, nicht vorher — eine Doku-Seite, die auf eine App
+zeigt, die man noch nicht laden kann, ist genau die Halbheit, die #71
+beseitigen soll. Ein Umbau, ein `wrangler deploy`.
+
+Was damit in #71 gehört:
+
+- `docs/user-guide.md`, `docs/keyboard-reference.md` und `docs/gadgets.md` als
+  HTML unter `/docs` im Stil von `/vs` (gleiches `page.css`)
+- die Referenz wird **aus der Markdown-Quelle** erzeugt, nicht danebengepflegt
+  — sonst driftet die Web-Fassung, während `DocsKeyboardReferenceTests` nur die
+  Repo-Fassung bewacht
+- Menüeintrag **„User Guide"** in der App neben „Keyboard Shortcuts…" (#74 hat
+  ihn bewusst weggelassen, solange die Seite fehlt: kein Menüeintrag, der ins
+  Leere führt)
+- `sitemap.xml` und `llms-full.txt` nehmen die Seiten mit auf — ein User Guide
+  ist genau die zitierfähige Primärquelle, auf die der Befund in #67 zeigt
+
+Querverweis in #71 steht noch aus: die Datei wird derzeit von einer parallelen
+Session bearbeitet und wurde deshalb nicht angefasst.
 
 ## Parent
 
