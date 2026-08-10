@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gadgets — user-defined external-tool actions — Diptychon Docs</title>
+<meta name="description" content="Gadgets let you run an external app or command-line tool against the current selection, straight from the ⌘K command palette (issue 36). They are declarati" />
+<link rel="canonical" href="https://diptychon.com/docs/gadgets" />
+<link rel="icon" type="image/png" href="/icon.png" />
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+<link rel="stylesheet" href="/page.css" />
+
+<style>
+  .docmain{max-width:820px;margin-inline:auto;padding:48px 24px 80px}
+  .docmain h1{margin:0 0 6px}
+  .docmain h2{margin:44px 0 12px;font-size:24px}
+  .docmain h3{margin:30px 0 10px;font-size:18.5px}
+  .docmain p,.docmain li{line-height:1.65}
+  .docmain pre{background:var(--bg-inset,rgba(127,127,127,.08));border:1px solid var(--line,#8884);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13.5px}
+  .docmain blockquote{margin:16px 0;padding:2px 18px;border-inline-start:3px solid var(--line-strong,#8886);color:var(--ink-dim,inherit)}
+  .docmain .tablewrap{overflow-x:auto;margin:16px 0}
+  .docmain table{border-collapse:collapse;width:100%;font-size:14.5px}
+  .docmain th,.docmain td{border:1px solid var(--line,#8884);padding:7px 12px;text-align:left}
+  .docmain th{background:var(--bg-inset,rgba(127,127,127,.06))}
+  .docmain code{font-family:var(--mono,ui-monospace,monospace);font-size:.86em;background:var(--bg-inset,rgba(127,127,127,.1));border:1px solid var(--line,#8884);border-radius:5px;padding:.08em .35em}
+  .docmain pre code{background:none;border:none;padding:0}
+  .docnav{font-family:var(--mono,monospace);font-size:12.5px;margin:0 0 26px}
+  .docnav a{margin-right:14px}
+  .docstamp{font-family:var(--mono,monospace);font-size:12px;color:var(--ink-faint,inherit);margin-top:48px}
+</style>
+</head>
+<body>
+<div class="rails" aria-hidden="true"></div>
+
+<nav>
+  <div class="in nav-in">
+    <a class="brand" href="/"><img src="/icon.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <span class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+        <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
+      </button>
+      <a class="nav-cta" href="/download?src=docs-gadgets">Download free beta</a>
+    </span>
+  </div>
+</nav>
+<main class="docmain">
+<p class="label">Docs · Diptychon</p>
+<nav class="docnav" aria-label="Docs">
+  <a href="/docs/">Overview</a><a href="/docs/user-guide">User Guide</a><a href="/docs/keyboard-reference">Keyboard Reference</a><a href="/docs/gadgets">Gadgets</a>
+</nav>
+<h1 id="gadgets-user-defined-external-tool-actions">Gadgets — user-defined external-tool actions</h1>
+<p>Gadgets let you run an external app or command-line tool against the current selection, straight from the ⌘K command palette (issue 36). They are <strong>declarative</strong> — no plugin API, no scripting language; that's the product line.</p>
+<h2 id="quick-start">Quick start</h2>
+<ol><li><strong>⌘K → "Gadgets: Edit Config…"</strong> — creates the config with a working starter on first use and opens it in your editor.</li><li>Edit, save, then <strong>⌘K → "Gadgets: Reload"</strong> — it reports how many gadgets loaded and lists any config errors.</li><li><strong>Select one or more files</strong>, then <strong>⌘K, type the gadget's name, ↩</strong>.</li></ol>
+<p>Example — a "Zip Selection" gadget:</p>
+<pre><code>{
+  "id": "zip-selection",
+  "name": "Zip Selection",
+  "type": "executable",
+  "target": "/usr/bin/zip",
+  "args": ["-r", "Diptychon-Test.zip", "${active.selection.names}"],
+  "workingDirectory": "${active.folder.path}"
+}</code></pre>
+<p>Select files → ⌘K → "zip" → ↩. The first run of an executable gadget shows a one-time confirmation with the exact command; after that, <code>Diptychon-Test.zip</code> appears in the active folder. A gadget that uses selection variables is greyed out in the palette until something is selected — if a gadget looks disabled, that's almost always why.</p>
+<h2 id="where-gadgets-live">Where gadgets live</h2>
+<p><code>~/Library/Application Support/Diptychon/gadgets.json</code></p>
+<p>The easiest way in: open the palette (⌘K) and run <strong>Gadgets: Edit Config…</strong> — it creates the file with a working starter on first use and opens it. After editing, run <strong>Gadgets: Reload</strong> (also in the palette); it reports what loaded and lists any config errors.</p>
+<h2 id="format">Format</h2>
+<pre><code>{
+  "gadgets": [
+    {
+      "id": "open-in-pixelmator",
+      "name": "Open in Pixelmator",
+      "type": "application",
+      "target": "/Applications/Pixelmator Pro.app"
+    },
+    {
+      "id": "optimize-pngs",
+      "name": "Optimize PNGs",
+      "type": "executable",
+      "target": "/opt/homebrew/bin/oxipng",
+      "args": ["-o", "4", "${active.selection.paths}"],
+      "workingDirectory": "${active.folder.path}"
+    }
+  ]
+}</code></pre>
+<div class="tablewrap" role="region" tabindex="0"><table><thead><tr><th scope="col">Field</th><th scope="col">Required</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td><code>id</code></td><td>yes</td><td>Unique key. Also remembers the one-time run confirmation.</td></tr><tr><td><code>name</code></td><td>yes</td><td>The title shown in the palette (category "Gadgets").</td></tr><tr><td><code>type</code></td><td>yes</td><td><code>application</code> (open selection with an .app — a saved "Open With") or <code>executable</code> (run a binary).</td></tr><tr><td><code>target</code></td><td>yes</td><td>Path to the <code>.app</code> or binary. Single-value variables allowed.</td></tr><tr><td><code>args</code></td><td>no</td><td>argv template, <code>executable</code> only.</td></tr><tr><td><code>workingDirectory</code></td><td>no</td><td>Working dir, <code>executable</code> only. Single-value variables allowed.</td></tr></tbody></table></div>
+<p>Top-level keys starting with <code>"//"</code> are ignored — use them for comments. A malformed entry is skipped (and reported on reload) without dropping the rest.</p>
+<h2 id="substitution-variables">Substitution variables</h2>
+<div class="tablewrap" role="region" tabindex="0"><table><thead><tr><th scope="col">Variable</th><th scope="col">Value</th></tr></thead><tbody><tr><td><code>${active.selection.paths}</code></td><td>Absolute paths of the selection — <strong>multi-value</strong></td></tr><tr><td><code>${active.selection.names}</code></td><td>File names of the selection — <strong>multi-value</strong></td></tr><tr><td><code>${current.file.path}</code></td><td>The first selected file's absolute path</td></tr><tr><td><code>${active.folder.path}</code></td><td>The active panel's folder</td></tr><tr><td><code>${inactive.folder.path}</code></td><td>The other panel's folder</td></tr><tr><td><code>${user.home}</code></td><td>Your home directory</td></tr></tbody></table></div>
+<p><strong>Multi-value expansion is argv-safe:</strong> an argument containing a multi-value variable becomes one argv entry <em>per selected file</em> — <code>"--f=${active.selection.paths}"</code> with two files selected becomes <code>--f=/a one.txt</code> and <code>--f=/b.txt</code>. Never a space-joined string, so filenames with spaces need no quoting. Only one multi-value variable per argument; unknown variables are an error, not passed through.</p>
+<p>A gadget that references selection variables is greyed in the palette until something is selected. Application gadgets always act on the selection.</p>
+<h2 id="safety">Safety</h2>
+<ul><li>Executable gadgets run via an <strong>argv array</strong> — never through a shell, so a hostile filename can't inject commands.</li><li>The <strong>first run</strong> of each executable gadget shows a confirmation with the exact expanded command (one-time per gadget id).</li><li>Commands run with your own user privileges, same as Terminal. Output is not captured — gadgets are fire-and-forget.</li></ul>
+<h2 id="out-of-scope-deliberate">Out of scope (deliberate)</h2>
+<p>Scripting/plugin runtimes, capturing tool output, a GUI editor, hotkey binding for gadgets (palette-only in v1 — the keymap's <code>AppAction</code> surface is static; a follow-up issue covers binding if demand shows).</p>
+<p class="docstamp">Generated from the repository docs (guarded by tests against the app's real key table) · 2026-08-10</p>
+</main>
+
+<footer>
+  <div class="in foot-in">
+    <span>© Diptychon, native macOS, ~2.7 MB</span>
+    <span class="foot-links">
+      <a href="/">Home</a>
+      <a href="/docs/">Docs</a>
+      <a href="/download?src=docs-gadgets">Download free beta</a>
+      <a href="/impressum">Impressum</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var effective = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = effective === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+    });
+  })();
+</script>
+</body>
+</html>

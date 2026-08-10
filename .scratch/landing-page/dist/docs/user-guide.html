@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diptychon user guide — Diptychon Docs</title>
+<meta name="description" content="A task-by-task walkthrough. For the bare shortcut list, see [keyboard-reference.md](keyboard-reference.md). Terms here follow [CONTEXT.md](../CONTEXT.md) e" />
+<link rel="canonical" href="https://diptychon.com/docs/user-guide" />
+<link rel="icon" type="image/png" href="/icon.png" />
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+<link rel="stylesheet" href="/page.css" />
+
+<style>
+  .docmain{max-width:820px;margin-inline:auto;padding:48px 24px 80px}
+  .docmain h1{margin:0 0 6px}
+  .docmain h2{margin:44px 0 12px;font-size:24px}
+  .docmain h3{margin:30px 0 10px;font-size:18.5px}
+  .docmain p,.docmain li{line-height:1.65}
+  .docmain pre{background:var(--bg-inset,rgba(127,127,127,.08));border:1px solid var(--line,#8884);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13.5px}
+  .docmain blockquote{margin:16px 0;padding:2px 18px;border-inline-start:3px solid var(--line-strong,#8886);color:var(--ink-dim,inherit)}
+  .docmain .tablewrap{overflow-x:auto;margin:16px 0}
+  .docmain table{border-collapse:collapse;width:100%;font-size:14.5px}
+  .docmain th,.docmain td{border:1px solid var(--line,#8884);padding:7px 12px;text-align:left}
+  .docmain th{background:var(--bg-inset,rgba(127,127,127,.06))}
+  .docmain code{font-family:var(--mono,ui-monospace,monospace);font-size:.86em;background:var(--bg-inset,rgba(127,127,127,.1));border:1px solid var(--line,#8884);border-radius:5px;padding:.08em .35em}
+  .docmain pre code{background:none;border:none;padding:0}
+  .docnav{font-family:var(--mono,monospace);font-size:12.5px;margin:0 0 26px}
+  .docnav a{margin-right:14px}
+  .docstamp{font-family:var(--mono,monospace);font-size:12px;color:var(--ink-faint,inherit);margin-top:48px}
+</style>
+</head>
+<body>
+<div class="rails" aria-hidden="true"></div>
+
+<nav>
+  <div class="in nav-in">
+    <a class="brand" href="/"><img src="/icon.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <span class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+        <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
+      </button>
+      <a class="nav-cta" href="/download?src=docs-user-guide">Download free beta</a>
+    </span>
+  </div>
+</nav>
+<main class="docmain">
+<p class="label">Docs · Diptychon</p>
+<nav class="docnav" aria-label="Docs">
+  <a href="/docs/">Overview</a><a href="/docs/user-guide">User Guide</a><a href="/docs/keyboard-reference">Keyboard Reference</a><a href="/docs/gadgets">Gadgets</a>
+</nav>
+<h1 id="diptychon-user-guide">Diptychon user guide</h1>
+<p>A task-by-task walkthrough. For the bare shortcut list, see <a href="keyboard-reference.md">keyboard-reference.md</a>. Terms here follow <a href="../CONTEXT.md"><code>CONTEXT.md</code></a> exactly — <strong>Panel</strong>, <strong>Active/Inactive Panel</strong>, <strong>Operation</strong>, <strong>Tag</strong>.</p>
+<hr>
+<h2 id="1-the-dual-panel-model">1. The dual-Panel model</h2>
+<p>Diptychon shows two <strong>Panels</strong> side by side, each listing one directory. Exactly one is the <strong>Active Panel</strong> (marked with an accent border) — it has focus and is the source of keyboard-driven Operations. The other is the <strong>Inactive Panel</strong>.</p>
+<ul><li><strong>Switch which Panel is Active:</strong> <code>⇥</code> (Tab), or click into a Panel.</li><li><strong>Why two?</strong> So the source and the destination are both on screen. Moving files is a single gesture, not a copy-paste round trip through one window.</li></ul>
+<p>The <strong>Destination</strong> of an Operation is resolved <em>per gesture</em>, not fixed:</p>
+<div class="tablewrap" role="region" tabindex="0"><table><thead><tr><th scope="col">Gesture</th><th scope="col">Destination</th></tr></thead><tbody><tr><td>Commander copy/move (<code>⌥⌘→/←</code>)</td><td>the <strong>Inactive Panel</strong></td></tr><tr><td>Clipboard paste (<code>⌘V</code>)</td><td>the <strong>Active Panel</strong></td></tr><tr><td>Drag &amp; drop</td><td>wherever you drop</td></tr></tbody></table></div>
+<hr>
+<h2 id="2-navigating">2. Navigating</h2>
+<ul><li><strong>Open / enter:</strong> <code>↩</code> or double-click. <strong>Go up:</strong> <code>⌘↑</code>.</li><li><strong>Back / forward:</strong> <code>⌘←</code> / <code>⌘→</code>. The bracket pair <code>⌘[</code> / <code>⌘]</code> still works as a US-layout alias — on a German keyboard <code>[</code> is ⌥8 5, so that chord can never match.</li><li><strong>Path bar:</strong> the breadcrumb above each Panel is clickable — jump to any ancestor. Paste an absolute path into Search and it navigates there directly.</li><li><strong>Go to Folder:</strong> <code>⇧⌘G</code>, then type or paste a path.</li><li><strong>Sidebar:</strong> <code>⌘B</code> shows/hides a left sidebar of places you pin. It's deliberately smaller than Finder's — just the jumping-off points people actually use.</li><li><strong>Show hidden files:</strong> <code>⇧⌘.</code>.</li><li><strong>Menu bar:</strong> every command above also sits in the menus (<strong>Go</strong>, <strong>File</strong>, <strong>View</strong>), each labelled with <em>your</em> current binding — handy while the chords are still new.</li></ul>
+<hr>
+<h2 id="3-selecting">3. Selecting</h2>
+<p>Selection is independent of opening. Use <code>⌘A</code> (all), <code>⎋</code> (none), <code>⇧⌘I</code> (invert), plus the usual click / <code>⇧</code>-click / <code>⌘</code>-click. Most Operations act on the <strong>selection</strong> if there is one, otherwise on the item under the cursor.</p>
+<hr>
+<h2 id="4-moving-copying-files">4. Moving &amp; copying files</h2>
+<p><strong>The Commander way (across Panels):</strong> point the Inactive Panel at your destination, select in the Active Panel, then:</p>
+<ul><li><code>⌥⌘→</code> / <code>⌥⌘←</code> — <strong>copy</strong> the selection into the Inactive Panel.</li><li><code>⌥⇧⌘→</code> / <code>⌥⇧⌘←</code> — <strong>move</strong> it instead.</li></ul>
+<p><strong>The Finder way (clipboard):</strong> <code>⌘C</code> to copy, <code>⌘V</code> to paste into the Active Panel, or <code>⌥⌘V</code> to paste-move. Also: <code>⌘D</code> duplicate, <code>⌘⌫</code> move to Trash, <code>⇧⌘N</code> new folder, <code>⌃⌘N</code> new file.</p>
+<p><strong>Name collisions</strong> are caught <em>before</em> anything is written — you choose overwrite, keep-both, or skip.</p>
+<hr>
+<h2 id="5-undo-the-safety-net">5. Undo — the safety net</h2>
+<p>Every file Operation records its own inverse, so <strong><code>⌘Z</code> undoes multi-level</strong> across move / copy / trash / rename, and <code>⇧⌘Z</code> redoes. Each undo/redo flashes a <strong>toast</strong> naming exactly what was reversed ("Undone — Moved 12 items"), so blind <code>⌘Z</code> never leaves you guessing.</p>
+<p><strong>The one exception: overwrites.</strong> When an Operation overwrites an existing file, the original is gone — that can't be reversed. Diptychon says so honestly ("Can't undo — files were overwritten") rather than offering a misleading undo.</p>
+<hr>
+<h2 id="6-finder-tags">6. Finder tags</h2>
+<p><code>⌘T</code> opens tagging for the selection. These are <strong>real Apple Finder tags</strong> stored on the file — set one here and it shows in Finder; tag in Finder and it shows here. Diptychon keeps <strong>no parallel tag system</strong>. You can also <strong>filter a Panel by tag</strong> to focus on just the tagged items.</p>
+<hr>
+<h2 id="7-staging-collect-then-act">7. Staging — collect, then act</h2>
+<p>Staging is a virtual set you fill from anywhere, then operate on as a group — useful when the files you care about are scattered across folders.</p>
+<ul><li><strong>Add selection to Staging:</strong> <code>⇧⌘S</code>.</li><li><strong>Show/hide the Staging panel:</strong> <code>⇧⌘B</code>.</li><li><strong>Remove from Staging:</strong> <code>⌫</code> while the Staging panel is focused.</li></ul>
+<p>Staging collects <em>references</em> to files — it doesn't move or copy anything until you run an Operation on the staged set.</p>
+<hr>
+<h2 id="8-previewing-inspecting">8. Previewing &amp; inspecting</h2>
+<ul><li><strong>QuickLook:</strong> <code>␣</code> — the same floating preview as Finder.</li><li><strong>Inline preview / inspector pane:</strong> a dockable pane showing the selected item's preview and details, for when you want it always-on rather than a spacebar pop.</li><li><strong>Get Info:</strong> <code>⌘I</code>. <strong>Reveal in Finder:</strong> <code>⇧⌘R</code>. <strong>Open With…:</strong> <code>⌘↩</code>. <strong>Copy path(s):</strong> <code>⌥⌘C</code>.</li></ul>
+<hr>
+<h2 id="9-renaming">9. Renaming</h2>
+<ul><li><strong>One file, inline:</strong> <code>⌘R</code> renames in place.</li><li><strong>Many files, batch:</strong> the batch-rename tool offers multiple modes (find/replace, numbering, etc.) with a <strong>live preview</strong> so you see the result before committing.</li></ul>
+<hr>
+<h2 id="10-drag-drop">10. Drag &amp; drop</h2>
+<p>Drag within a Panel, between Panels, and <strong>to/from Finder</strong> — Diptychon interoperates with the rest of the system rather than being a walled garden.</p>
+<hr>
+<h2 id="11-the-command-palette">11. The command palette</h2>
+<p><code>⌘K</code> opens the command palette: start typing an action's name and run it with <code>↩</code>. Every action shows its keyboard shortcut next to it, so the palette doubles as a discovery tool while you learn the chords.</p>
+<hr>
+<h2 id="12-finding-files-search-and-filter-are-different-tools">12. Finding files — Search and Filter are different tools</h2>
+<p>Two fields, two jobs. Mixing them up is the most common early confusion:</p>
+<div class="tablewrap" role="region" tabindex="0"><table><thead><tr><th scope="col"></th><th scope="col"><code>⌘F</code> <strong>Search</strong></th><th scope="col"><code>⇧⌘F</code> <strong>Filter</strong></th></tr></thead><tbody><tr><td>Where it looks</td><td>recursively, from your Home folder</td><td>the Active Panel's current folder</td></tr><tr><td>What it's for</td><td>"where did I put that?"</td><td>"narrow what I'm looking at"</td></tr><tr><td>Matching</td><td>fuzzy — typed letters in order, not a substring</td><td>name contains</td></tr></tbody></table></div>
+<p>Search also understands paths: type or paste an absolute path (or one starting with <code>~</code>) and the Panel navigates there instead of searching. Matching a folder in the path counts, so <code>proj/inv</code> finds <code>Projects/invoices</code>. Hidden files stay out unless you flip the eye toggle.</p>
+<hr>
+<h2 id="13-the-embedded-terminal">13. The embedded terminal</h2>
+<p><code>⌘J</code> opens a terminal across the bottom of both Panels, already <code>cd</code>-ed into the <strong>Active Panel's</strong> folder — no copying paths around. <code>⌘J</code> again hides it; the shell keeps running.</p>
+<hr>
+<h2 id="14-gadgets-bring-your-own-tools">14. Gadgets — bring your own tools</h2>
+<p>A gadget runs an external app or command-line tool against your selection, straight from the command palette. They are <strong>declarative</strong> — a JSON entry, no plugin API and no scripting language, which is deliberate: the tool stays inspectable.</p>
+<p><code>⌘K → "Gadgets: Edit Config…"</code> writes a working starter on first use. Full syntax and examples: <a href="gadgets.md">gadgets.md</a>.</p>
+<hr>
+<h2 id="15-watching-long-operations">15. Watching long operations</h2>
+<p>Copying a large folder doesn't block the app. The <strong>Activity</strong> pane (the list icon in the header) shows what's running and lets you cancel it; progress also surfaces as a toast. Diptychon deliberately has no background queue yet — one Operation runs at a time, and that's visible rather than hidden.</p>
+<hr>
+<h2 id="16-what-diptychon-doesn-t-do-on-purpose">16. What Diptychon doesn't do (on purpose)</h2>
+<ul><li><strong>No remote / cloud mounts</strong> (SFTP, S3, WebDAV) — Diptychon is local-first.</li><li><strong>No archive-as-folder</strong>, no folder <strong>sync/compare</strong>.</li><li><strong>A restrained sidebar</strong> — less than Finder's, by design.</li></ul>
+<p>These keep the app light. If remote server access is your core job, a tool like ForkLift is the better fit — Diptychon is the light, reliable, native dual-Panel for <strong>local</strong> work.</p>
+<hr>
+<p><em>See also:</em> <a href="keyboard-reference.md">keyboard-reference.md</a> · <a href="../README.md">../README.md</a> · <a href="../CONTEXT.md">../CONTEXT.md</a> (domain vocabulary).</p>
+<p class="docstamp">Generated from the repository docs (guarded by tests against the app's real key table) · 2026-08-10</p>
+</main>
+
+<footer>
+  <div class="in foot-in">
+    <span>© Diptychon, native macOS, ~2.7 MB</span>
+    <span class="foot-links">
+      <a href="/">Home</a>
+      <a href="/docs/">Docs</a>
+      <a href="/download?src=docs-user-guide">Download free beta</a>
+      <a href="/impressum">Impressum</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var effective = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = effective === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+    });
+  })();
+</script>
+</body>
+</html>

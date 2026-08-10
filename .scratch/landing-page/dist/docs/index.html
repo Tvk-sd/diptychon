@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Documentation — Diptychon Docs</title>
+<meta name="description" content="Diptychon documentation: user guide, the complete keyboard reference, and gadgets." />
+<link rel="canonical" href="https://diptychon.com/docs/" />
+<link rel="icon" type="image/png" href="/icon.png" />
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+<link rel="stylesheet" href="/page.css" />
+
+<style>
+  .docmain{max-width:820px;margin-inline:auto;padding:48px 24px 80px}
+  .docmain h1{margin:0 0 6px}
+  .docmain h2{margin:44px 0 12px;font-size:24px}
+  .docmain h3{margin:30px 0 10px;font-size:18.5px}
+  .docmain p,.docmain li{line-height:1.65}
+  .docmain pre{background:var(--bg-inset,rgba(127,127,127,.08));border:1px solid var(--line,#8884);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13.5px}
+  .docmain blockquote{margin:16px 0;padding:2px 18px;border-inline-start:3px solid var(--line-strong,#8886);color:var(--ink-dim,inherit)}
+  .docmain .tablewrap{overflow-x:auto;margin:16px 0}
+  .docmain table{border-collapse:collapse;width:100%;font-size:14.5px}
+  .docmain th,.docmain td{border:1px solid var(--line,#8884);padding:7px 12px;text-align:left}
+  .docmain th{background:var(--bg-inset,rgba(127,127,127,.06))}
+  .docmain code{font-family:var(--mono,ui-monospace,monospace);font-size:.86em;background:var(--bg-inset,rgba(127,127,127,.1));border:1px solid var(--line,#8884);border-radius:5px;padding:.08em .35em}
+  .docmain pre code{background:none;border:none;padding:0}
+  .docnav{font-family:var(--mono,monospace);font-size:12.5px;margin:0 0 26px}
+  .docnav a{margin-right:14px}
+  .docstamp{font-family:var(--mono,monospace);font-size:12px;color:var(--ink-faint,inherit);margin-top:48px}
+</style>
+</head>
+<body>
+<div class="rails" aria-hidden="true"></div>
+
+<nav>
+  <div class="in nav-in">
+    <a class="brand" href="/"><img src="/icon.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <span class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+        <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
+      </button>
+      <a class="nav-cta" href="/download?src=docs">Download free beta</a>
+    </span>
+  </div>
+</nav>
+<main class="docmain">
+<p class="label">Docs · Diptychon</p>
+<nav class="docnav" aria-label="Docs">
+  <a href="/docs/">Overview</a><a href="/docs/user-guide">User Guide</a><a href="/docs/keyboard-reference">Keyboard Reference</a><a href="/docs/gadgets">Gadgets</a>
+</nav>
+<h1>Documentation</h1>
+<h2><a href="/docs/user-guide">Diptychon user guide</a></h2><p>A task-by-task walkthrough. For the bare shortcut list, see [keyboard-reference.md](keyboard-reference.md). Terms here follow [CONTEXT.md](../CONTEXT.md) e…</p>
+<h2><a href="/docs/keyboard-reference">Keyboard reference</a></h2><p>Every default shortcut in Diptychon, grouped by task. Bindings are data-driven: they come from Keymap.default (Sources/Diptychon/Operations/Keymap.swift), …</p>
+<h2><a href="/docs/gadgets">Gadgets — user-defined external-tool actions</a></h2><p>Gadgets let you run an external app or command-line tool against the current selection, straight from the ⌘K command palette (issue 36). They are declarati…</p>
+<p class="docstamp">Generated from the repository docs (guarded by tests against the app's real key table) · 2026-08-10</p>
+</main>
+
+<footer>
+  <div class="in foot-in">
+    <span>© Diptychon, native macOS, ~2.7 MB</span>
+    <span class="foot-links">
+      <a href="/">Home</a>
+      <a href="/docs/">Docs</a>
+      <a href="/download?src=docs">Download free beta</a>
+      <a href="/impressum">Impressum</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var effective = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = effective === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+    });
+  })();
+</script>
+</body>
+</html>
