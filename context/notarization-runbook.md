@@ -289,6 +289,7 @@ Pipe laufen lassen, oder in eine Datei mit `tee`.
 | 2026-08-07 | Stapeln von Hand nachgeholt und bewiesen; Skript gehärtet (Branch- und Sauberkeitszwang, Statusauswertung, `--resume`) |
 | 2026-08-10 | Zwang auf Build-Inputs verengt (fremder Scratch-Churn blockierte sonst jeden Lauf); erster sauberer Volllauf von `main` (`31f2fe6`), `Accepted` in ~1 min, gestapelt, Zip 2.657.585 B |
 | 2026-08-10 | Deployed (Worker-Version `37fed3d2`), Größen auf 2.7/9 MB, Abnahme über echten Chrome-Download grün — `source=Notarized Developer ID` auf quarantänierter Kopie. Falle dabei: direkt nach dem Deploy servierte der Edge-Cache noch das alte Zip; mit Cache-Buster prüfen oder kurz warten |
+| 2026-08-11 | Zweites Release (`1a67c05`, mit #77-Fix: keine Start-Dialoge): `Accepted`, gestapelt, 2.659.156 B, deployed (`d4340a74`). Cache-Präzisierung: ein Buster auf `/download` hilft **nicht** — der Worker holt das Asset intern immer als `/Diptychon.zip`, die Query erreicht die Asset-Schicht nie. Propagation dauert 1–2 min, danach per Byte-Größe/Hash gegenprüfen |
 
 ## Siehe auch
 
