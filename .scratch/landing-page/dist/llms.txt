@@ -1,14 +1,15 @@
 # Diptychon
 
-> A fast, keyboard-first, dual-panel file manager for macOS. Two folders side by side, one keystroke to send files across, multi-level undo, native Finder tags, 1.5 MB download, native Swift, no telemetry.
+> A fast, keyboard-first, dual-panel file manager for macOS. Two folders side by side, one keystroke to send files across, multi-level undo, native Finder tags, 2.7 MB download, native Swift, no telemetry.
 
-Diptychon is **pre-launch**: there is no download and nothing to buy yet. The site captures launch notifications. The business model is decided — a one-time purchase, never recurring billing, and no telemetry (ADR 0006 and 0007 in the project repository). The price is not set, and this site deliberately does not name one.
+Diptychon is **in beta and free to download** at https://diptychon.com/download — signed and notarized by Apple, free while the beta lasts. The pricing model afterwards is not decided; this site deliberately does not name a price. What is decided: never recurring billing, and no telemetry (ADR 0006 and 0007 in the project repository).
 
 Every competitor figure on this site is dated and linked to the vendor's own page. Where a vendor does not document a feature, the comparison says "not documented" rather than asserting the feature is absent. Figures were last verified against vendor pages on 2026-07-11; two items are flagged on the pages themselves as pending re-verification.
 
 ## Pages
 
-- [Diptychon — move files at the speed of your keyboard](https://diptychon.com/): The product page: what Diptychon is, the keyboard model, the cheat-sheet, and the launch-notification form.
+- [Diptychon — move files at the speed of your keyboard](https://diptychon.com/): The product page: what Diptychon is, the keyboard model, the cheat-sheet, the free beta download, and the feedback form.
+- [Documentation](https://diptychon.com/docs/): User guide, the complete keyboard reference (generated from the app's real key table, guarded by tests), and gadgets.
 - [Diptychon vs Marta, ForkLift, Nimble Commander & Path Finder, Mac file managers compared](https://diptychon.com/vs): Diptychon against Marta, ForkLift 4, Nimble Commander and Path Finder on price model, footprint, undo, session restore, batch rename and remote support. Every number sourced and dated.
 - [Total Commander for Mac? There isn't one — the native alternatives (2026)](https://diptychon.com/total-commander-for-mac): There is no native Total Commander for macOS. What the compatibility routes cost you, which native dual-pane managers carry which part of the workflow, and what Diptychon does not do.
 - [A Marta alternative for macOS: what Marta does not do (2026)](https://diptychon.com/marta-alternative): Marta is free, native and fast. The two reasons people look elsewhere are single-developer continuity and the missing file-operation undo, an open request since 2018.

@@ -122,6 +122,10 @@ struct DiptychonApp: App {
                 ActionMenuItem(action: .preview)
             }
             CommandGroup(replacing: .help) {
+                // Deliberately absent until diptychon.com/docs existed (issue 74):
+                // a menu item that leads nowhere is worse than none. The docs are
+                // generated from the same sources DocsKeyboardReferenceTests guards.
+                Link("User Guide", destination: URL(string: "https://diptychon.com/docs/")!)
                 SettingsLink { Text("Keyboard Shortcuts…") }
                 ActionMenuItem(action: .openPalette)
             }
