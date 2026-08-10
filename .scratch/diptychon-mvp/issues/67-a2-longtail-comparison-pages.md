@@ -9,9 +9,10 @@ Category: gtm
 
 `context/channel-plan.md` › Track A (A2) · `context/reach-test.md` (SEO/AI-Search-Zeile)
 
-Siehe **#78**: `dir-a/b/c.html` tragen Größen- und Preisangaben, die der Rest
-der Seite anders nennt. Wer diese Dateien anfasst, zieht sie dort mit nach —
-sie liegen im Worktree `a2-seo-pages`, Änderungen in `main` kollidieren.
+Siehe **#78**: die vier A2-Seiten tragen Größen- und Preisangaben — beim
+Flip (#71) mit nachziehen. Seit dem Merge von `a2-seo-pages` nach `main`
+(2026-08-11) liegt alles in einem Arbeitsverzeichnis, die alte
+Worktree-Kollisionswarnung ist hinfällig.
 
 ## Auslöser
 
