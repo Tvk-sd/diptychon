@@ -66,6 +66,7 @@ Build.
 | altes Zip (2026-07-17) | 1.560.529 | 1,56 MB |
 | neues Zip, signiert (2026-08-05) | 2.655.945 | 2,66 MB |
 | neues Zip, gestapelt (2026-08-07) | 2.657.584 | 2,66 MB |
+| **sauberer main-Build (2026-08-10, `31f2fe6`)** | **2.657.585** | **2,66 MB** |
 
 Installiert (`du -sh` auf dem entpackten `.app`): **9,0 MB**. Die Seite sagt
 5 beziehungsweise 6 MB — daneben um Faktor 1,5 bis 1,8, also derselbe
@@ -83,8 +84,9 @@ Vergleichstabelle gegen ForkLift (16,3), Path Finder (19,4), Marta (10,7) und
 Nimble Commander (15,0). Mit 2,7 MB bleibt Diptychon dort deutlich vorne — das
 Argument trägt weiter, die Zahl trägt nicht.
 
-Vorbehalt: gemessen am verworfenen Branch-Build aus #69. Die Größenordnung
-stimmt, die exakte Zahl muss aus dem sauberen main-Lauf kommen.
+Die Zahlen stehen jetzt fest, gemessen am notarisierten Artefakt aus dem
+sauberen main-Lauf: **2,66 MB Download, 9,0 MB installiert**. Kein Vorbehalt
+mehr.
 
 ## Was zu tun ist
 

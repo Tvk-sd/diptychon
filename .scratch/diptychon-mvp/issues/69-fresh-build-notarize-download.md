@@ -152,6 +152,26 @@ Entwicklerwerkzeuge per Doppelklick, ohne Gatekeeper-Dialog. Mit Ausgabe von
   plus zwei Preis-Claims, die #66 vorgreifen. Gehört zum Website-Umbau (#71),
   nicht in dieses Ticket.
 
+## Stand 2026-08-10 — notarisiertes Artefakt liegt vor
+
+Sauberer Volllauf von `main` (`31f2fe6`):
+
+- Einreichung `e8b1859e-2880-4dc6-b7fe-715740f81b53`, `status: Accepted` nach
+  rund einer Minute
+- gestapelt, `stapler validate` grün, `spctl` lokal
+  `source=Notarized Developer ID`
+- Artefakt: `build/release/Diptychon.zip`, **2.657.585 Bytes**, installiert
+  **9,0 MB**
+
+Damit sind Schritte 1 bis 4 der Liste oben erledigt. Offen: Zip nach `dist/`,
+deployen, Größen nachziehen (#78), **Abnahme über einen echten Download**.
+Bis dahin liefert `diptychon.com/download` unverändert das alte, nicht
+notarisierte Zip vom 2026-07-17.
+
+Skript inzwischen dreimal gehärtet, siehe `context/notarization-runbook.md`:
+Branch- und Sauberkeitszwang auf Build-Inputs, Statusauswertung statt
+Exit-Code, `--resume` nach Netzabbruch.
+
 ## Stand 2026-08-07
 
 Erster Volllauf am 2026-08-05 gemacht. Ergebnis gemischt:

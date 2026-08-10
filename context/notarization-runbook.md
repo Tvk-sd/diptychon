@@ -19,19 +19,15 @@ verifiziert ist (Issue **#69**).
 | `scripts/release.sh` | vorhanden, einmal komplett durchgelaufen |
 | Notarisierung technisch bewiesen | **ja** — Einreichung `3ff520fe-…5464d9` vom 2026-08-05 kam mit `status: Accepted` zurück |
 | Stapeln bewiesen | **ja** — am 2026-08-07 von Hand nachgeholt, `stapler validate` grün, `spctl` meldet `source=Notarized Developer ID` |
-| Auslieferbares Artefakt | **nein** — siehe unten |
-| `diptychon.com/download` | liefert weiterhin das alte, nicht notarisierte Zip vom 2026-07-17 |
+| Auslieferbares Artefakt | **ja** — `build/release/Diptychon.zip`, gebaut am 2026-08-10 von `main` (`31f2fe6`), Einreichung `e8b1859e-…f81b53` `Accepted`, gestapelt |
+| `diptychon.com/download` | liefert **noch** das alte, nicht notarisierte Zip vom 2026-07-17 |
 
-**Warum es trotz `Accepted` kein Release gibt:** der Lauf vom 2026-08-05 baute
-aus dem Arbeitsverzeichnis, in dem gerade der Branch `feat/42-docs-regenerated`
-mit schmutzigem Arbeitsbaum lag — eine parallele Session hatte umgeschaltet.
-Das Artefakt entspricht keinem Commit, also weiß niemand, was drin ist. Es
-wurde nicht gestapelt und darf nicht ausgeliefert werden. Der Lauf zählt als
-Rauchtest der Pipeline: Build, Signatur mit Hardened Runtime, Zeitstempel,
-Upload und Apples Prüfung funktionieren nachweislich.
+**Offen ist nur noch die Auslieferung:** Zip nach `dist/`, deployen,
+Größenangaben nachziehen (#78), dann die Abnahme über einen echten Download.
+Siehe „Nach dem Lauf" unten.
 
-**Nächster Schritt:** einen sauberen Worktree auf `main` anlegen, dort bauen.
-Siehe „Bekannte Grenzen" unten.
+Maße des aktuellen Artefakts: Zip **2.657.585 Bytes (~2,66 MB)**, installiert
+**9,0 MB** (`du -sh`).
 
 ---
 
@@ -291,6 +287,8 @@ Pipe laufen lassen, oder in eine Datei mit `tee`.
 |---|---|
 | 2026-08-04 | Mitgliedschaft aktiv, Developer-ID-Zertifikat erzeugt, `scripts/release.sh` gebaut |
 | 2026-08-05 | Notary-Key erzeugt, Credentials im Schlüsselbund; erster Volllauf: Build und Signatur sauber, Einreichung `Accepted` nach ~40 min, Poller starb vorher am Netz; Build kam vom falschen Branch, Artefakt verworfen |
+| 2026-08-07 | Stapeln von Hand nachgeholt und bewiesen; Skript gehärtet (Branch- und Sauberkeitszwang, Statusauswertung, `--resume`) |
+| 2026-08-10 | Zwang auf Build-Inputs verengt (fremder Scratch-Churn blockierte sonst jeden Lauf); erster sauberer Volllauf von `main` (`31f2fe6`), `Accepted` in ~1 min, gestapelt, Zip 2.657.585 B |
 
 ## Siehe auch
 
