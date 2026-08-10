@@ -328,10 +328,12 @@ Zugriff vermutlich geerbt.
 | | | |
 |---|---|---|
 | **B1** | Tastaturbelegung nicht auffindbar | ✅ #74, gemergt |
-| **B2** | Doku falsch und nicht platziert | offen, #42 |
-| **T1** | Erstlauf zeigt zweimal denselben Ordner | offen, **#75** |
-| **T2** | Bearbeiten-Menü widerspricht dem Produkt | offen, **#76** (mit T3/T4) |
-| **T5** | TCC-Timing ungeprüft | offen, 30 s bei Till |
+| **B2** | Doku falsch und nicht platziert | ✅ #42 inhaltlich zu (`b9fb30a`), Platzierung in #71 gebündelt (`33c05d0`) |
+| **T1** | Erstlauf zeigt zweimal denselben Ordner | ✅ **#75**, `930f5d1` |
+| **T2** | Bearbeiten-Menü widerspricht dem Produkt | ✅ **#76**, `f880391` |
+| **T5** | TCC-Timing | beantwortet (`526ffcf`): Dialoge kommen beim Start → eskaliert zu **#77**, Probe steht, Beobachtung bei Till |
+
+*(Stand 2026-08-10: das Gate hängt nur noch an #77.)*
 
 **#69 und #71 dürfen erst starten, wenn diese Liste leer ist** — sonst
 verspricht die Website einen Download, dessen erste dreißig Sekunden gegen das

@@ -54,18 +54,44 @@ Verdächtige, in dieser Reihenfolge zu prüfen:
    einen geschützten Ordner, wird er beim Start gelesen. Erklärt allerdings
    nicht den Erstlauf mit leerer Domain.
 
-## Reproduktion (nur bei Till)
+## Code-Untersuchung 2026-08-10 — alle vier Verdächtigen entlastet
+
+| Verdacht | Befund |
+|---|---|
+| 1 Zeilen-Metadaten | `LocalDirectorySource.load()` holt `resourceValues` + FinderTags nur auf den Kind-**Einträgen** von Home (stat/xattr auf dem Ordner-Knoten), nicht in ihnen. Zeilen-Icons kommen aus `FileIconProvider` — **typ-basiert** (`NSWorkspace.icon(for: UTType)`), nie pfad-basiert; `icon(forFile:)` existiert nur im Open-With-Menü (Nutzeraktion) |
+| 2 FDA-Probe | `FullDiskAccess` liest ~/Library/Safari, läuft aber erst bei `windowDidBecomeActive`, nicht beim Start — und ~/Library ist nicht Desktop/Documents/Downloads |
+| 3 Volume-Enumeration | `mountedDeviceVolumes()` läuft im `init`, fasst aber nur `/Volumes/*` an |
+| 4 State-Restore | reiner UserDefaults-Read; Erstlauf hat ohnehin leere Domain |
+
+Sidebar zusätzlich geprüft: `url(for:in:appropriateFor:create: false)` — reine
+Pfadauflösung, kein Zugriff. `DirectoryWatcher` öffnet nur die zwei gelisteten
+Ordner (Home, /Applications).
+
+**Folgerung:** kein expliziter Griff in die drei Ordner im eigenen Code. Der
+Auslöser sitzt in Framework-Internals (AppKit/SwiftUI-Prefetch oder ein
+TCC-gated Syscall auf den Ordner-Knoten selbst) und ist nur empirisch zu
+fassen. Deshalb ist die Reproduktion jetzt vorbereitet:
+
+## Reproduktion (vorbereitet 2026-08-10, Beobachtung bei Till)
 
 Von hier aus **nicht messbar**: ein aus dem Terminal gestarteter Prozess erbt
 die TCC-Zuordnung des Elternprozesses, und meine Shell darf Schreibtisch und
 Dokumente bereits. Deshalb:
 
-1. Debug-Build kopieren, `CFBundleIdentifier` der Kopie auf einen frischen Wert
-   setzen, ad-hoc neu signieren (Ablauf in #68 › Methode)
-2. `defaults read <neue-id>` muss „does not exist" melden
-3. **Im Finder doppelklicken**, nicht per `open` aus einer Shell
-4. Notieren: wie viele Dialoge, für welche Ordner, in welcher Reihenfolge, und
-   wie die App zwischen den Dialogen aussieht
+Steht bereit: **`/Applications/Diptychon77.app`** — Release-Build von main mit
+frischer Bundle-ID (`com.diptychon.probe77.…`, leere Defaults-Domain, ad-hoc
+signiert). Skripte im Session-Scratchpad (`probe77-setup.sh` zum Neubauen,
+`probe77-capture.sh` für den TCC-Log-Mitschnitt).
+
+Ablauf (2 Minuten):
+
+1. Capture-Skript starten (nimmt 90 s `log stream` auf `com.apple.TCC` auf)
+2. **Diptychon77 im Finder doppelklicken** — nicht per `open`/Terminal, sonst
+   erbt der Prozess die TCC-Rechte der Shell
+3. Notieren: wie viele Dialoge, welche Ordner, welche Reihenfolge, wie die App
+   dazwischen aussieht
+4. Der Mitschnitt (`/tmp/probe77-tcc.log`) liefert die `kTCCService…`-Namen und
+   das Timing — daraus lässt sich der Auslöser dem Startpfad zuordnen
 
 ## Lösungsrichtungen (noch nicht entschieden)
 
