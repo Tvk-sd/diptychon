@@ -95,9 +95,11 @@ now have a working script and their own runbook:
 > the standing document for signing, notarizing and shipping. `scripts/release.sh`
 > is the executable form of it.
 
-Until a zip downloaded from diptychon.com passes `spctl -a -vv` (issue 69), the
-**current path above still applies** — the served download is not yet notarized
-and testers still need the bypass.
+**Since 2026-08-10 this is the live path:** the zip served at
+diptychon.com/download is signed, notarized and stapled; a real browser
+download passes `spctl -a -vv` with `source=Notarized Developer ID` (issue 69,
+closed). Testers no longer need the bypass above — it stays documented only as
+a fallback for unsigned local dev builds.
 
 Outline of what remains after that:
 

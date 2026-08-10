@@ -3,9 +3,10 @@
 Selbständig ausführbar oder als Auftrag an Claude übergebbar. Stand: 2026-08-07.
 
 Dies ist das Standarddokument für Notarisierung. Das Skript dazu ist
-`scripts/release.sh`. `docs/distribution.md` beschreibt weiterhin den alten
-Ad-hoc-Weg für Einzeltester — der gilt, bis der erste notarisierte Download
-verifiziert ist (Issue **#69**).
+`scripts/release.sh`. Seit 2026-08-10 ist der Download auf diptychon.com
+notarisiert und abgenommen (#69 geschlossen); der Ad-hoc-Bypass in
+`docs/distribution.md` ist damit Geschichte und nur noch als Fallback für
+unsignierte Dev-Builds relevant.
 
 ---
 
@@ -20,14 +21,12 @@ verifiziert ist (Issue **#69**).
 | Notarisierung technisch bewiesen | **ja** — Einreichung `3ff520fe-…5464d9` vom 2026-08-05 kam mit `status: Accepted` zurück |
 | Stapeln bewiesen | **ja** — am 2026-08-07 von Hand nachgeholt, `stapler validate` grün, `spctl` meldet `source=Notarized Developer ID` |
 | Auslieferbares Artefakt | **ja** — `build/release/Diptychon.zip`, gebaut am 2026-08-10 von `main` (`31f2fe6`), Einreichung `e8b1859e-…f81b53` `Accepted`, gestapelt |
-| `diptychon.com/download` | liefert **noch** das alte, nicht notarisierte Zip vom 2026-07-17 |
-
-**Offen ist nur noch die Auslieferung:** Zip nach `dist/`, deployen,
-Größenangaben nachziehen (#78), dann die Abnahme über einen echten Download.
-Siehe „Nach dem Lauf" unten.
+| `diptychon.com/download` | **liefert das notarisierte Zip** (deployed 2026-08-10, Version `37fed3d2`) |
+| Abnahme | **grün** — echter Browser-Download, quarantänierte Kopie: `accepted · source=Notarized Developer ID` (#69, geschlossen) |
 
 Maße des aktuellen Artefakts: Zip **2.657.585 Bytes (~2,66 MB)**, installiert
-**9,0 MB** (`du -sh`).
+**9,0 MB** (`du -sh`). Größenangaben auf den deployten Seiten entsprechend
+2.7 MB / 9 MB (#78 für den Rest).
 
 ---
 
@@ -289,6 +288,7 @@ Pipe laufen lassen, oder in eine Datei mit `tee`.
 | 2026-08-05 | Notary-Key erzeugt, Credentials im Schlüsselbund; erster Volllauf: Build und Signatur sauber, Einreichung `Accepted` nach ~40 min, Poller starb vorher am Netz; Build kam vom falschen Branch, Artefakt verworfen |
 | 2026-08-07 | Stapeln von Hand nachgeholt und bewiesen; Skript gehärtet (Branch- und Sauberkeitszwang, Statusauswertung, `--resume`) |
 | 2026-08-10 | Zwang auf Build-Inputs verengt (fremder Scratch-Churn blockierte sonst jeden Lauf); erster sauberer Volllauf von `main` (`31f2fe6`), `Accepted` in ~1 min, gestapelt, Zip 2.657.585 B |
+| 2026-08-10 | Deployed (Worker-Version `37fed3d2`), Größen auf 2.7/9 MB, Abnahme über echten Chrome-Download grün — `source=Notarized Developer ID` auf quarantänierter Kopie. Falle dabei: direkt nach dem Deploy servierte der Edge-Cache noch das alte Zip; mit Cache-Buster prüfen oder kurz warten |
 
 ## Siehe auch
 

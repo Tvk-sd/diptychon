@@ -1,6 +1,6 @@
 # 69 — Frischen Build notarisieren und den Download echt machen
 
-Status: **ready-for-human** (hängt an Tills Apple-Developer-Lizenz)
+Status: **CLOSED** (2026-08-10) — Download auf diptychon.com ist notarisiert, Abnahme über echten Browser-Download grün
 Category: release
 
 ## Parent
@@ -192,6 +192,36 @@ Erster Volllauf am 2026-08-05 gemacht. Ergebnis gemischt:
 Lücken im Skript stehen im Runbook unter „Bekannte Grenzen" — Branch- und
 Sauberkeitszwang zuerst, sonst wiederholt sich genau dieser Lauf.
 
-## Outcome
+## Outcome (2026-08-10)
 
-_(offen)_
+Deployed und abgenommen. `diptychon.com/download` liefert das notarisierte Zip
+aus dem sauberen main-Build (`31f2fe6`, Einreichung `e8b1859e` `Accepted`).
+
+**Die Abnahme lief über den echten Pfad**, nicht lokal: Download im Browser
+(Chrome setzte `com.apple.quarantine`), Entpacken über Archive Utility (vererbt
+das Flag), dann auf der quarantänierten Kopie:
+
+```
+/Users/Till/Downloads/Diptychon.app: accepted
+source=Notarized Developer ID
+origin=Developer ID Application: Till von Krueger (XDCAAWJ75G)
+```
+
+Danach nach `/Applications` installiert (ersetzt Tills alte Kopie), per `open`
+gestartet: Prozess läuft, Gatekeeper stempelte das Quarantäne-Flag von `0081`
+auf `00c1` (geprüft, freigegeben) — kein Block. Einschränkung ehrlich benannt:
+das ist derselbe Mac, auf dem signiert wurde; der Doppelklick-Test auf einem
+Mac ohne Entwicklerwerkzeuge steht als letzte Bestätigung aus, das Notar-Urteil
+hängt aber nicht an der Maschine.
+
+Größenangaben auf allen deployten Seiten nachgezogen (2.7 MB / 9 MB, #78 für
+die nicht deployten dir-Seiten und die Preis-Claims bleibt offen).
+
+Nebenwirkung fürs Messen (#73): die Verifikation erzeugte Zähler-Einträge
+unter `downloads:src:release-check`, `src:acceptance` und `src:direct`
+(2026-08-10) — bei der ersten Auswertung abziehen.
+
+Damit ist **#71 frei** (der zweite Blocker #68 gilt weiterhin).
+
+Commits: Pipeline `0bccc7b`, Härtung `1fe6081`/`31f2fe6`, Runbook siehe
+`context/notarization-runbook.md`.
