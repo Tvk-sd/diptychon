@@ -18,9 +18,28 @@ struct LocalDirectorySource: PanelSource {
         .contentModificationDateKey,
         .isDirectoryKey,
         .isHiddenKey, // batched; lets the list dim hidden rows when they're shown.
-        .tagNamesKey, // cheap, batched; signals which files need the xattr color read.
         .contentTypeKey, // batched UTType → the Kind column (issue 29).
     ]
+
+    /// `resourceKeys` plus the tag names. Tags are xattr-backed, and reading
+    /// xattrs on a TCC-protected folder *node* (~/Desktop et al.) is what makes
+    /// macOS throw three permission dialogs at first launch (issue 77) — plain
+    /// stat-based keys above never prompt. So tags are fetched per row and only
+    /// for rows outside `tccProtectedFolders`.
+    private static let resourceKeysWithTags: [URLResourceKey] =
+        resourceKeys + [.tagNamesKey]
+
+    /// The user folders macOS gates behind a per-app TCC consent dialog.
+    /// Listing their *parent* is free; touching their xattrs is not. The price
+    /// of skipping tags here: no tag dots on exactly these rows.
+    private static let tccProtectedFolders: Set<URL> = {
+        let fm = FileManager.default
+        return Set(
+            [FileManager.SearchPathDirectory.desktopDirectory, .documentDirectory, .downloadsDirectory]
+                .compactMap { try? fm.url(for: $0, in: .userDomainMask, appropriateFor: nil, create: false) }
+                .map { $0.standardizedFileURL }
+        )
+    }()
 
     func load() async throws -> [FileItem] {
         let directory = self.directory
@@ -36,10 +55,13 @@ struct LocalDirectorySource: PanelSource {
             )
 
             return urls.map { url in
-                let values = try? url.resourceValues(forKeys: Set(Self.resourceKeys))
+                let isProtected = Self.tccProtectedFolders.contains(url.standardizedFileURL)
+                let keys = isProtected ? Self.resourceKeys : Self.resourceKeysWithTags
+                let values = try? url.resourceValues(forKeys: Set(keys))
                 let isDir = values?.isDirectory ?? false
                 // Only pay the per-file xattr read (for colors) when the batched
-                // tagNames says this file is actually tagged.
+                // tagNames says this file is actually tagged. Protected folders
+                // (issue 77) never get here: their tagNames is never fetched.
                 let tags = (values?.tagNames?.isEmpty == false) ? FinderTag.read(from: url) : []
                 return FileItem(
                     url: url,

@@ -93,7 +93,41 @@ Ablauf (2 Minuten):
 4. Der Mitschnitt (`/tmp/probe77-tcc.log`) liefert die `kTCCService…`-Namen und
    das Timing — daraus lässt sich der Auslöser dem Startpfad zuordnen
 
-## Lösungsrichtungen (noch nicht entschieden)
+## Befund 2026-08-10 — Täter identifiziert
+
+Reproduktion gelaufen: Diptychon77 (frische Bundle-ID) im Finder gestartet,
+Till sah **drei Dialoge** (Schreibtisch, Dokumente, Downloads), TCC-Log
+parallel mitgeschnitten (`/tmp/probe77-tcc.log`):
+
+```
+20:36:24.8  kTCCServiceSystemPolicyDesktopFolder    → AUTHREQ_PROMPTING
+20:36:35.6  kTCCServiceSystemPolicyDocumentsFolder  → AUTHREQ_PROMPTING
+20:36:38.5  kTCCServiceSystemPolicyDownloadsFolder  → AUTHREQ_PROMPTING
+```
+
+Muster: **ein** Thread, alphabetische Reihenfolge, jeder Request blockiert bis
+zur Dialog-Antwort (die Lücken sind Tills Reaktionszeit). Das ist die
+Listing-Schleife von Home — Verdacht 1, aber nicht die Icons (typ-basiert,
+entlastet), sondern **`.tagNamesKey`/`FinderTag.read`**: Finder-Tags liegen
+als xattr, und xattr-Lesen auf dem geschützten Ordner-Knoten selbst ist
+TCC-gated. Die stat-basierten Keys (Größe, Datum, hidden, Typ) prompten nicht.
+Requesting war die App selbst (pid im Log), 0,8 s nach Start = erster
+Panel-Load. #75 ist entlastet: Erstlauf öffnet Home + /Applications.
+
+## Fix (umgesetzt 2026-08-10, Lösungsrichtung 1)
+
+`LocalDirectorySource.swift`: `.tagNamesKey` aus dem Bulk-Prefetch raus;
+pro Zeile werden Tags nur noch für URLs außerhalb der geschützten Trias
+(Desktop/Documents/Downloads, via `tccProtectedFolders`) geholt. Preis: keine
+Tag-Punkte auf genau diesen drei Zeilen. Der erste Dialog kommt jetzt erst,
+wenn der Nutzer selbst in den Ordner navigiert — der Moment, in dem die Frage
+zu seiner Handlung gehört.
+
+Verifikation: volle Suite, dann frische Probe-ID (Diptychon77 neu), erneuter
+Finder-Start — Erwartung **null Dialoge** beim Start, ein Dialog beim ersten
+Klick auf Schreibtisch.
+
+## Lösungsrichtungen (Stand vor dem Befund)
 
 - **Nichts Geschütztes beim Start anfassen.** Der erste Dialog kommt dann, wenn
   der Nutzer selbst auf „Schreibtisch" klickt — ein Moment, in dem die Frage
