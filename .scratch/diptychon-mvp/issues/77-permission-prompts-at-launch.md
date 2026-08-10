@@ -1,6 +1,6 @@
 # 77 — Drei Berechtigungsdialoge direkt beim Start
 
-Status: **ready-for-human** (Reproduktion und Beobachtung nur bei Till möglich)
+Status: **CLOSED** (2026-08-10) — null Dialoge beim Start, verifiziert mit frischer Bundle-ID durch Finder-Start
 Category: bug / onboarding / trust
 
 ## Parent
@@ -146,6 +146,22 @@ Ticket blockiert — links Home, rechts `/Applications`, beide ungeschützt. Es
 löst dieses Problem aber auch nicht: der Dialog kommt beim Auflisten von Home,
 nicht wegen des zweiten Panels.
 
-## Outcome
+## Outcome (2026-08-10)
 
-_(offen)_
+Fix `58b63e0` empirisch bestätigt, echter Pfad (frische Bundle-ID
+`…1786387894`, Finder-Doppelklick, Till am Bildschirm, Unified-Log
+nachträglich ausgewertet):
+
+```
+23:34:04.6  Start, Panel interaktiv nach 843 ms — null TCC-Requests
+23:34:24.9  kTCCServiceSystemPolicyDocumentsFolder → Prompt (Tills Klick)
+23:34:52.3  kTCCServiceSystemPolicyDownloadsFolder → Prompt (Tills Klick)
+```
+
+Vorher drei Dialoge unaufgefordert beim Start, nachher null — der Dialog
+kommt erst bei der Navigation des Nutzers in den Ordner, also im Moment
+seiner eigenen Handlung. Täter war `.tagNamesKey`/`FinderTag.read` in der
+Home-Listing-Schleife (xattr auf geschützten Ordner-Knoten ist TCC-gated).
+Preis des Fixes: keine Tag-Punkte auf den drei Systemordner-Zeilen.
+
+Suite grün (Unit + UI). Damit ist die #68-Gate-Liste leer.

@@ -13,8 +13,6 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 
 ## Offen — bei AI
-**#69 ist zu** — Download auf diptychon.com notarisiert, deployed, abgenommen (Runbook: `context/notarization-runbook.md`). #71 hängt damit nur noch an #68.
-
-Nächstes: **#68 Teil 2** — der empirische Erstlauf (Start ohne `workspaceState`, Timing der macOS-Zugriffsdialoge, Lesbarkeit der Zwei-Panel-Anordnung ohne Vorwissen, Rest der Standardmenüs). Braucht Tills Bildschirm, deshalb terminiert. Danach **#71** (Startseite umbauen), sobald #69 durch ist.
+**#68 und #69 sind zu** — Gate leer (letzter Blocker #77 am 2026-08-10 behoben und empirisch bestätigt), Download notarisiert und live. **Nächstes: #71** (Startseite auf „free while in beta" umbauen) — Status `ready-for-human`, die Copy-Entscheidungen liegen bei Till; danach `ready-for-agent`. Der Fix aus #77 muss vor dem Flip noch als neues Release über `scripts/release.sh` ausgeliefert werden, sonst lädt die Seite einen Build, der beim Start noch promptet.
 
 Eingefroren bis echter Nutzer-Input da ist: **#39** (Recent Locations) und **#40** (Ladepfad). Beide sind Vermutungen aus der Netnographie, und ADR 0008 stellt die Reihenfolge künftig auf das um, was Nutzer schreiben. Auftau-Bedingung ist deshalb nicht „nach #71", sondern: die ersten Freitextantworten aus **#72** liegen vor. Nennt sie niemand, sind sie nicht dran.

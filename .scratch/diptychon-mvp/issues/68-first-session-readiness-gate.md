@@ -1,6 +1,6 @@
 # 68 — Readiness-Gate: was trifft ein Fremder in der ersten Session?
 
-Status: **ready-for-agent**
+Status: **CLOSED** (2026-08-10) — Gate leer, alle fünf Blocker behoben oder beantwortet; #71 ist frei
 Category: gtm / qa
 
 ## Parent
@@ -333,7 +333,11 @@ Zugriff vermutlich geerbt.
 | **T2** | Bearbeiten-Menü widerspricht dem Produkt | ✅ **#76**, `f880391` |
 | **T5** | TCC-Timing | beantwortet (`526ffcf`): Dialoge kommen beim Start → eskaliert zu **#77**, Probe steht, Beobachtung bei Till |
 
-*(Stand 2026-08-10: das Gate hängt nur noch an #77.)*
+*(2026-08-10, abends: **#77 geschlossen** — Fix `58b63e0`, empirisch mit
+frischer Bundle-ID bestätigt: null Dialoge beim Start. **Das Gate ist leer,
+dieses Ticket ist zu, #71 ist frei.** Der Erstkontakt hält jetzt: zwei
+verschiedene Ordner, wahres Menü, auffindbare Shortcuts, korrekte Doku,
+keine ungefragten Berechtigungsdialoge.)*
 
 **#69 und #71 dürfen erst starten, wenn diese Liste leer ist** — sonst
 verspricht die Website einen Download, dessen erste dreißig Sekunden gegen das
