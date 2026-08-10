@@ -85,8 +85,13 @@ fi
 # what is in it. On 2026-08-05 a run built from a foreign branch with a dirty
 # tree and produced a notarized bundle that had to be thrown away.
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-DIRTY="$(git status --porcelain)"
+# Only build inputs matter. Scratch and docs churn constantly (parallel
+# sessions, video harnesses) and cannot change the binary — blocking on them
+# would train everyone to reach for RELEASE_ALLOW_DIRTY, which defeats the check.
+BUILD_INPUTS="Sources Resources Tests project.yml"
+DIRTY="$(git status --porcelain -- $BUILD_INPUTS)"
 echo "branch:   $BRANCH ($(git rev-parse --short HEAD))"
+[ -z "$(git status --porcelain)" ] || echo "note:     tree has changes outside $BUILD_INPUTS (does not affect the build)"
 
 if [ "${RELEASE_ALLOW_DIRTY:-0}" = "1" ]; then
   echo "warning:  RELEASE_ALLOW_DIRTY=1 — build may not match any commit"
@@ -96,7 +101,7 @@ else
   [ "$BRANCH" = "$RELEASE_BRANCH" ] || fail "on branch '$BRANCH', expected '$RELEASE_BRANCH'.
 A release must be traceable to a commit. Switch branches, or set
 RELEASE_BRANCH=$BRANCH to release from here on purpose."
-  [ -z "$DIRTY" ] || fail "working tree is dirty — the build would match no commit:
+  [ -z "$DIRTY" ] || fail "uncommitted build inputs — the binary would match no commit:
 $(printf '%s\n' "$DIRTY" | head -10)
 Commit or stash first, or set RELEASE_ALLOW_DIRTY=1 to override on purpose."
 fi
