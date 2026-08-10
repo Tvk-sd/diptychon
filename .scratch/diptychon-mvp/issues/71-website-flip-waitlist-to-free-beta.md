@@ -59,6 +59,23 @@ Feedback herum neu geordnet; `/vs` und die vier Vergleichsseiten behalten ihre
 Struktur und brauchen nur Textkorrekturen — sie sind bereits answer-first
 gebaut und funktionieren unverändert als Einstiege.
 
+## Aus #42 hierher gebündelt (Platzierungsentscheid 2026-08-07)
+
+Die Doku geht mit dem Flip live, nicht vorher — eine Doku-Seite zu einer App,
+die man nicht laden kann, wäre dieselbe Halbheit, die dieses Ticket beseitigt.
+Vier Punkte, die vier Augen sonst verlieren:
+
+1. `docs/user-guide.md`, `docs/keyboard-reference.md`, `docs/gadgets.md` als
+   HTML unter **`/docs`** im Stil von `/vs` (gleiches `page.css`)
+2. Die Web-Referenz wird **aus der Markdown-Quelle generiert**, nie daneben
+   gepflegt — `DocsKeyboardReferenceTests` bewacht nur die Repo-Fassung, eine
+   Hand-Kopie driftet unbewacht
+3. Menüeintrag **„User Guide"** in der App neben „Keyboard Shortcuts…" — #74
+   hat ihn bewusst weggelassen, solange die Seite fehlt (kein Menüeintrag, der
+   ins Leere führt). Kommt also erst mit diesem Deploy
+4. `sitemap.xml` und `llms-full.txt` nehmen die `/docs`-Seiten mit auf — ein
+   User Guide ist die zitierfähige Primärquelle, auf die der #67-Befund zeigt
+
 ## Umfang
 
 1. `index.html` — **Neuordnung, nicht nur Textersatz.** Der Artefakt nach oben,
