@@ -188,7 +188,53 @@ Gehört zu `context/channel-plan.md`, nicht in dieses Issue.
 Markdown-Zwillinge je Seite (`/vs.md` o. ä.) über den Worker — `llms-full.txt`
 deckt denselben Bedarf ab, ohne eine zweite Route zu pflegen.
 
+## Grill 2026-08-03 — was die Seiten wirklich sind
+
+Die Arbeit dieser Session wurde nachträglich gegrillt. Vier Befunde, die den
+Rahmen aus #55 verändern:
+
+1. **Die 8-%-GO-Bar aus #55 ist tot.** Sie war für einen Purchase-Intent-Ads-
+   Kanal gedacht. Die A2-Seiten bringen Organik-Traffic auf ein Produkt ohne
+   Download — dasselbe Prozent-Ziel misst hier ein anderes Instrument.
+   Ersatz ist Tills eigene Regel: **ein Monat ohne Signal = Stopp.** Signal
+   heißt: eine Ads-Hypothese gewinnt klar auf CTR **plus** 30+ verwertbare
+   Freitextantworten. Nicht: X % Signup-Rate.
+2. **Die $99 Developer-Lizenz ist kein Entscheidungs-Gate.** Till kauft sie
+   auch bei null Signal. Damit fällt die Begründung „erst Reichweite messen,
+   dann $99 ausgeben" weg — sie ist Voraussetzung, nicht Konsequenz.
+3. **Die vier Seiten sind kein Messinstrument.** Organisches Ranking braucht
+   Monate, Seitenaufrufe sind heute nicht messbar (keine Analytics, bewusst).
+   Innerhalb eines Monats liefern sie keine Entscheidung. Sie sind
+   **message-matched Landingpages für Ads-Hypothese H1** (`path finder
+   alternative`, `forklift alternative`, `marta file manager alternative`)
+   plus Launch-Asset. Per-Seite-`?src=` gibt in Tagen Signal, nicht in Monaten.
+   Lücke: `commander one alternative` hat keine Seite; H2/H3/H4 landen ohne
+   Message-Match auf `/`.
+4. **Zirkelabhängigkeit aufgelöst.** Der Ads-Test sollte das Preismodell
+   entscheiden (Variante E „Free and open source"), gleichzeitig soll das
+   Modell vor dem Test stehen. Auflösung: Variante E aufspalten. **„Free, no
+   subscription, no telemetry"** ist heute wahr, einlösbar und rückholbar —
+   testbar. **„Open source"** ist die einzige unumkehrbare Entscheidung hier
+   (veröffentlichter Code bleibt veröffentlicht; ein geschlossenes Projekt
+   kann man jederzeit öffnen, nie andersherum) und bleibt deshalb aus der
+   Ad-Copy raus. **#66 darf offen bleiben, bis die Freitextantworten da sind.**
+
+Verifiziert in `.scratch/landing-page/src/worker.js`:
+- `String(w).slice(0, 40)` und `.slice(0, 12)` — `wishes` sind auf 40 Zeichen
+  und 12 Einträge gedeckelt. Für Freitext-Antworten braucht es ein neues Feld.
+- `const src = existing?.src ?? …` — **First-Touch-Attribution, wird nie
+  überschrieben.** Korrekt für Kanalvergleich.
+
 ## Outcome
 
 _(offen — Deploy + Vendor-Recheck durch Till, danach `signups:src:tcmac|marta|
-forklift|pathfinder` gegen die GO-Bar aus #55 lesen)_
+forklift|pathfinder` gegen das Zeitkriterium oben lesen, nicht gegen die
+8-%-Bar aus #55)_
+
+Offene Folgearbeiten aus dem Grill:
+- LP als Messinstrument: Freitextfeld statt 40-Zeichen-Chips, Modellfrage nach
+  dem Signup, `?src=` bleibt.
+- Fünfte Seite `commander-one-alternative` für das fehlende H1-Keyword.
+- Branch-Hygiene: Issue-Nummern kollidieren (lokal ist #65 das eingebettete
+  Terminal, geschlossen in `4043372`); PLAN.md-Konflikt mit main; Renummerierung
+  vor jedem Merge.
