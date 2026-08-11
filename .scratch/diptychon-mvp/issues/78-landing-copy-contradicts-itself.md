@@ -1,6 +1,13 @@
 # 78 — Die Landing-Copy widerspricht sich selbst (Größe und Preis)
 
-Status: **needs-triage**
+Status: **CLOSED** (2026-08-11) — mit dem #71-Deploy erfüllt: eine Zahl je
+Fakt (2.7 MB / 9 MB) auf allen 13 deployten URLs inkl. llms/sitemap, kein
+Preis-Claim mehr vor der #66-Entscheidung („free while in beta (pricing not
+set)"). Die nie deployten Entwürfe `dir-a/b/c.html` und `index-prev-dark.html`
+tragen noch alte Zahlen — bewusst ignoriert, sie sind tote Drafts; wer sie
+wiederbelebt, misst neu. Offene Prominenz-Frage beantwortet sich durch den
+Ship: Größe bleibt prominent, gepflegt wird ab jetzt beim Release (Checkliste
+in `scripts/release.sh` nennt die Stellen).
 Category: gtm / landing-page
 
 ## Parent

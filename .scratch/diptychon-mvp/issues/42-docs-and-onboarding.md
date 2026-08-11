@@ -1,7 +1,10 @@
 # 42 — Docs & onboarding (tiered)
 
-Status: **ready-for-agent — der Entwurf ist nicht mehr nur ungeprüft, er ist
-falsch. Neu bewertet 2026-08-04 in der Readiness-Triage (#68), Blocker B2.**
+Status: **CLOSED** (2026-08-11) — Referenz regeneriert und testbewacht
+(`b9fb30a`), alle vier Platzierungs-Punkte mit #71 geliefert:
+`diptychon.com/docs` live (generiert via `scripts/generate-docs.mjs` aus den
+Markdown-Quellen), Hilfe ▸ User Guide in der App (`e15f903`), sitemap +
+llms-full nehmen die Seiten auf. Outcome-Details in #71.
 
 Letzte Änderung an `docs/user-guide.md` und `docs/keyboard-reference.md`:
 **2026-07-03** (`b9f0dc1`), seitdem null. Zwei belegte Fehler:

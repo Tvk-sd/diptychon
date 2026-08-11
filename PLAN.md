@@ -14,6 +14,6 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 
 ## Offen — bei AI
-**#68 und #69 sind zu** — Gate leer (letzter Blocker #77 am 2026-08-10 behoben und empirisch bestätigt), Download notarisiert und live (`1a67c05`, promptet beim Start nicht mehr). **Aktiv: #71** (Flip auf „free while in beta") — a2-Branch ist gemerged, Umbau läuft. DMG danach: #79.
+**Die Folge #68→#69→#71 ist komplett** (2026-08-11): Gate leer, Download notarisiert, Startseite + A2-Seiten + `/docs` live auf „free while in beta". **Nächstes: lesen statt bauen** — Downloads pro Kanal (#70/#73) und Freitext (#72) auswerten, sobald etwas hereinkommt; die ersten Zähler sind live seit dem Flip. Danach entscheidet sich #66 (Preis) und die Auftau-Bedingung für #39/#40. DMG-Umstellung: #79.
 
 Eingefroren bis echter Nutzer-Input da ist: **#39** (Recent Locations) und **#40** (Ladepfad). Beide sind Vermutungen aus der Netnographie, und ADR 0008 stellt die Reihenfolge künftig auf das um, was Nutzer schreiben. Auftau-Bedingung ist deshalb nicht „nach #71", sondern: die ersten Freitextantworten aus **#72** liegen vor. Nennt sie niemand, sind sie nicht dran.

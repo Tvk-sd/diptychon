@@ -1,6 +1,6 @@
 # 71 — Website-Flip: Waitlist → „free while in beta"-Download
 
-Status: **ready-for-human** (Copy-Entscheidungen offen), dann `ready-for-agent`
+Status: **CLOSED** (2026-08-11) — Flip live, Stichprobe über alle 13 URLs grün
 Category: gtm / landing-page
 
 ## Parent
@@ -101,6 +101,32 @@ Keine Seite und kein Markup behauptet mehr „pre-launch". Sichtbare Aussage und
 JSON-LD stimmen überein. Stichprobe: `curl` auf alle sechs Seiten plus
 `llms-full.txt`, kein Treffer für `pre-launch` oder `PreOrder`.
 
-## Outcome
+## Outcome (2026-08-11)
 
-_(offen)_
+Live als Worker-Version `324c32a1`, ein Deploy für alles. Vorher
+`a2-seo-pages` nach `main` gemerged (`4a1eeec`) — damit gingen die vier
+A2-Seiten und der Maschinen-Layer erstmals überhaupt live.
+
+- **index**: Hero-CTA „Download for macOS" + Label „Free while in beta ·
+  notarized by Apple", Nav/Final-CTA auf `/download` mit src-Kanälen,
+  Notify-Block vom Zähler zur Rückrufnummer + Feedback-Weg (#72)
+  umgeschrieben und aus dem Hero in eine eigene Sektion verschoben
+- **vs + 4 A2-Seiten**: Available-today „Yes — free beta", Preiszellen
+  „free while in beta (pricing not set)" — kein Preis-Claim, #66 bleibt
+  offen; alle CTAs auf `/download?src=vs/marta/forklift/pathfinder/tcmac`,
+  der #70-Zähler bekommt erstmals Futter
+- **`/docs` neu**: user-guide, keyboard-reference, gadgets — generiert via
+  `scripts/generate-docs.mjs` aus den test-bewachten Markdown-Quellen
+  (#42-Punkte 1+2); Hilfe ▸ **User Guide** in der App zeigt darauf
+  (#42-Punkt 3, Suite grün `e15f903`); sitemap + llms nehmen die Seiten
+  auf (#42-Punkt 4)
+- **Maschinen-Layer**: JSON-LD `offers` `InStock`/`price 0` (PreOrder
+  existierte entgegen Ticket-Annahme nirgends), llms.txt/llms-full.txt
+  ohne pre-launch, mit Docs-Volltext
+
+Verifikation nach Deploy (Cache-Propagation ~2 min abgewartet): alle 13
+URLs 200, **null Treffer** für pre-launch/PreOrder/launch day/1.4/1.5 MB,
+Beta-Label überall vorhanden.
+
+Damit ist die Folge #68→#69→#71 komplett. Nächster Hebel: Downloads und
+Freitext lesen (#70/#72/#73).
