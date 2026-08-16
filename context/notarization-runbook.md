@@ -28,6 +28,29 @@ Maße des aktuellen Artefakts: Zip **2.657.585 Bytes (~2,66 MB)**, installiert
 **9,0 MB** (`du -sh`). Größenangaben auf den deployten Seiten entsprechend
 2.7 MB / 9 MB (#78 für den Rest).
 
+### Fristen (Stand 2026-08-16 nachgemessen)
+
+| Was | Läuft ab | Folge |
+|---|---|---|
+| Developer-ID-Zertifikat | **2027-02-01** (`notBefore` 2026-08-04) | ab dann kein **neues** Signieren mehr möglich; bereits ausgelieferte Builds bleiben gültig, weil sie einen sicheren Zeitstempel tragen |
+| Apple-Developer-Mitgliedschaft | ~2027-08 (Jahresabo, gekauft 2026-08-04) | läuft sie aus, wird das Zertifikat widerrufen und **auch alte Downloads** fallen bei Gatekeeper durch |
+
+Die knapp sechs Monate Laufzeit sind für ein Developer-ID-Zertifikat
+ungewöhnlich (Apple gibt sonst fünf Jahre). Wahrscheinlichste Erklärung: es ist
+ein von Xcode verwaltetes Cloud-Signing-Zertifikat, das Xcode selbst erneuert.
+Nicht verifiziert. Prüfbefehl:
+
+```bash
+security find-certificate -c "Developer ID Application" -p ~/Library/Keychains/login.keychain-db \
+  | openssl x509 -noout -subject -dates
+```
+
+Spätestens im Januar 2027 einmal laufen lassen. Steht dort noch immer
+`notAfter=Feb 1 2027`, in Xcode ▸ Settings ▸ Accounts ▸ Manage Certificates ein
+frisches Developer-ID-Application-Zertifikat ziehen — `scripts/release.sh`
+findet die Identität über `security find-identity`, es ist also nichts
+hartkodiert, das nachgezogen werden müsste.
+
 ---
 
 ## Kontext
@@ -96,6 +119,14 @@ gescheitert.
 
 Danach liegen die Zugangsdaten im Schlüsselbund. Das Skript kennt nur den
 Profilnamen; die `.p8` wird nie wieder gelesen.
+
+**Offen (Stand 2026-08-16):** `~/Downloads/AuthKey_8274WG2YD4.p8` liegt noch im
+Download-Ordner, weltlesbar (`-rw-r--r--`). Nicht im Repository — dort ist
+nichts zu bereinigen. Sobald der Key im Passwort-Manager liegt, aus `~/Downloads`
+entfernen; wer eine Kopie auf der Platte behalten will, legt sie nach
+`~/.appstoreconnect/private_keys/` (`chmod 700` Ordner, `chmod 600` Datei).
+Falls der Key je abhandenkommt: in App Store Connect widerrufen, neuen erzeugen,
+`store-credentials` einmal wiederholen.
 
 Prüfen:
 
