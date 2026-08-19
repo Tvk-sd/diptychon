@@ -1,6 +1,6 @@
 # 74 — Menüleiste: die Tastaturbelegung auffindbar machen
 
-Status: **ready-for-agent**
+Status: **done — von Till von Hand getestet und abgenommen (2026-08-19)**
 Category: bug / onboarding
 
 ## Parent
@@ -129,3 +129,10 @@ eine Fehlermeldung".
       sind **nicht** durchgesehen; das gehört in Teil 2 von #68
 - [x] Volle Suite grün vor dem Merge _(216 Unit + **14** UI, 2026-08-04 — der
       neue Test ist der vierzehnte)_
+
+## Outcome-Nachtrag (2026-08-19) — abgenommen
+
+Der letzte offene Punkt — der Live-Check von Hand, der beim Bauen nicht ging,
+weil Tills eigene Instanz lief — ist erledigt: **Till hat den Menüeintrag
+Hilfe ▸ Keyboard Shortcuts… selbst getestet und abgenommen.** Damit ist B1 aus
+dem Readiness-Gate (#68) vollständig zu; nichts mehr offen.
