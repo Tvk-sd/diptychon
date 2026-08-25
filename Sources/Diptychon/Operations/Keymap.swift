@@ -42,10 +42,6 @@ enum AppAction: String, Equatable, Hashable, CaseIterable {
     case removeFromStaging // ⌫ in the Staging pane — unstage (no disk delete) (issue 20)
     case toggleSidebar   // ⌘B — show/hide the left Places sidebar (VS Code convention)
     case toggleTerminal  // ⌘J — show/hide the embedded terminal panel (issue 65)
-    case toggleBriefView // ⌘1 — Active Panel: table ↔ brief display mode (issue 37)
-    case briefOneColumn  // palette/menu — brief view, 1 column (issue 37)
-    case briefTwoColumns // palette/menu — brief view, 2 columns
-    case briefThreeColumns // palette/menu — brief view, 3 columns
 }
 
 extension AppAction {
@@ -88,10 +84,6 @@ extension AppAction {
         case .removeFromStaging:return "Remove from Staging"
         case .toggleSidebar:    return "Toggle Sidebar"
         case .toggleTerminal:   return "Toggle Terminal"
-        case .toggleBriefView:  return "Toggle Brief View"
-        case .briefOneColumn:   return "Brief View: 1 Column"
-        case .briefTwoColumns:  return "Brief View: 2 Columns"
-        case .briefThreeColumns: return "Brief View: 3 Columns"
         }
     }
 
@@ -236,9 +228,6 @@ enum Keymap {
         // Control-combos are swallowed before the app on some Macs, so neither ⌃` nor
         // a ⌃-chord is an option here (issue 65).
         (KeyChord(.character("j"), command: true), .toggleTerminal),
-        // ⌘1 — Finder's view-mode numbering (⌘1…⌘4); the one display-mode toggle
-        // gets the first slot (issue 37). Column counts live in palette/menu.
-        (KeyChord(.character("1"), command: true), .toggleBriefView),
     ]
 
     static func action(for event: NSEvent,

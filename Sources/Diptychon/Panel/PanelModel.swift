@@ -1,31 +1,6 @@
 import SwiftUI
 import Observation
 
-/// Per-panel display mode (issue 37): the detailed table, or a compact brief view
-/// that lays names + icons out in 1–3 fixed columns (down-then-across). Pane-local —
-/// each panel remembers its own mode. The persisted form is `PaneState.briefColumns`
-/// (nil = table); kept as an enum here so the column count is never separated from
-/// the mode it parameterizes.
-enum DisplayMode: Equatable {
-    case table
-    case brief(columns: Int)
-
-    /// Persisted form: nil = table, 1–3 = brief with that many columns.
-    var briefColumns: Int? {
-        switch self {
-        case .table: return nil
-        case .brief(let c): return c
-        }
-    }
-
-    /// Tolerant restore: nil or an out-of-range count degrades to the table view,
-    /// never to a broken pane (same trust principle as `RestorePath`).
-    static func from(briefColumns: Int?) -> DisplayMode {
-        guard let c = briefColumns, (1...3).contains(c) else { return .table }
-        return .brief(columns: c)
-    }
-}
-
 /// UI-side state for one Panel. `@MainActor` because everything it publishes is
 /// read by SwiftUI; the *loading* work itself is delegated to a `PanelSource`,
 /// which runs off the main thread.
@@ -181,28 +156,6 @@ final class PanelModel {
         }
         selection = [visibleItems[min(pending.index, visibleItems.count - 1)].id]
     }
-    /// The pane-local display mode (issue 37). Rendering-only: switching modes never
-    /// reloads or re-sorts — the brief view reads the same `visibleItems` feed.
-    var displayMode: DisplayMode = .table
-    /// The column count the last brief view used; toggling back from table restores it.
-    private(set) var lastBriefColumns = 2
-
-    /// ⌘1: table ↔ brief. Toggling into brief restores the last column count;
-    /// toggling out remembers it.
-    func toggleBriefView() {
-        switch displayMode {
-        case .table: displayMode = .brief(columns: lastBriefColumns)
-        case .brief(let c): lastBriefColumns = c; displayMode = .table
-        }
-    }
-
-    /// Palette/menu entry point: switch to the brief view with an explicit column
-    /// count (clamped to the 1–3 the issue scopes).
-    func setBriefColumns(_ n: Int) {
-        lastBriefColumns = min(3, max(1, n))
-        displayMode = .brief(columns: lastBriefColumns)
-    }
-
     /// Bumped to ask the list to begin an inline rename on the selected row (issue
     /// 11). The `NSTableView` watches this token and calls `editColumn`.
     var inlineRenameRequest: UUID?
@@ -269,23 +222,19 @@ final class PanelModel {
 
     // MARK: - State persistence (issue 41)
 
-    /// This pane's restorable state — current folder + sort + display mode. Filters/
-    /// search are deliberately excluded: panes always reopen unfiltered.
+    /// This pane's restorable state — current folder + sort. Filters/search are
+    /// deliberately excluded: panes always reopen unfiltered.
     var paneState: PaneState {
-        PaneState(directoryPath: directory.path, sort: PaneSort(sortOrder),
-                  briefColumns: displayMode.briefColumns)
+        PaneState(directoryPath: directory.path, sort: PaneSort(sortOrder))
     }
 
-    /// Apply a restored snapshot at launch: set the starting folder + sort + display
-    /// mode **without** pushing navigation history (this is where the pane opens, not
-    /// a place it navigated to). Call before the first `load()`; the caller resolves
-    /// `directory` against what exists on disk (`RestorePath`) so this never opens a
-    /// broken pane.
-    func restore(directory: URL, sort: PaneSort, briefColumns: Int? = nil) {
+    /// Apply a restored snapshot at launch: set the starting folder + sort **without**
+    /// pushing navigation history (this is where the pane opens, not a place it
+    /// navigated to). Call before the first `load()`; the caller resolves `directory`
+    /// against what exists on disk (`RestorePath`) so this never opens a broken pane.
+    func restore(directory: URL, sort: PaneSort) {
         self.directory = directory
         self.sortOrder = sort.comparators
-        self.displayMode = DisplayMode.from(briefColumns: briefColumns)
-        if let c = displayMode.briefColumns { lastBriefColumns = c }
     }
 
     /// Re-list the current directory (after a file op or an external change).

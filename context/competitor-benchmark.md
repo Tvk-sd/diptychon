@@ -184,7 +184,7 @@ Legend: ❌ absent · 🟡 partial · 🔄 backlog · ➖ deliberate
 | **Flatten** | Recursive folder → one flat file list | ❌ | Candidate — cheap, pairs with disk-usage |
 | **Look Up** | System-global search via Spotlight indices | ❌ | Candidate |
 | **Embedded Terminal (etty)** | Per-pane pty, dir-synced (`⌘O`) | ❌ | Weight risk — tension w/ "lightweight" |
-| **Multi-column brief display mode** | 1/2/3-column view alongside table | ✅ `⌘1` brief view (issue 37): 1–3 columns, per-pane, persisted, virtualized | Shipped |
+| **Multi-column brief display mode** | 1/2/3-column view alongside table | ❌ table-only | **File** (issue 37) |
 | **Tabs** (per pane) | Multiple tabs | ❌ | **File** (issue 38) |
 | **Recent Locations** | Visited-folder history | ❌ | **File** (issue 39) |
 | **Favorites / Volumes** | Pinned places + volume list | 🔄 sidebar (issue 16) | Covered by backlog |

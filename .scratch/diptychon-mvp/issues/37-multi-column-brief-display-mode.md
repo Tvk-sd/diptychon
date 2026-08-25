@@ -1,28 +1,7 @@
 # 37 — Multi-column brief display mode
 
-Status: done (2026-08-26) — shipped on main as `203bd39`.
-
-## Outcome
-
-- `DisplayMode` enum on `PanelModel` (`table` / `brief(columns:)`); `⌘1` toggles and
-  keeps the last column count, palette/menu set 1–3 explicitly (`toggleBriefView` +
-  `briefOne/Two/ThreeColumns` AppActions, `Keymap.swift`, View menu).
-- New `BriefFileListView` (`Sources/Diptychon/Panel/BriefFileListView.swift`):
-  `NSCollectionView` + custom `BriefLayout`, down-then-across with horizontal scroll.
-  Frames are precomputed O(n) but only visible-rect attributes/cells materialize —
-  the O(visible) virtualization posture holds. Reuses `SelectionEchoGuard`, the same
-  `FileListView` protocol, drag/drop, context menu, and first-responder claims as
-  the table.
-- `PaneState` gained optional `briefColumns` (additive schema) — mode + column count
-  persist per pane across quit/relaunch; pre-37 blobs decode as table, out-of-range
-  values degrade to table.
-- Deltas from the table (documented in the view header): no sort headers (sort
-  carries over), no type-select (⌘⇧F Filter is the type-ahead), no inline rename —
-  ⌘R on a lone selection opens the batch-rename sheet in brief mode instead.
-- Tests: `WorkspaceStateTests` (round-trip, pre-37 blob tolerance, range clamp),
-  `PanelModelRestoreTests` (capture/restore/toggle/round-trip). Full suite
-  (unit + UI) green. `docs/user-guide.md` §8 + `docs/keyboard-reference.md`
-  updated; `context/competitor-benchmark.md` §5 row flipped to ✅.
+Status: needs-triage (2026-07-02) — drafted from Marta gap analysis
+(`context/competitor-benchmark.md` §5).
 
 ## Parent
 
@@ -66,15 +45,15 @@ the common case in a dual-pane workflow.
 
 ## Acceptance criteria
 
-- [x] A pane can switch between detailed table and a 1/2/3-column brief view.
-- [x] The display mode is remembered per pane (survives navigation) **and persists
+- [ ] A pane can switch between detailed table and a 1/2/3-column brief view.
+- [ ] The display mode is remembered per pane (survives navigation) **and persists
       across quit + relaunch** via issue 41's snapshot (mode + column count in
       `PaneState`). Flips issue 41's deferred "view mode restored" AC to done.
-- [x] Keyboard navigation works correctly in brief mode (arrows move across/within
+- [ ] Keyboard navigation works correctly in brief mode (arrows move across/within
       columns; type-ahead filter and QuickLook still function).
-- [x] Brief mode stays virtualized — a 50k-file folder renders without materializing
+- [ ] Brief mode stays virtualized — a 50k-file folder renders without materializing
       every cell (no regression against issue 22 baselines).
-- [x] `context/competitor-benchmark.md` §5 gap row for multi-column view flips to ✅.
+- [ ] `context/competitor-benchmark.md` §5 gap row for multi-column view flips to ✅.
 
 ## Out of scope
 

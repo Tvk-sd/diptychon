@@ -103,7 +103,6 @@ set as one.
 | `⇧⌘R` | Reveal in Finder |
 | `⌥⌘C` | Copy path(s) |
 | `⌘J` | Show/hide the embedded terminal, opened in the Active Panel's folder |
-| `⌘1` | Toggle brief view (1–3 name-only columns) in the Active Panel — column count via palette/menu |
 | `⌘K` | Command palette (run any action by name) |
 
 ---

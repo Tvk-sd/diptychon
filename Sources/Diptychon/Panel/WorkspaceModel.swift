@@ -176,26 +176,6 @@ final class WorkspaceModel {
     /// cross-launch persistence is deferred (see issue 34 slice plan).
     var activityPanelPinned = false
 
-    /// Whether the user closed the auto-shown Activity pane for the *current* op.
-    /// Without this the ✕ is a no-op mid-copy: the pane is visible because
-    /// `running != nil`, and unpinning something that was never pinned changes
-    /// nothing. Cleared when the next Operation starts, so the pane stays a
-    /// dismissable-not-disabled surface (the non-blocking promise of #34).
-    var activityPanelDismissed = false
-
-    /// Whether the Activity pane is on screen: pinned open, or auto-shown for a
-    /// running op the user hasn't dismissed.
-    var activityPanelVisible: Bool {
-        activityPanelPinned || (coordinator.running != nil && !activityPanelDismissed)
-    }
-
-    /// The single seam for both Activity-pane verbs (header toggle and the pane's ✕),
-    /// so closing always means the same thing wherever it is triggered.
-    func setActivityPanelVisible(_ visible: Bool) {
-        activityPanelPinned = visible
-        activityPanelDismissed = !visible
-    }
-
     /// Folders the user pinned to the sidebar (issue 16, slice 2). Backed by a
     /// `[String]` of paths in `UserDefaults`; deduped on add via `PinnedFolders`.
     var pinnedFolders: [URL] = PinnedFolders.decode(
@@ -287,12 +267,9 @@ final class WorkspaceModel {
         stagingPanel = PanelModel(directory: .startDirectory,
                                   makeSource: { _, _ in StagingSource(urls: staging.urls) })
 
-        // Apply restored sort + display mode (folder is already set via the resolved
-        // plan above).
-        left.restore(directory: leftPlan.directory, sort: leftPlan.sort,
-                     briefColumns: leftPlan.briefColumns)
-        right.restore(directory: rightPlan.directory, sort: rightPlan.sort,
-                      briefColumns: rightPlan.briefColumns)
+        // Apply restored sort (folder is already set via the resolved plan above).
+        left.restore(directory: leftPlan.directory, sort: leftPlan.sort)
+        right.restore(directory: rightPlan.directory, sort: rightPlan.sort)
         // Folders on an unmounted drive: remember them, restore on remount (step 5).
         if let t = leftPlan.pendingTarget { pendingRemount[.left] = t }
         if let t = rightPlan.pendingTarget { pendingRemount[.right] = t }
@@ -316,9 +293,6 @@ final class WorkspaceModel {
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
         coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
-        // A new op un-dismisses the Activity pane: closing it applied to that copy,
-        // not to every copy from now on.
-        coordinator.onOperationStarted = { [weak self] in self?.activityPanelDismissed = false }
         // Make undo/redo legible with a transient toast (issue 18, Tier 1).
         coordinator.onUndoRedoToast = { [weak self] text, image in
             self?.showActivityToast(text, systemImage: image)
@@ -351,27 +325,21 @@ final class WorkspaceModel {
     private struct PanePlan {
         let directory: URL
         let sort: PaneSort
-        /// Restored display mode (issue 37): nil = table, 1–3 = brief columns.
-        let briefColumns: Int?
         let pendingTarget: URL?
     }
 
     private static func plan(_ pane: PaneState?, home: URL, firstRun: URL,
                              mounted: [String]) -> PanePlan {
-        guard let pane else { return PanePlan(directory: firstRun, sort: .default,
-                                              briefColumns: nil, pendingTarget: nil) }
+        guard let pane else { return PanePlan(directory: firstRun, sort: .default, pendingTarget: nil) }
         switch RestorePath.resolve(path: pane.directoryPath, home: home,
                                    fileExists: Self.directoryExists,
                                    mountedVolumeRoots: mounted) {
         case .use(let url):
-            return PanePlan(directory: url, sort: pane.sort,
-                            briefColumns: pane.briefColumns, pendingTarget: nil)
+            return PanePlan(directory: url, sort: pane.sort, pendingTarget: nil)
         case .pending(let target, let fallback):
-            return PanePlan(directory: fallback, sort: pane.sort,
-                            briefColumns: pane.briefColumns, pendingTarget: target)
+            return PanePlan(directory: fallback, sort: pane.sort, pendingTarget: target)
         case .fallback(let url):
-            return PanePlan(directory: url, sort: pane.sort,
-                            briefColumns: pane.briefColumns, pendingTarget: nil)
+            return PanePlan(directory: url, sort: pane.sort, pendingTarget: nil)
         }
     }
 
@@ -562,10 +530,8 @@ final class WorkspaceModel {
         withObservationTracking {
             _ = left.directory
             _ = left.sortOrder
-            _ = left.displayMode
             _ = right.directory
             _ = right.sortOrder
-            _ = right.displayMode
             _ = staging.urls
             _ = splitRatio
             _ = terminalVisible
@@ -645,9 +611,8 @@ final class WorkspaceModel {
         case .newFile: create(.file)
         case .rename:
             // ⌘R: a single selection renames inline (issue 11); 2+ opens the batch
-            // sheet (issue 07). Inline rename is table-only — the brief view (issue
-            // 37) has no editable cell, so a lone selection there opens the sheet too.
-            if activeModel.selectedItems.count == 1, activeModel.displayMode == .table {
+            // sheet (issue 07).
+            if activeModel.selectedItems.count == 1 {
                 activeModel.requestInlineRename()
             } else {
                 beginRename()
@@ -657,10 +622,6 @@ final class WorkspaceModel {
         case .preview: togglePreview()
         case .goToFolder: presentedSheet = .goToFolder
         case .toggleHidden: activeModel.showHidden.toggle()
-        case .toggleBriefView: activeModel.toggleBriefView()
-        case .briefOneColumn: activeModel.setBriefColumns(1)
-        case .briefTwoColumns: activeModel.setBriefColumns(2)
-        case .briefThreeColumns: activeModel.setBriefColumns(3)
         case .selectAll: activeModel.selectAll()
         case .selectNone: activeModel.selectNone()
         case .invertSelection: activeModel.invertSelection()
