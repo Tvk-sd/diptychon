@@ -109,7 +109,75 @@ set", `llms.txt` sagt es explizit, und das `offers`-JSON-LD wurde entfernt
 nie wiederkehrend — bleibt drin, weil es entschieden ist. So ankert nichts,
 was sich noch ändern kann, und der Kontrast zu Path Finders Abo bleibt.
 
+## Recherche: Wie macht es Zed? (2026-08-19, auf Tills Frage)
+
+> Quellen: [zed.dev/blog/zed-is-now-open-source](https://zed.dev/blog/zed-is-now-open-source) ·
+> [github.com/zed-industries/zed](https://github.com/zed-industries/zed) ·
+> [Discussion #6681 „Open Source & Monetization"](https://github.com/zed-industries/zed/discussions/6681) ·
+> [Businesswire: Series B](https://www.businesswire.com/news/home/20250820782241/en/Zed-Raises-%2432M-Series-B-Led-by-Sequoia-to-Scale-Collaborative-AI-Coding-Vision).
+> Netzwerk-Caveat: zed.dev/pricing ist remote geblockt; Preise stammen aus
+> Suchergebnissen (mehrfach konsistent), nicht von der Vendor-Seite —
+> gleicher Vorbehalt wie bei #67.
+
+**Das Modell in einem Satz:** Zed verschenkt den Editor komplett (kein
+Feature-Gate) und verkauft **Dienste mit laufenden Kosten** — gehostete
+AI-Modelle und (geplant) private Collaboration-Channels.
+
+Die Fakten:
+
+- **Lizenz, dreigeteilt und bewusst Copyleft:** Editor **GPLv3**,
+  Server-/Collab-Code **AGPLv3**, das UI-Framework GPUI **Apache 2.0**.
+  Begründung: Verbesserungen sollen dem Projekt zugutekommen (Copyleft
+  verhindert proprietäre Forks); GPUI ist Apache, damit es als Bibliothek
+  Adoption findet.
+- **Kein Open Core im Nimble-Sinn:** es gibt keine „Pro-Features" im Editor.
+  Bezahlt wird **Zed Pro** — ein gehosteter AI-Model-Relay (API-Kosten +10 %;
+  war $20/Monat, seit Mai 2026 $10/Monat inkl. $5 AI-Credits) — und ein
+  Enterprise-Tier (Seat-Management, Security). Channels/Collab läuft über
+  ihre Server und soll für private Nutzung kostenpflichtig werden.
+- **Die eigentliche Finanzierung ist VC, nicht Umsatz:** $32M Series B
+  (Sequoia, 2025), insgesamt >$42M. Das Modell „Editor gratis, Dienste
+  später" ist nur tragfähig, weil Investoren die Entwicklung bezahlen.
+
+**Transfer auf Diptychon — drei Befunde:**
+
+1. **Zed gated Dienste, nicht Features.** Das beantwortet Frage 2 indirekt:
+   der einzige Open-Source-Monetarisierungspfad, der die „calm, complete
+   tool"-Story *nicht* bricht, ist einer, bei dem das lokale Tool vollständig
+   bleibt und Geld nur für etwas mit laufenden Serverkosten fließt. Diptychon
+   **hat keinen solchen Dienst** — kein Sync, keine Collab, keine AI, per
+   ADR 0006 nicht mal Telemetrie. Was bliebe, wäre Feature-Gating im Binary —
+   exakt die Nimble-Paywall, die ADR 0007 als Friktion verwirft. Zed ist
+   damit kein Präzedenzfall *für* Open Core bei Diptychon, sondern einer
+   *dagegen*: das Modell funktioniert nur mit einer Service-Komponente.
+2. **Zed löst die Kontinuitätsfrage wirklich per OSS** (Frage 1, teilweise):
+   die Gründer kommen von Atom, das GitHub eingestellt hat — Copyleft ist
+   ihre explizite Antwort auf genau den „wird eingestellt"-Zweifel, und das
+   Segment honoriert es. Aber der Vergleich hinkt an der Basis: Zed hat >$42M
+   Runway und ein Team; ein Single-Dev-GPL-Repo („letzter Commit vor 8
+   Monaten") sendet dasselbe Kontinuitätssignal wie heute — OSS macht das
+   Weiterleben *möglich*, nicht *wahrscheinlich*.
+3. **Zed verzichtet auf das Zahlungssignal — und kann das,** weil Sequoia
+   die Rechnung zahlt und Metrik dort Adoption heißt (Frage 3-Kontrast).
+   Diptychon bootstrapped und will genau dieses Signal messen; ADR 0008 hat
+   dafür gerade erst Downloads als Messgröße scharfgestellt. Zeds Weg zu
+   kopieren hieße, die Messung aufzugeben, bevor sie je gelaufen ist.
+
+**Kurzfazit:** „Wie Zed" hieße: App frei + GPL, Geld nur über einen
+gehosteten Dienst. Diesen Dienst gibt es bei Diptychon nicht und er wäre
+gegen die Produktidentität (lokal, calm, keine Server). Der Zed-Präzedenzfall
+stützt darum ADR 0007 (Einmalkauf) eher, als ihn zu kippen. Was von Zed
+*übernehmbar* wäre, falls die Kontinuitätsfrage nach dem Demand-Test doch
+schwerer wiegt als das Zahlungssignal: die saubere Lizenz-Dreiteilung
+(Copyleft fürs Produkt statt MIT — auch relevant für den
+PRD-„MIT license"-Widerspruch oben: MIT wäre selbst bei einem OSS-Schwenk
+vermutlich die falsche Lizenz, weil sie den Bezahl-Binary-Weg für Dritte
+freigibt).
+
 ## Outcome
 
 _(offen — Entscheidung mit Begründung; bei „OSS/Open Core" muss ADR 0007
-ersetzt werden, nicht stillschweigend umgangen)_
+ersetzt werden, nicht stillschweigend umgangen. Zwischenstand 2026-08-19:
+Zed-Recherche oben beantwortet Frage 4 teilweise — Zed monetarisiert Dienste,
+nicht Features, und ist VC-finanziert; als Vorbild für Diptychon strukturell
+nicht übertragbar.)_

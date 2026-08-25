@@ -1,6 +1,6 @@
 # 74 — Menüleiste: die Tastaturbelegung auffindbar machen
 
-Status: **ready-for-human** (2026-08-11) — gebaut und auf main (`dbb74c1`); offen ist nur Tills Handcheck des Menüeintrags (PLAN › Offen — bei Till)
+Status: **done — gebaut (`dbb74c1`), von Till von Hand getestet und abgenommen (2026-08-19)**
 Category: bug / onboarding
 
 ## Parent
@@ -133,5 +133,12 @@ eine Fehlermeldung".
 ## Nachtrag (2026-08-11)
 
 Committed als `dbb74c1` (auf main). Der zweite Eintrag „User Guide" ist mit
-#71 nachgezogen (`e15f903`, öffnet diptychon.com/docs). Rest ist Tills
-Handcheck — Zeile steht in PLAN › Offen — bei Till; danach schließen.
+#71 nachgezogen (`e15f903`, öffnet diptychon.com/docs). Rest war Tills
+Handcheck.
+
+## Outcome-Nachtrag (2026-08-19) — abgenommen
+
+Der letzte offene Punkt — der Live-Check von Hand, der beim Bauen nicht ging,
+weil Tills eigene Instanz lief — ist erledigt: **Till hat den Menüeintrag
+Hilfe ▸ Keyboard Shortcuts… selbst getestet und abgenommen.** Damit ist B1 aus
+dem Readiness-Gate (#68) vollständig zu; nichts mehr offen.

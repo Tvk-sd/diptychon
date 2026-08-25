@@ -47,6 +47,75 @@ Newsletter-*Akquisition* (Kapital + Audience-Building-Falle mit Extraschritten,
 Playbook §6). Beide Fast-Channels parallel (Download-Zahlen müssen pro Kanal
 lesbar bleiben; #73-Zeitregel: ein Monat ohne Signal = Stopp).
 
+## Vorarbeit (2026-08-19) — Shortlist vorrecherchiert, Copy steht, Entscheidung vorbereitet
+
+> Netzwerk-Caveat: Direktzugriff auf die Newsletter-Sites ist remote geblockt;
+> alles hier stammt aus Suchergebnissen. **Preise und Archiv-Fit von Tills
+> Maschine verifizieren, bevor Geld fließt** — gleiche Regel wie #67.
+
+### Shortlist-Kandidaten (Mac-Power-User-Segment, nicht iOS-Dev)
+
+| Kandidat | Reichweite | Preis (unverifiziert) | Fit-Signal | Kontakt |
+|---|---|---|---|---|
+| **MacSparky** (David Sparks) | Newsletter + RSS, Zahl unbek. | auf Anfrage | **Archiv zeigt HoudahSpot als Sponsor** — exakt unser Tool-Typ (Mac-Dateiwerkzeug) | macsparky.com/sponsorship |
+| **512 Pixels** (Stephen Hackett) | RSS/Blog, Zahl unbek. | auf Anfrage | Mac-Nerd-Publikum, 1 Sponsor/Woche exklusiv | 512pixels.net/sponsorship |
+| **Six Colors** (Jason Snell) | ~20.000 Leser | **$750/Woche** | Kern-Mac-Power-User; Preis = Referenzanker der Liga | sponsor@sixcolors.com |
+| **Dense Discovery** | Zahl unbek. | nicht ermittelbar (remote) | Values-bewusstes Tools-Publikum — passt zum Hygiene-Subsegment | densediscovery.com |
+| **The Sweet Setup** | Zahl unbek. | nicht ermittelbar (remote) | Mac-Apps-Kuratierung | thesweetsetup.com |
+
+Aussortiert bei der Recherche: **iOS Dev Weekly** (€1.800–2.500/Ausgabe — über
+Cap *und* falsches Segment: iOS-Entwickler, nicht Mac-Power-User), dito die
+Swift-/iOS-Newsletter-Familie (This Week in Swift $399/2 Ausgaben etc.).
+Preisrahmen-Realität aus den Rate-Card-Benchmarks: Tech-Newsletter 1–10k
+Subscriber liegen typisch bei $150–400/Placement — die „niedrige Hunderte"-
+Annahme im Ablauf oben hält, aber die bekannten Mac-Namen (Six Colors)
+liegen eher bei $750.
+
+### Empfehlung (zur Abnahme, nicht entschieden)
+
+**Sponsorship vor Track-B-Ads**, aus drei Gründen, die alle schon im Repo
+stehen: (1) Ad-Blocker-Cohort = unsere besten Nutzer, Ads under-samplen sie
+(`channel-plan.md` §caveats); (2) das gelabelte Placement ist der ehrliche
+Ersatz für die tote A3-Drittnennung (#67); (3) Track B ist Capture-Ära-Spec —
+vor dem Armieren müsste ohnehin Landing (Download statt Notify), Copy („free
+while in beta") und Negative-Liste (`free` raus!) umgebaut werden.
+
+Konkreter Zug: **MacSparky und 512 Pixels zuerst anfragen** (Preis unbekannt,
+vermutlich unter Six Colors; MacSparky hat den besten Archiv-Fit), Six Colors
+als dritter, falls Budget ~$750 okay ist. **Fallback-Regel statt offenem
+Ende:** kommt bis Ende September kein Placement ≤ ~€500 mit passendem Archiv
+zustande, Track B armieren (nach dem Download-Ära-Rework) — nicht beides
+parallel (#73-Lesbarkeit).
+
+### Copy-Entwurf (House-Voice, Sponsor-Label-tauglich, EN)
+
+> **Diptychon — a keyboard-first dual-pane file manager for macOS.**
+> Native, ~1.4 MB, launches instantly. Move, rename, and batch-copy without
+> touching the mouse. No telemetry, no account. Free while in beta.
+> → diptychon.com/?src=SLUG
+
+Kein Overclaim drin: „~1.4 MB" ist gemessen, „no telemetry" ist ADR 0006,
+„free while in beta" ist der Post-Flip-Stand, kein Preis genannt (#66 offen).
+Nichts über „one-time purchase" sagen, solange #66 nicht entschieden ist.
+
+### Attribution & Messung (fertig definiert)
+
+- Slug-Schema: `?src=macsparky` · `?src=512pixels` · `?src=sixcolors` ·
+  `?src=densediscovery` · `?src=sweetsetup` (Playbook-Konvention `<newsletter-slug>`).
+- Readout wie #73/#80: `npx wrangler kv key get "downloads:src:<slug>"
+  --binding DOWNLOADS --remote`; **Downloads pro €** gegen Track-B-Referenz
+  lesen, sobald beide Daten haben. Ein Monat ohne Signal = Stopp.
+
+### Was nur Till kann (Rest-Checkliste)
+
+1. [ ] Archive der 5 Kandidaten von deinem Rechner sichten (zeigt das Archiv
+       Tools wie unseres? Rate-Card + Listengröße/Open-Rate erfragen)
+2. [ ] Empfehlung oben abnehmen oder kippen (Sponsorship vs. Track B)
+3. [ ] Placement buchen, Copy mit finalem Slug freigeben
+4. [ ] Substack-Original des Playbook-Artikels einmal lesen (remote geblockt)
+
 ## Outcome
 
-_(offen — Entscheidung Sponsorship vs. Track-B-Ads liegt bei Till)_
+_(offen — Entscheidung Sponsorship vs. Track-B-Ads liegt bei Till;
+Vorarbeit oben macht daraus einen 30-Minuten-Call: Archive checken,
+Preise erfragen, buchen)_
