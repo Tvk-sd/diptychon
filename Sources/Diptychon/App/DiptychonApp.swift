@@ -119,6 +119,10 @@ struct DiptychonApp: App {
                 ActionMenuItem(action: .toggleSidebar)
                 ActionMenuItem(action: .toggleTerminal)
                 ActionMenuItem(action: .toggleHidden)
+                ActionMenuItem(action: .toggleBriefView)
+                ActionMenuItem(action: .briefOneColumn)
+                ActionMenuItem(action: .briefTwoColumns)
+                ActionMenuItem(action: .briefThreeColumns)
                 ActionMenuItem(action: .preview)
             }
             CommandGroup(replacing: .help) {

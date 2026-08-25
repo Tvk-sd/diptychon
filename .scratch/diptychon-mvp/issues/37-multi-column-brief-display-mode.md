@@ -1,6 +1,6 @@
 # 37 — Multi-column brief display mode
 
-Status: needs-triage (2026-07-02) — drafted from Marta gap analysis
+Status: ready-for-agent (2026-07-02) — drafted from Marta gap analysis
 (`context/competitor-benchmark.md` §5).
 
 ## Parent
