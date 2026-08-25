@@ -1,6 +1,6 @@
 # 40 — Trim the directory load path (50k in seconds → sub-second)
 
-Status: ready-for-agent (triaged 2026-07-06) — agent brief at bottom
+Status: **needs-info — EINGEFROREN** (2026-08-11, per ADR 0008): Auftau-Trigger ist nicht Zeit, sondern dass erste Freitextantworten aus #72 das Thema nennen (PLAN › Offen — bei AI); Indiz dafür existiert schon — „Loading…"-Hänger im Erstlauf, siehe #75-Fehlalarm-Abschnitt. Vorher: ready-for-agent (triaged 2026-07-06) — agent brief at bottom
 
 ## Parent
 

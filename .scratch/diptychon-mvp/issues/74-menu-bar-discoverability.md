@@ -1,6 +1,6 @@
 # 74 — Menüleiste: die Tastaturbelegung auffindbar machen
 
-Status: **ready-for-agent**
+Status: **ready-for-human** (2026-08-11) — gebaut und auf main (`dbb74c1`); offen ist nur Tills Handcheck des Menüeintrags (PLAN › Offen — bei Till)
 Category: bug / onboarding
 
 ## Parent
@@ -129,3 +129,9 @@ eine Fehlermeldung".
       sind **nicht** durchgesehen; das gehört in Teil 2 von #68
 - [x] Volle Suite grün vor dem Merge _(216 Unit + **14** UI, 2026-08-04 — der
       neue Test ist der vierzehnte)_
+
+## Nachtrag (2026-08-11)
+
+Committed als `dbb74c1` (auf main). Der zweite Eintrag „User Guide" ist mit
+#71 nachgezogen (`e15f903`, öffnet diptychon.com/docs). Rest ist Tills
+Handcheck — Zeile steht in PLAN › Offen — bei Till; danach schließen.

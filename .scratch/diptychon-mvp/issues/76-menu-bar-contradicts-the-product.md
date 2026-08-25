@@ -1,6 +1,6 @@
 # 76 — Die Menüleiste widerspricht dem Produkt
 
-Status: **ready-for-agent**
+Status: **CLOSED** (2026-08-11) — gebaut (Weg B), auf main (`f880391`), alle AC erfüllt
 Category: bug / onboarding
 
 ## Parent
@@ -185,3 +185,8 @@ reichten nicht.
 - [x] UI-Tests: `testEditMenuOffersEnabledProductCommands`,
       `testGoMenuExistsAndWindowTabbingIsGone`
 - [x] Volle Suite grün: **216 Unit + 16 UI**
+
+## Nachtrag (2026-08-11) — geschlossen
+
+Committed als `f880391` (auf main); Verhalten am echten Aufrufpfad per
+System Events verifiziert (siehe oben), #68-Gate darauf geschlossen.

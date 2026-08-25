@@ -1,6 +1,6 @@
 # 70 — `?src=` an `/download` durchreichen (Commitment pro Kanal)
 
-Status: **ready-for-agent**
+Status: **CLOSED** (2026-08-11) — live und zählt pro Kanal seit dem #71-Flip
 Category: gtm / landing-page
 
 ## Parent
@@ -78,3 +78,15 @@ entstehen erst beim Flip. Bis dahin zählt die Route nur Direktaufrufe als
 **Offen:** Deploy (`npx wrangler deploy`, bare, aus `.scratch/landing-page/`) und
 danach die Live-Verifikation gegen KV plus Rücksetzen der Testzähler — wie beim
 Signup-Smoke-Test 2026-07-12.
+
+## Outcome (2026-08-11) — geschlossen: live und verifiziert
+
+Der offene Rest hat sich über #71 erledigt: der Flip hat den Worker deployt,
+alle Seiten tragen `/download?src=…`-CTAs (home-hero/home-nav/home-final,
+docs/docs-*, marta/forklift/pathfinder), und die Live-KV zählt pro Kanal —
+erster Snapshot steht in #80 (2026-08-11, ~1 h nach dem Flip). Worker-Code:
+Commit `287ba30`.
+
+Testzähler werden **nicht** zurückgesetzt — Bauentscheid in #80: das Skript
+führt stattdessen eine Abzugsposten-Liste der bekannten Test-Treffer.
+Weiterlesen und Deuten: #80 (`ready-for-human`).

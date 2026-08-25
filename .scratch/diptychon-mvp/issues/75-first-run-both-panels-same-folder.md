@@ -1,6 +1,6 @@
 # 75 — Erstlauf zeigt links und rechts denselben Ordner
 
-Status: **ready-for-agent**
+Status: **CLOSED** (2026-08-11) — gebaut, auf main (`930f5d1`), am echten Erstlauf verifiziert
 Category: bug / onboarding
 
 ## Parent
@@ -135,3 +135,9 @@ aushungert.
 
 Die Verzögerung ist also unabhängig von diesem Ticket. Sie ist aber real und
 gehört beobachtet: siehe Nachtrag in #68, Kandidat für #40.
+
+## Nachtrag (2026-08-11) — geschlossen
+
+Committed als `930f5d1` (auf main); #68-Gate wurde darauf geschlossen
+(2026-08-10). Der unerklärte probe3-Nebenbefund oben bleibt unreproduzieren —
+falls „Erstlauf zeigt fremden Ordner" je wieder auftaucht, hier ansetzen.

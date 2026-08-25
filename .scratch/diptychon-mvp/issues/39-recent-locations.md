@@ -1,6 +1,6 @@
 # 39 — Recent locations
 
-Status: ready-for-agent (triaged 2026-07-06; #41 soft-dep now cleared, PR #41 merged)
+Status: **needs-info — EINGEFROREN** (2026-08-11, per ADR 0008): Auftau-Trigger ist nicht Zeit, sondern dass erste Freitextantworten aus #72 das Thema nennen (PLAN › Offen — bei AI). Vorher: ready-for-agent (triaged 2026-07-06; #41 soft-dep cleared)
 — agent brief at bottom. Drafted from Marta gap analysis
 (`context/competitor-benchmark.md` §5). Small, self-contained; complements the
 sidebar (issue 16) without being the sidebar. **Sequencing: do AFTER #41 (soft dep).**
