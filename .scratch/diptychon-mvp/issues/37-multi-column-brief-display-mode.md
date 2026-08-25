@@ -1,7 +1,11 @@
 # 37 — Multi-column brief display mode
 
-Status: needs-triage (2026-07-02) — drafted from Marta gap analysis
-(`context/competitor-benchmark.md` §5).
+Status: needs-triage (2026-08-26) — first attempt (`203bd39`) shipped and was
+**rejected on review** (reverted in `c726651`): the brief view rendered without
+visible columns and looked broken. Root cause not yet diagnosed — likely the
+custom `BriefLayout` (frame math / content size) or the NSCollectionView wiring.
+Next attempt should prototype the layout standalone and review visually before
+merging.
 
 ## Parent
 
