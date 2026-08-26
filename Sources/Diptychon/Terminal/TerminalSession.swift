@@ -72,13 +72,29 @@ final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
         window.makeFirstResponder(nil)
     }
 
-    /// Whether a click landed inside the terminal.
+    /// The whole terminal panel — name bar, left inset strip and terminal — as one
+    /// view, so `containsClick` can answer for the panel rather than for the terminal
+    /// alone. Set by `TerminalPanelView`; nil while the panel has never been shown.
+    ///
+    /// Weak: the view belongs to the view hierarchy, and the session outlives it every
+    /// time the panel is collapsed.
+    @ObservationIgnored weak var panelHostView: NSView?
+
+    /// Whether a click landed inside the terminal panel.
     ///
     /// Hit-tested rather than measured: the Active Panel is otherwise derived from the
-    /// click's x-position in the window, and the terminal spans the full width of both
+    /// click's x-position in the window, and the panel spans the full width of both
     /// Panels — so a click in its right half would silently flip the Active Panel (and
     /// with it the folder the terminal reports) without anything visibly moving.
+    ///
+    /// Issue 89: the *whole panel* counts, not just the terminal view. The 32pt name
+    /// bar and the 9pt inset strip read as part of the terminal but are not inside it,
+    /// so a click there used to fall through to the x-position logic.
     func containsClick(_ event: NSEvent) -> Bool {
+        if let host = panelHostView, let window = host.window, window === event.window,
+           host.bounds.contains(host.convert(event.locationInWindow, from: nil)) {
+            return true
+        }
         guard let terminalView, let contentView = event.window?.contentView,
               let hit = contentView.hitTest(event.locationInWindow) else { return false }
         return hit === terminalView || hit.isDescendant(of: terminalView)

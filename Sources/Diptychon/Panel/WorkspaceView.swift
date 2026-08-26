@@ -412,44 +412,38 @@ struct WorkspaceView: View {
                 // below would read a click in its right half as "activate the right
                 // Panel". Hit-tested, not measured — the terminal's height is dynamic.
                 if model.terminal.containsClick(event) { return event }
-                if let window = event.window, let contentView = window.contentView {
-                    let x = event.locationInWindow.x
-                    let bounds = contentView.bounds
-                    // The top bar (Search + the Active Panel's nav row: back/forward,
-                    // breadcrumb, Filter) occupies the single header band at the top of
-                    // the content. Clicks there — e.g. the Filter field — must NOT
-                    // re-activate a panel by their x-position, or clicking the Filter
-                    // would steal the active panel.
-                    //
-                    // NB: the content view is full-size (spans behind the title bar),
-                    // so measure from `contentLayoutRect.maxY` — the top of the usable
-                    // area BELOW the title bar — not `bounds.maxY` (the window top).
-                    // 34 = the 32pt header row + its 1pt divider (was 74 when the nav
-                    // sat in a second row below the header).
-                    let topBarBand: CGFloat = 34
-                    let contentTop = window.contentLayoutRect.maxY
-                    let inTopBar = event.locationInWindow.y >= contentTop - topBarBand
-                    // The panels occupy the space between the sidebar (left, issue 16)
-                    // and the preview pane (right, issue 14). When the right panel is
-                    // hidden the left panel spans that whole area.
-                    let leftEdge = model.sidebarVisible ? 201.0 : bounds.minX      // 200 + divider
-                    let rightEdge = model.rightPane != .none ? bounds.maxX - 301.0 : bounds.maxX
-                    // Only clicks inside the panels re-activate a panel. Clicks in the
-                    // sidebar or preview must NOT — else clicking the sidebar with the
-                    // right panel active would flip to left and navigate the wrong side.
-                    let inPanels = x >= leftEdge && x <= rightEdge
-                    if !inTopBar && inPanels {
-                        let panelsMid = (leftEdge + rightEdge) / 2
-                        model.active = (model.rightPanelVisible && x >= panelsMid) ? .right : .left
-                        // A file-panel click takes operation focus back from Staging.
-                        model.stagingFocused = false
-                        // Double-click open is handled by the table's doubleAction on
-                        // the clicked row (issue 25) — not here, so it can never act on
-                        // a lingering multi-selection.
-                    } else if !inTopBar && model.rightPane == .staging && x > rightEdge {
-                        // Click in the Staging pane → it becomes the operation source.
-                        model.stagingFocused = true
-                    }
+                guard let window = event.window, let contentView = window.contentView else {
+                    return event
+                }
+                let bounds = contentView.bounds
+                // Which region the click landed in is pure geometry, so it lives in
+                // `PanelClickRouter` where it can be tested without a window (issue 89).
+                //
+                // NB: the content view is full-size (it spans behind the title bar), so
+                // the header/bottom bands are measured from `contentLayoutRect` — the
+                // usable area — not from `bounds`.
+                let layout = window.contentLayoutRect
+                let target = PanelClickRouter.target(x: event.locationInWindow.x,
+                                                     y: event.locationInWindow.y,
+                                                     contentTop: layout.maxY,
+                                                     contentBottom: layout.minY,
+                                                     minX: bounds.minX, maxX: bounds.maxX,
+                                                     sidebarVisible: model.sidebarVisible,
+                                                     rightPane: model.rightPane,
+                                                     rightPanelVisible: model.rightPanelVisible)
+                switch target {
+                case .leftPanel, .rightPanel:
+                    model.active = (target == .rightPanel) ? .right : .left
+                    // A file-panel click takes operation focus back from Staging.
+                    model.stagingFocused = false
+                    // Double-click open is handled by the table's doubleAction on the
+                    // clicked row (issue 25) — not here, so it can never act on a
+                    // lingering multi-selection.
+                case .staging:
+                    // Click in the Staging pane → it becomes the operation source.
+                    model.stagingFocused = true
+                case .none:
+                    break
                 }
                 return event
             }

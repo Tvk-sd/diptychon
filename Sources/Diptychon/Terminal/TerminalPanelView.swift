@@ -36,6 +36,16 @@ struct TerminalPanelView: View {
                          leadingInset: Self.contentInset)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        // Issue 89: hands the panel's own bounds to the session, so a click on the
+        // name bar or the inset strip counts as "in the terminal" and can't flip the
+        // Active Panel by its x-position.
+        .background(TerminalPanelBounds(session: session))
+        // Belt and braces: a host view left behind after the panel is collapsed would
+        // claim clicks over the file lists, which is a worse bug than the one this
+        // fixes. The `window != nil` check in `containsClick` already covers a detached
+        // view; this makes "panel gone ⇒ no host" true regardless of when SwiftUI gets
+        // around to tearing the backing view down.
+        .onDisappear { session.panelHostView = nil }
     }
 
     /// Names the session the way a terminal tab would — "<folder> — <shell>" — but
@@ -63,6 +73,23 @@ struct TerminalPanelView: View {
     /// claim a folder the prompt has left.
     private var folderName: String {
         (session.shellDirectory ?? panelFolder).lastPathComponent
+    }
+}
+
+/// A plain backing view whose only job is to be *measurable*: it fills the terminal
+/// panel, so `TerminalSession.containsClick` can test a click against the panel's real
+/// frame instead of a constant. Nothing is drawn into it (issue 89).
+private struct TerminalPanelBounds: NSViewRepresentable {
+    let session: TerminalSession
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        session.panelHostView = view
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        session.panelHostView = nsView
     }
 }
 
