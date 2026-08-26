@@ -1,7 +1,7 @@
 # 89 — Klick auf die Bodenleiste macht das rechte Panel aktiv
 
 Status: **CLOSED (2026-08-26)** — gebaut, von Till am laufenden Build getestet,
-committet als `860cde0` auf `main`. Nicht gepusht.
+committet als `550dc29` auf `main`. Nicht gepusht.
 Category: bug / panel
 
 ## Ergebnis
