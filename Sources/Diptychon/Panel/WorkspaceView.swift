@@ -305,7 +305,8 @@ struct WorkspaceView: View {
                 panels
             } bottom: {
                 TerminalPanelView(session: model.terminal,
-                                  panelFolder: model.activeModel.directory)
+                                  panelFolder: model.activeModel.directory,
+                                  onCloseSession: { model.closeTerminalSession() })
             }
         } else {
             panels

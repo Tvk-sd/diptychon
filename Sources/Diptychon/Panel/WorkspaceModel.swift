@@ -159,6 +159,16 @@ final class WorkspaceModel {
         if !terminalVisible { terminal.resignKeyFocus() }
     }
 
+    /// End the terminal session and put the panel away (issue 90, the tab's ✕).
+    ///
+    /// Distinct from `toggleTerminal`: that one hides a still-running shell, this one
+    /// stops it. Hiding the panel as well is what makes the next ⌘J spawn a fresh
+    /// shell — the panel is rebuilt, and it starts in whatever folder is active then.
+    func closeTerminalSession() {
+        terminal.endSession()
+        terminalVisible = false
+    }
+
     /// Toggle the file preview in the right pane (⇧⌘P / bottom-bar). Off-swaps staging.
     func togglePreviewPane() { rightPane = (rightPane == .preview) ? .none : .preview }
     /// Toggle the staging set in the right pane (⌘⇧B / bottom-bar). Off-swaps preview.

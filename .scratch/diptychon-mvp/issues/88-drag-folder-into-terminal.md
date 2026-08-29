@@ -1,7 +1,65 @@
 # 88 — Ordner in das eingebettete Terminal ziehen
 
-Status: **ready-for-agent**
+Status: **wontfix (2026-08-29)** — gebaut, dreimal am laufenden Build
+getestet, dreimal gescheitert, wieder ausgebaut. Kein Code davon ist auf `main`.
 Category: enhancement / terminal
+
+## Ergebnis: zurückgebaut
+
+Till, 2026-08-29, nach dem dritten Versuch:
+
+> „ok this does not work and i can not describe how it is not working - can we
+> reverse this development and put the ticket of pullable path ad acta"
+
+Das ist der Abbruch, und er ist richtig: „ich kann nicht beschreiben, wie es
+nicht geht" heißt, die Geste ist nicht nur kaputt, sie ist **unlesbar** geworden.
+Eine Interaktion, deren Fehlverhalten der Nutzer nicht mehr benennen kann,
+repariert man nicht per weiterem Versuch.
+
+Ausgebaut wurden: `ShellQuoting` samt Tests, `TerminalSession.insert(_:)` und
+`claimKeyFocus()`, `TerminalDropView`, der `onDrag` am Breadcrumb und der
+`WindowDragBlocker`. Suite danach: **249 Tests, 0 Fehler**.
+
+**Nicht ausgebaut** (gehört zu #89 bzw. #90 und bleibt): die erweiterte
+Klick-Trefferprüfung des Terminal-Panels und das ✕ in der Namensleiste.
+
+## Warum es gescheitert ist — drei Hürden, zwei davon nachgewiesen
+
+1. **`onDrag` startet auf einem SwiftUI-`Button` nie.** Die eigene Druck-Geste
+   des Buttons frisst sie. Nachgewiesen: nach dem Umbau auf `Text` +
+   `onTapGesture` hob das Segment ab.
+2. **Das Kopfband liegt in der Fenster-Zieh-Zone.** Mit `.hiddenTitleBar` steigt
+   der Inhalt bis unter die Titelleiste; Fenster-Ziehen schlägt View-Ziehen.
+   Tills Beobachtung: „der pfad bewegt sich kurz mit, dann bewegt er sich
+   selbstständig und dann das fenster". Ein `mouseDownCanMoveWindow = false`
+   im Hintergrund hat das nicht sauber gelöst.
+3. **Unbekannter Rest.** Nach Hürde 2 war das Verhalten so diffus, dass es nicht
+   mehr beschreibbar war. Ob die Abwurfstelle im Terminal überhaupt je erreicht
+   wurde, ist **nie verifiziert** worden — der Zug kam nie sauber dort an.
+
+## Übertragbar
+
+- **`onDrag` + `Button` vertragen sich in SwiftUI nicht.** Wer eine Zeile
+  klickbar *und* ziehbar braucht, nimmt `Text` + `contentShape` +
+  `onTapGesture`.
+- **Ein Fenster mit versteckter Titelleiste ist kein guter Ort für eine
+  Zieh-Quelle.** Die Fenster-Zieh-Zone gewinnt, und sie ist unsichtbar.
+- **Abbruchsignal:** wenn der Tester das Fehlverhalten nicht mehr benennen kann,
+  ist das ein Befund über die Interaktion, kein Mangel an Beschreibung.
+
+## Falls es je zurückkommt
+
+Nicht am Breadcrumb ansetzen. Zwei Wege, die die beiden Hürden umgehen:
+
+- **Aus der Dateiliste ziehen.** Die Zeilen sind schon Zieh-Quellen (`onDrag`
+  ist dort erprobt) und liegen weit unter der Titelleiste. Nur die Abwurfstelle
+  im Terminal wäre neu — genau ein Baustein statt vier.
+- **Ganz ohne Ziehen.** Eine Tastenkombination „Pfad des aktiven Panels ins
+  Terminal einfügen". Kein Drag-System, keine Titelleiste, testbar als reine
+  Funktion.
+
+Der teure Teil war nie das Quoting — der war in einer Stunde fertig und grün.
+Teuer war die Geste.
 
 ## Parent
 

@@ -64,6 +64,28 @@ final class TerminalSession: NSObject, LocalProcessTerminalViewDelegate {
             .lastPathComponent
     }
 
+    /// End the session: stop the shell and throw the contents away (issue 90).
+    ///
+    /// The counterpart to ⌘J, not a replacement for it. ⌘J *hides* the panel and the
+    /// shell keeps running, which is what lets a long build survive a collapsed panel
+    /// (issue 65) — but that left no way to say "this session is finished". The ✕ in
+    /// the tab is that way.
+    ///
+    /// No confirmation, even with a command running (Till's call, 2026-08-27): the ✕
+    /// means end it.
+    ///
+    /// Dropping the view is what makes the *next* open a fresh shell — `startIfNeeded`
+    /// spawns again as soon as `terminalView` is nil, in whatever folder the Panel is
+    /// showing then.
+    func endSession() {
+        resignKeyFocus()
+        terminalView?.terminate()
+        terminalView = nil
+        shellDirectory = nil
+        shellHasExited = false
+        panelHostView = nil
+    }
+
     /// Hand key focus back to the window when the panel closes. Without this the
     /// hidden terminal stays first responder and the key monitor keeps deferring to
     /// it — every hotkey would die silently after closing the panel.

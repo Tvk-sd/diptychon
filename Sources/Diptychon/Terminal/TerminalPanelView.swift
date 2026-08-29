@@ -17,6 +17,8 @@ struct TerminalPanelView: View {
     let session: TerminalSession
     /// The folder the terminal opens in — read once, when the panel is first shown.
     let panelFolder: URL
+    /// The tab's ✕ (issue 90): end the session, not just hide the panel.
+    let onCloseSession: () -> Void
 
     /// Left rail shared with the file list: the terminal's first column and the name
     /// bar's icon line up with the row icons in the panels above.
@@ -48,8 +50,10 @@ struct TerminalPanelView: View {
         .onDisappear { session.panelHostView = nil }
     }
 
-    /// Names the session the way a terminal tab would — "<folder> — <shell>" — but
-    /// without a tab's chrome: no chip, no border, just the label in the band.
+    /// Names the session the way a terminal tab would — "<folder> — <shell>" — and
+    /// since issue 90 it closes like one too: a ✕ at the trailing edge. Still no
+    /// chip and no border; the band's own edges carry it, in keeping with the app's
+    /// box-aligned forms.
     private var nameBar: some View {
         HStack(spacing: 6) {
             Image(systemName: "apple.terminal")
@@ -59,6 +63,14 @@ struct TerminalPanelView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
             Spacer(minLength: 0)
+            // Ends the session outright — no confirmation, even mid-command (Till's
+            // call). ⌘J remains the "put it away, keep it running" gesture.
+            Button(action: onCloseSession) {
+                Image(systemName: "xmark")
+            }
+            .buttonStyle(.borderless)
+            .help("End the terminal session — stops the shell and clears it (⌘J only hides the panel)")
+            .accessibilityIdentifier("terminal-close-session")
         }
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
