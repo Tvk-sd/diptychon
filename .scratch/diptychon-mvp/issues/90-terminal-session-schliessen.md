@@ -1,7 +1,8 @@
 # 90 — Terminal-Session wirklich beenden: Tab mit ✕
 
-Status: **ready-for-human** — gebaut, volle Unit-Suite grün: **265 Tests,
-0 Fehler**. Wartet auf Tills Test am laufenden Build. Noch nicht committet.
+Status: **CLOSED (2026-08-29)** — gebaut, von Till am laufenden Build getestet
+und abgenommen, committet als `e68bf0b` auf `main`. Nicht gepusht.
+Volle Unit-Suite: **249 Tests, 0 Fehler**.
 Category: enhancement / terminal
 
 ## Entscheidung (Till, 2026-08-27)
@@ -19,9 +20,9 @@ Category: enhancement / terminal
   aktiven Ordner.
 - ✕ am rechten Rand der Namensleiste. Kein Chip, kein Rahmen — die Bandkanten
   tragen es, wie überall sonst in der App.
-- 6 neue Tests in `TerminalSessionCloseTests`: ⌘J lässt die Session in Ruhe,
+- 5 neue Tests in `TerminalSessionCloseTests`: ⌘J lässt die Session in Ruhe,
   ✕ klappt ein, ✕ räumt alles weg, ✕ auf nie geöffneter Session ist harmlos,
-  Einfügen in eine beendete Session tut nichts.
+  zweimal ✕ ist harmlos.
 
 Fallstrick beim Testen notiert: ein frisches `WorkspaceModel` stellt den
 **echten** letzten Zustand aus den UserDefaults wieder her (#41). Tests müssen
@@ -70,7 +71,7 @@ Zwei Griffe mit klar getrennter Bedeutung:
 Damit bleibt die #65-Regel („ein laufender Build überlebt das Einklappen")
 unangetastet und bekommt ihr fehlendes Gegenstück.
 
-## Offene Design-Frage für Till
+## Design-Frage (entschieden: B, siehe oben)
 
 **Braucht das ✕ eine Rückfrage, wenn ein Befehl läuft?**
 
