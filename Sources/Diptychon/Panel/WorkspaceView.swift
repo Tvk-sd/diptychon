@@ -228,7 +228,7 @@ struct WorkspaceView: View {
                 // Activity pane toggle (issue 34, Slice 1) — a list glyph, distinct
                 // from issue 18's clock/history. Accents while pinned or an op runs.
                 headerIcon("list.bullet.rectangle", help: "Show Activity") {
-                    model.activityPanelPinned.toggle()
+                    model.setActivityPanelVisible(!showActivityPanel)
                 }
                 .foregroundStyle(showActivityPanel ? Color.accentColor : .secondary)
                 .accessibilityIdentifier("toggle-activity")
@@ -361,8 +361,10 @@ struct WorkspaceView: View {
     /// The Activity pane shows while an op is running (auto) or while the user has
     /// pinned it open (issue 34, Slice 1). Non-blocking — unlike the old modal, the
     /// rest of the UI stays live so the user can work alongside a running copy.
+    /// Dismissable, not disabled: the ✕ hides the auto-shown pane for the current op
+    /// (`activityPanelDismissed`); the next op surfaces it again.
     private var showActivityPanel: Bool {
-        model.coordinator.running != nil || model.activityPanelPinned
+        model.activityPanelVisible
     }
 
     @ViewBuilder
@@ -371,7 +373,7 @@ struct WorkspaceView: View {
             ActivityPanel(
                 running: model.coordinator.running,
                 onCancel: { model.coordinator.cancel() },
-                onClose: { model.activityPanelPinned = false }
+                onClose: { model.setActivityPanelVisible(false) }
             )
             .transition(.move(edge: .leading).combined(with: .opacity))
         }

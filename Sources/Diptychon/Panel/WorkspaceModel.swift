@@ -186,6 +186,26 @@ final class WorkspaceModel {
     /// cross-launch persistence is deferred (see issue 34 slice plan).
     var activityPanelPinned = false
 
+    /// Whether the user closed the auto-shown Activity pane for the *current* op.
+    /// Without this the ✕ is a no-op mid-copy: the pane is visible because
+    /// `running != nil`, and unpinning something that was never pinned changes
+    /// nothing. Cleared when the next Operation starts, so the pane stays a
+    /// dismissable-not-disabled surface (the non-blocking promise of #34).
+    var activityPanelDismissed = false
+
+    /// Whether the Activity pane is on screen: pinned open, or auto-shown for a
+    /// running op the user hasn't dismissed.
+    var activityPanelVisible: Bool {
+        activityPanelPinned || (coordinator.running != nil && !activityPanelDismissed)
+    }
+
+    /// The single seam for both Activity-pane verbs (header toggle and the pane's ✕),
+    /// so closing always means the same thing wherever it is triggered.
+    func setActivityPanelVisible(_ visible: Bool) {
+        activityPanelPinned = visible
+        activityPanelDismissed = !visible
+    }
+
     /// Folders the user pinned to the sidebar (issue 16, slice 2). Backed by a
     /// `[String]` of paths in `UserDefaults`; deduped on add via `PinnedFolders`.
     var pinnedFolders: [URL] = PinnedFolders.decode(
@@ -303,6 +323,9 @@ final class WorkspaceModel {
         // One place decides when the UI re-lists: every Operation that settles
         // (run/undo/redo) refreshes both Panels. No per-call closure to forget.
         coordinator.onOperationSettled = { [weak self] in self?.refreshBoth() }
+        // A new op un-dismisses the Activity pane: closing it applied to that copy,
+        // not to every copy from now on.
+        coordinator.onOperationStarted = { [weak self] in self?.activityPanelDismissed = false }
         // Make undo/redo legible with a transient toast (issue 18, Tier 1).
         coordinator.onUndoRedoToast = { [weak self] text, image in
             self?.showActivityToast(text, systemImage: image)

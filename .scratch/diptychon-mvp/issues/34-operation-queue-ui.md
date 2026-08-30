@@ -191,3 +191,28 @@ This supersedes the earlier "aux-pane third mode" candidate above and matches
 the original "dockable bottom drawer" design note. Decision: **keep Slice 1
 as-is for now**; when the evaluation gate opens Slice 2, start from this
 bottom-drawer shape.
+
+**2026-08-19 (Till, Slice-1 defect — ✕ war während laufender Op tot):** Gemeldet
+als "activity fenster lässt sich nicht schließen". Ursache strukturell, kein
+Race: `showActivityPanel` war `running != nil || activityPanelPinned`, `onClose`
+setzte nur `activityPanelPinned = false` — bei einer laufenden Op war der Pin
+ohnehin `false`, der Klick änderte also nichts. Das Header-Icon
+(`toggle-activity`) war aus demselben Grund mit tot: es toggelte nur den Pin,
+`running != nil` gewann. Dateioperationen liefen normal weiter (Till bestätigt),
+also kein hängendes `running` — der zweite Verdacht ist damit ausgeschlossen.
+
+Fix (dismissable, not disabled — hält das Non-Blocking-Versprechen von Slice 1):
+neues `activityPanelDismissed` unterdrückt das Auto-Zeigen für die *laufende*
+Op; `OperationCoordinator.onOperationStarted` (Gegenstück zum vorhandenen
+`onOperationSettled`) räumt es beim nächsten Op-Start wieder ab, damit
+Zumachen für eine Kopie gilt und nicht für alle. Beide Verben (✕ und
+Header-Icon) laufen jetzt durch `WorkspaceModel.setActivityPanelVisible(_:)`.
+Regressionstest: `Tests/DiptychonTests/ActivityPanelVisibilityTests.swift`
+(5 Tests, grün).
+
+Nebenbefund, **nicht** geändert: Öffnen per Header-Icon während einer Op pinnt
+die Pane, sie bleibt danach offen. War vor dem Fix genauso (`toggle()` auf
+`false`), jetzt aber sichtbarer, weil das Icon mitten in einer Op überhaupt
+erst wirkt. Falls das stört → eigenes Ticket.
+
+Bleibt Slice 1. Der Evaluation-Gate-Text oben ist davon unberührt.

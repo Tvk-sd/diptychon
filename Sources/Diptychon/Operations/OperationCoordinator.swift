@@ -23,6 +23,12 @@ final class OperationCoordinator {
     /// fire it, since nothing changed.
     var onOperationSettled: () -> Void = {}
 
+    /// Fired on the main actor when an Operation *starts* (run, undo, redo) — the
+    /// mirror of `onOperationSettled`. The Activity pane uses it to clear a manual
+    /// dismissal, so closing the pane during one copy doesn't hide the next one.
+    /// Like `onOperationSettled`, the early-return guards do not fire it.
+    var onOperationStarted: () -> Void = {}
+
     /// Fired after an undo/redo settles, with a human message + SF Symbol, so the UI
     /// can flash a transient toast ("Undone — Moved 12 items") — making the otherwise
     /// invisible undo legible (issue 18, Tier 1). Forward operations don't toast: the
@@ -36,6 +42,7 @@ final class OperationCoordinator {
     func run(_ op: Operation) {
         guard running == nil else { return }
         running = Running(title: op.title, fraction: 0)
+        onOperationStarted()
         task = Task {
             do {
                 try await op.apply { fraction in
@@ -66,6 +73,7 @@ final class OperationCoordinator {
             return
         }
         running = Running(title: "Undo \(op.title)", fraction: 0)
+        onOperationStarted()
         task = Task {
             do {
                 try await op.revert()
@@ -87,6 +95,7 @@ final class OperationCoordinator {
         guard running == nil, let op = redoStack.last else { return }
         redoStack.removeLast()
         running = Running(title: "Redo \(op.title)", fraction: 0)
+        onOperationStarted()
         task = Task {
             do {
                 try await op.apply { fraction in
