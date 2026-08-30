@@ -215,4 +215,6 @@ die Pane, sie bleibt danach offen. War vor dem Fix genauso (`toggle()` auf
 `false`), jetzt aber sichtbarer, weil das Icon mitten in einer Op überhaupt
 erst wirkt. Falls das stört → eigenes Ticket.
 
+Von Till im echten Build verifiziert 2026-08-30. Committed auf `main` als `b8cec32`, nicht gepusht.
+
 Bleibt Slice 1. Der Evaluation-Gate-Text oben ist davon unberührt.
