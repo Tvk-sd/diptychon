@@ -1,7 +1,8 @@
 # 86 — Aktives Panel ohne blauen Rahmen erkennbar machen
 
 Status: **CLOSED (2026-08-31)** — gebaut, von Till am laufenden Build
-abgenommen. Volle Unit-Suite: **261 Tests, 0 Fehler**.
+abgenommen, committet als `775188a` auf `main` (nicht gepusht).
+Volle Unit-Suite: **261 Tests, 0 Fehler**.
 Category: ux / panel
 
 ## Ergebnis
