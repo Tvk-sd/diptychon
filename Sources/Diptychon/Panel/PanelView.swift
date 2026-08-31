@@ -136,11 +136,18 @@ struct PanelView: View {
             }
         }
         .task { model.load() }
-        // Active Panel is visually distinct.
-        .overlay {
-            Rectangle()
-                .strokeBorder(Color.accentColor, lineWidth: isActive ? 2 : 0)
-        }
+        // Issue 86: no border overlay. The Active Panel is told apart the way Finder,
+        // Mail and Xcode do it — the *selection* carries the focus. AppKit draws the
+        // first responder's selection in the accent colour and everyone else's in
+        // grey, for free, because the active panel's table claims first responder.
+        //
+        // A border marks the whole area; the selection marks the place the keyboard
+        // acts on, which is the thing the user is actually asking about. The grey
+        // selection left behind in the other panel doubles as a "this is where I was"
+        // marker when switching back.
+        //
+        // The panel header already reads primary vs. secondary (above), so a panel
+        // with no selection at all is still distinguishable.
     }
 
     /// Header control to filter the Panel to a single tag (AC4). Lists the tags

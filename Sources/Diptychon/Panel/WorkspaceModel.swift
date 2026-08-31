@@ -635,6 +635,11 @@ final class WorkspaceModel {
             } else {
                 active = (active == .left) ? .right : .left
             }
+            // Issue 86: the border is gone, so the selection is what shows where the
+            // keyboard is. Tab-ing into a panel with nothing selected would leave no
+            // visible home — give it the first row. Only here, not on a click: see
+            // `selectFirstRowIfEmpty`.
+            activeModel.selectFirstRowIfEmpty()
         case .clipboardCopy: clipboardCopy()
         case .paste: write(.copy, sources: clipboardURLs(), into: activeModel.directory)
         case .pasteMove: write(.move, sources: clipboardURLs(), into: activeModel.directory)

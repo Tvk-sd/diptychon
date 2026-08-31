@@ -1,7 +1,52 @@
 # 86 — Aktives Panel ohne blauen Rahmen erkennbar machen
 
-Status: **needs-triage**
+Status: **CLOSED (2026-08-31)** — gebaut, von Till am laufenden Build
+abgenommen. Volle Unit-Suite: **261 Tests, 0 Fehler**.
 Category: ux / panel
+
+## Ergebnis
+
+Rahmen-Overlay in `PanelView` entfernt. Das aktive Panel erkennt man jetzt an
+der **Selektionsfarbe** — AppKit zeichnet die Auswahl des First Responders in
+Accent, die des inaktiven Panels grau. Kein eigenes Zeichnen.
+
+Zweiter Cue war schon da und trägt jetzt mit: der Panel-Titel steht im aktiven
+Panel auf `.primary`, im inaktiven auf `.secondary` (`PanelView`, Zeilen um
+49/56). Deshalb ist auch ein Panel ganz ohne Auswahl noch unterscheidbar.
+
+### Tills Entscheidungen (2026-08-31)
+
+- **Auto-Selektion nur bei Tastatur-Wechsel** (die „Abschwächen"-Variante des
+  Trade-offs oben). `PanelModel.selectFirstRowIfEmpty()` läuft ausschließlich
+  in `perform(.switchPanel)`, nie bei einem Klick ins Leere. Grund: die
+  Selektion ist zugleich Ziel von Return, Leertaste und ⌘⌫ — wer nur klickt,
+  wollte oft bloß das Panel aktivieren und darf keine Löschkandidatin
+  untergeschoben bekommen.
+- **Kein dritter Cue.** Keine getönte Pfadzeile. Wenn es im Gebrauch zu leise
+  wirkt, ist das ein eigenes kleines Ticket.
+
+### Akzeptanzkriterien
+
+- [x] AC1 — kein Rahmen mehr; aktives Panel über Accent-vs-Grau erkennbar.
+- [~] AC2 — **bewusst abgeschwächt**: nicht nach jedem Load/Navigation, sondern
+  nur beim Tab-Wechsel. Siehe Entscheidung oben; das ursprüngliche AC2 hätte
+  genau den Trade-off ausgelöst, den Till vermeiden wollte.
+- [x] AC3 — Panelwechsel färbt um, die Selektion des inaktiven Panels bleibt
+  erhalten (`selectFirstRowIfEmpty` ist ein No-op bei vorhandener Auswahl —
+  eigener Test).
+- [x] AC4 — Trade-off aufgelöst und hier notiert.
+
+### Tests
+
+5 neue in `PanelFocusSelectionTests` (injizierte `PanelSource`, kein
+Dateisystem): leere Auswahl nimmt Zeile 1; vorhandene Auswahl bleibt; Mehrfach-
+auswahl bleibt; leerer Ordner erfindet nichts; Filter aktiv → erste **sichtbare**
+Zeile, nicht die erste des Ordners.
+
+### Bekannter, akzeptierter Rest
+
+Haben beide Panels keine Auswahl, trägt nur der Titel-Kontrast. Leiser als der
+alte Rahmen. Bewusst so abgenommen.
 
 ## Parent
 

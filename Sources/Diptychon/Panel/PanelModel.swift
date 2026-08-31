@@ -170,6 +170,24 @@ final class PanelModel {
 
     func selectAll() { selection = Set(visibleItems.map(\.id)) }
     func selectNone() { selection = [] }
+
+    /// Give this panel a selected row if it has none (issue 86).
+    ///
+    /// Since the Active Panel is now shown by its selection colour rather than a
+    /// border, a panel with nothing selected shows no keyboard home. This fills that
+    /// in — but **only where it was asked for**: Tab-ing into a panel. A click into
+    /// empty space does not, deliberately (Till's call): the selection is also the
+    /// target of Return, Space and ⌘⌫, and handing a click a delete candidate the user
+    /// never picked would be a nasty surprise. Someone pressing Tab is about to keep
+    /// using the keyboard and wants a starting point; someone clicking often just
+    /// wanted the panel active.
+    ///
+    /// A no-op when a selection already exists, so switching back and forth never
+    /// moves the user's own selection.
+    func selectFirstRowIfEmpty() {
+        guard selection.isEmpty, let first = visibleItems.first else { return }
+        selection = [first.id]
+    }
     func invertSelection() {
         selection = Set(visibleItems.map(\.id)).subtracting(selection)
     }
