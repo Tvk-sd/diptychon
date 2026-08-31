@@ -403,8 +403,18 @@ final class BriefLayout: NSCollectionViewLayout {
     private static let minColumnWidth: CGFloat = 80
 
     private var frames: [CGRect] = []
-    private var rowsPerColumn = 1
-    private var columnWidth: CGFloat = 100
+    /// Grid metrics, readable so `BriefCollectionView` can draw the row bands and
+    /// column rules on the same geometry the items are placed on — two sources of
+    /// truth here would show up as a half-pixel drift between a name and its band.
+    private(set) var rowsPerColumn = 1
+    private(set) var columnWidth: CGFloat = 100
+    var rowHeight: CGFloat { Self.itemHeight }
+    /// How many columns actually hold items. The rules stop here: an empty folder in a
+    /// three-column pane would otherwise show two ruled columns with nothing in them,
+    /// which reads as missing content rather than as spare room.
+    var filledColumnCount: Int {
+        frames.isEmpty ? 0 : (frames.count + rowsPerColumn - 1) / rowsPerColumn
+    }
     private var contentHeight: CGFloat = 0
     /// The viewport the current `frames` were computed for. Invalidation compares
     /// against this instead of firing on every bounds change — the document view's
@@ -554,6 +564,54 @@ final class BriefCollectionView: NSCollectionView {
     var onDoubleClick: ((Int) -> Void)?
     var menuProvider: ((Int) -> NSMenu?)?
     var claimsKeyFocusOnAttach: (() -> Bool)?
+
+    /// Draws the grid the names sit in: alternating row bands and a hairline between
+    /// columns (Till, 2026-08-31 — "was fehlt ist die separierung der columns und der
+    /// rows"). Without it the names float in one undivided field and the eye has
+    /// nothing to track along.
+    ///
+    /// Drawn here rather than per cell for two reasons: the bands and rules have to
+    /// continue through the gaps a short last column leaves, and cells are recycled, so
+    /// anything painted in them would have to be recomputed on every reuse.
+    ///
+    /// Both colours are the system's — `alternatingContentBackgroundColors` is the same
+    /// stripe the detailed table uses (`usesAlternatingRowBackgroundColors`), and
+    /// `separatorColor` is the same hairline as every other seam in the window. Nothing
+    /// custom, so light/dark and accent changes follow the system.
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard let layout = collectionViewLayout as? BriefLayout,
+              layout.columnWidth > 0, layout.rowHeight > 0 else { return }
+
+        // Row bands, every other one, across the full width — the rows line up across
+        // columns, so a band that stops at a column edge would read as a broken grid.
+        if NSColor.alternatingContentBackgroundColors.count > 1 {
+            NSColor.alternatingContentBackgroundColors[1].setFill()
+            let firstRow = max(0, Int(floor(dirtyRect.minY / layout.rowHeight)))
+            let lastRow = min(layout.rowsPerColumn, Int(ceil(dirtyRect.maxY / layout.rowHeight)))
+            if firstRow < lastRow {
+                for row in firstRow..<lastRow where row.isMultiple(of: 2) {
+                    NSRect(x: dirtyRect.minX, y: CGFloat(row) * layout.rowHeight,
+                           width: dirtyRect.width, height: layout.rowHeight).fill()
+                }
+            }
+        }
+
+        // Column rules. Only *between* filled columns: never at the leading edge (an
+        // opening line would box the list in, and the pane already has its own edge)
+        // and never past the last column that holds items.
+        guard layout.filledColumnCount > 1 else { return }
+        NSColor.separatorColor.setFill()
+        let hairline = 1.0 / (window?.backingScaleFactor ?? 2)
+        let firstColumn = max(1, Int(floor(dirtyRect.minX / layout.columnWidth)))
+        let lastColumn = min(layout.filledColumnCount - 1,
+                             Int(ceil(dirtyRect.maxX / layout.columnWidth)))
+        guard firstColumn <= lastColumn else { return }
+        for column in firstColumn...lastColumn {
+            NSRect(x: CGFloat(column) * layout.columnWidth - hairline, y: dirtyRect.minY,
+                   width: hairline, height: dirtyRect.height).fill()
+        }
+    }
 
     override func mouseDown(with event: NSEvent) {
         if event.clickCount == 2, let index = itemIndex(at: event) {
