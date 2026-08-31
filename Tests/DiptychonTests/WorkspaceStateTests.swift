@@ -66,6 +66,39 @@ final class WorkspaceStateTests: XCTestCase {
         XCTAssertEqual(WorkspaceStateStore.load(defaults), state)
     }
 
+    // MARK: Display mode (issue 37)
+
+    func testBriefColumnsRoundTrip() throws {
+        var state = sample()
+        state.left.briefColumns = 2
+        state.right.briefColumns = 3
+        let data = try XCTUnwrap(WorkspaceStateStore.encode(state))
+        XCTAssertEqual(WorkspaceStateStore.decode(data), state)
+    }
+
+    func testPre37BlobDecodesAsTableMode() throws {
+        // Snapshots written before issue 37 carry no `briefColumns` key — decode
+        // must tolerate that and default to the table view (nil), not fail.
+        let json = """
+        {"schemaVersion":1,
+         "left":{"directoryPath":"/tmp/l","sort":{"column":"name","ascending":true}},
+         "right":{"directoryPath":"/tmp/r","sort":{"column":"date","ascending":false}},
+         "staging":[]}
+        """
+        let state = try XCTUnwrap(WorkspaceStateStore.decode(Data(json.utf8)))
+        XCTAssertNil(state.left.briefColumns)
+        XCTAssertNil(state.right.briefColumns)
+    }
+
+    func testOutOfRangeBriefColumnsRestoreAsTable() {
+        XCTAssertEqual(DisplayMode.from(briefColumns: nil), .table)
+        XCTAssertEqual(DisplayMode.from(briefColumns: 0), .table)
+        XCTAssertEqual(DisplayMode.from(briefColumns: 4), .table)
+        XCTAssertEqual(DisplayMode.from(briefColumns: 2), .brief(columns: 2))
+        XCTAssertEqual(DisplayMode.brief(columns: 3).briefColumns, 3)
+        XCTAssertNil(DisplayMode.table.briefColumns)
+    }
+
     // MARK: Sort mapping
 
     func testSortRoundTripsThroughComparators() {

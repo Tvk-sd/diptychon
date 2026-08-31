@@ -52,9 +52,14 @@ struct WorkspaceState: Codable, Equatable {
 
 /// Per-pane restorable state. Filters are deliberately absent (issue 41): panes
 /// always reopen unfiltered, so a stale filter can never hide files on launch.
+/// Per-pane restorable state. Filters are deliberately absent (issue 41): panes
+/// always reopen unfiltered, so a stale filter can never hide files on launch.
 struct PaneState: Codable, Equatable {
     var directoryPath: String
     var sort: PaneSort
+    /// Brief-view column count (issue 37): nil = detailed table, 1–3 = brief mode.
+    /// Optional so pre-37 snapshots keep decoding (additive schema, issue 41).
+    var briefColumns: Int? = nil
 }
 
 /// A persistable sort descriptor. The live `Table` uses `KeyPathComparator<FileItem>`,

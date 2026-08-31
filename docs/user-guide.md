@@ -111,6 +111,13 @@ an Operation on the staged set.
   preview and details, for when you want it always-on rather than a spacebar pop.
 - **Get Info:** `⌘I`. **Reveal in Finder:** `⇧⌘R`. **Open With…:** `⌘↩`.
   **Copy path(s):** `⌥⌘C`.
+- **Brief view:** `⌘1` switches the Active Panel between the detailed table and a
+  compact **brief view** — names + icons in 1–3 fixed columns, laid out
+  down-then-across so far more entries fit on screen when you're scanning by name.
+  The column count is set from the command palette or the View menu ("Brief View:
+  1–3 Columns"). Each Panel remembers its own mode, including across restarts. The
+  sort order, filter, and selection carry over unchanged; in brief view `←`/`→` move
+  across columns and `↑`/`↓` within a column.
 
 ---
 

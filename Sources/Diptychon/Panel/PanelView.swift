@@ -92,6 +92,24 @@ struct PanelView: View {
                         ContentUnavailableView.search(text: model.searchQueryDisplay)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
+                } else if case .brief(let columns) = model.displayMode {
+                    // Brief display mode (issue 37): same visibleItems feed, same
+                    // FileListView protocol — only the renderer changes.
+                    BriefFileListView(
+                        items: model.visibleItems,
+                        selection: $model.selection,
+                        sortOrder: $model.sortOrder,
+                        onDrop: onDrop,
+                        onPin: onPin,
+                        onAddToStaging: onAddToStaging,
+                        onActivate: onActivate,
+                        renameRequest: model.inlineRenameRequest,
+                        onRename: onRename,
+                        accessibilityID: tableIdentifier
+                    )
+                    .briefColumns(columns)
+                    .claimingKeyFocus(hasKeyFocus)
+                    .highlightingTarget(model.highlightedTargetURL)
                 } else {
                     PanelFileList(
                         items: model.visibleItems,
