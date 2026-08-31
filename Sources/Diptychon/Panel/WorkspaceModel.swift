@@ -297,9 +297,12 @@ final class WorkspaceModel {
         stagingPanel = PanelModel(directory: .startDirectory,
                                   makeSource: { _, _ in StagingSource(urls: staging.urls) })
 
-        // Apply restored sort (folder is already set via the resolved plan above).
-        left.restore(directory: leftPlan.directory, sort: leftPlan.sort)
-        right.restore(directory: rightPlan.directory, sort: rightPlan.sort)
+        // Apply restored sort + display mode (folder is already set via the resolved
+        // plan above).
+        left.restore(directory: leftPlan.directory, sort: leftPlan.sort,
+                     briefColumns: leftPlan.briefColumns)
+        right.restore(directory: rightPlan.directory, sort: rightPlan.sort,
+                      briefColumns: rightPlan.briefColumns)
         // Folders on an unmounted drive: remember them, restore on remount (step 5).
         if let t = leftPlan.pendingTarget { pendingRemount[.left] = t }
         if let t = rightPlan.pendingTarget { pendingRemount[.right] = t }
@@ -358,21 +361,27 @@ final class WorkspaceModel {
     private struct PanePlan {
         let directory: URL
         let sort: PaneSort
+        /// Restored display mode (issue 37): nil = table, 1–3 = brief columns.
+        let briefColumns: Int?
         let pendingTarget: URL?
     }
 
     private static func plan(_ pane: PaneState?, home: URL, firstRun: URL,
                              mounted: [String]) -> PanePlan {
-        guard let pane else { return PanePlan(directory: firstRun, sort: .default, pendingTarget: nil) }
+        guard let pane else { return PanePlan(directory: firstRun, sort: .default,
+                                              briefColumns: nil, pendingTarget: nil) }
         switch RestorePath.resolve(path: pane.directoryPath, home: home,
                                    fileExists: Self.directoryExists,
                                    mountedVolumeRoots: mounted) {
         case .use(let url):
-            return PanePlan(directory: url, sort: pane.sort, pendingTarget: nil)
+            return PanePlan(directory: url, sort: pane.sort,
+                            briefColumns: pane.briefColumns, pendingTarget: nil)
         case .pending(let target, let fallback):
-            return PanePlan(directory: fallback, sort: pane.sort, pendingTarget: target)
+            return PanePlan(directory: fallback, sort: pane.sort,
+                            briefColumns: pane.briefColumns, pendingTarget: target)
         case .fallback(let url):
-            return PanePlan(directory: url, sort: pane.sort, pendingTarget: nil)
+            return PanePlan(directory: url, sort: pane.sort,
+                            briefColumns: pane.briefColumns, pendingTarget: nil)
         }
     }
 
@@ -563,8 +572,10 @@ final class WorkspaceModel {
         withObservationTracking {
             _ = left.directory
             _ = left.sortOrder
+            _ = left.displayMode
             _ = right.directory
             _ = right.sortOrder
+            _ = right.displayMode
             _ = staging.urls
             _ = splitRatio
             _ = terminalVisible
@@ -649,8 +660,9 @@ final class WorkspaceModel {
         case .newFile: create(.file)
         case .rename:
             // ⌘R: a single selection renames inline (issue 11); 2+ opens the batch
-            // sheet (issue 07).
-            if activeModel.selectedItems.count == 1 {
+            // sheet (issue 07). Inline rename is table-only — the brief view (issue
+            // 37) has no editable cell, so a lone selection there opens the sheet too.
+            if activeModel.selectedItems.count == 1, activeModel.displayMode == .table {
                 activeModel.requestInlineRename()
             } else {
                 beginRename()
@@ -660,6 +672,10 @@ final class WorkspaceModel {
         case .preview: togglePreview()
         case .goToFolder: presentedSheet = .goToFolder
         case .toggleHidden: activeModel.showHidden.toggle()
+        case .toggleBriefView: activeModel.toggleBriefView()
+        case .briefOneColumn: activeModel.setBriefColumns(1)
+        case .briefTwoColumns: activeModel.setBriefColumns(2)
+        case .briefThreeColumns: activeModel.setBriefColumns(3)
         case .selectAll: activeModel.selectAll()
         case .selectNone: activeModel.selectNone()
         case .invertSelection: activeModel.invertSelection()

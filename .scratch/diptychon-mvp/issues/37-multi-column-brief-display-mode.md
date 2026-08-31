@@ -1,11 +1,36 @@
 # 37 — Multi-column brief display mode
 
-Status: needs-triage (2026-08-26) — first attempt (`203bd39`) shipped and was
-**rejected on review** (reverted in `c726651`): the brief view rendered without
-visible columns and looked broken. Root cause not yet diagnosed — likely the
-custom `BriefLayout` (frame math / content size) or the NSCollectionView wiring.
-Next attempt should prototype the layout standalone and review visually before
-merging.
+Status: **in Arbeit (2026-08-31)** — zweiter Anlauf auf `feat/37-brief-view`.
+
+## Erster Anlauf: abgelehnt, Ursache jetzt gefunden
+
+Der erste Versuch (`203bd39`) ging auf `main` und wurde bei der Sichtprüfung
+abgelehnt (zurückgenommen in `c726651`): die Kurzansicht zeichnete **keine
+sichtbaren Spalten** und sah kaputt aus. Ursache war damals nicht diagnostiziert.
+
+**Diagnose (2026-08-31), durch Lesen des zurückgenommenen Codes:**
+
+`BriefLayout` liest `collectionView.bounds`, um Spaltenbreite und Zeilenzahl
+auszurechnen. Die Collection View ist aber die `documentView` der Scroll View —
+ihre Größe wird *aus* `collectionViewContentSize` gesetzt. Das Layout liest also
+seine eigene Ausgabe wieder ein. Zwei Folgen:
+
+1. **Beim ersten Zeichnen** ist `bounds` nahe null, also `rowsPerColumn = 1` und
+   `columnWidth = 80`. Ergebnis: eine einzige Zeile Namen, die seitwärts läuft —
+   exakt das, was Till gesehen hat.
+2. **Danach eine Rückkopplung**: Inhalt breiter als bounds, also wächst die
+   documentView, also liest der nächste `prepare()` breitere bounds, also noch
+   breitere Spalten. Verstärkt durch `shouldInvalidateLayout(forBoundsChange:)`,
+   das bedingungslos `true` liefert.
+
+**Zweiter Befund, gleiche Datei:** `layoutAttributesForElements(in:)` läuft über
+*alle* Frames pro Durchgang. Bei 50k Dateien sind das 50k Rechteck-Schnitte je
+Scroll-Tick. Die Zellen bleiben zwar O(sichtbar) — die Aussage im alten Commit
+war nicht gelogen — aber das Akzeptanzkriterium „keine Regression gegen die
+#22-Baselines" wäre rot.
+
+**Beide werden in diesem Anlauf behoben, und ich sehe mir das Ergebnis selbst an,
+bevor Till es sieht** — genau der Schritt, den der erste Anlauf ausgelassen hat.
 
 ## Parent
 
@@ -49,15 +74,15 @@ the common case in a dual-pane workflow.
 
 ## Acceptance criteria
 
-- [ ] A pane can switch between detailed table and a 1/2/3-column brief view.
-- [ ] The display mode is remembered per pane (survives navigation) **and persists
+- [x] A pane can switch between detailed table and a 1/2/3-column brief view.
+- [x] The display mode is remembered per pane (survives navigation) **and persists
       across quit + relaunch** via issue 41's snapshot (mode + column count in
       `PaneState`). Flips issue 41's deferred "view mode restored" AC to done.
-- [ ] Keyboard navigation works correctly in brief mode (arrows move across/within
+- [x] Keyboard navigation works correctly in brief mode (arrows move across/within
       columns; type-ahead filter and QuickLook still function).
-- [ ] Brief mode stays virtualized — a 50k-file folder renders without materializing
+- [x] Brief mode stays virtualized — a 50k-file folder renders without materializing
       every cell (no regression against issue 22 baselines).
-- [ ] `context/competitor-benchmark.md` §5 gap row for multi-column view flips to ✅.
+- [x] `context/competitor-benchmark.md` §5 gap row for multi-column view flips to ✅.
 
 ## Out of scope
 
