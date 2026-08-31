@@ -26,8 +26,9 @@ extension KeyChord {
 
 // MARK: - Settings window (issue 44)
 
-/// The app's Settings window (⌘,). Two tabs: the shortcut editor and the Full Disk
-/// Access deep-link (relocated here from the app menu since Settings now owns ⌘,).
+/// The app's Settings window (⌘,). Three tabs: the shortcut editor, the Full Disk
+/// Access deep-link (relocated here from the app menu since Settings now owns ⌘,),
+/// and the reveal handler switch (issue 54).
 struct SettingsRootView: View {
     var body: some View {
         TabView {
@@ -35,6 +36,8 @@ struct SettingsRootView: View {
                 .tabItem { Label("Shortcuts", systemImage: "keyboard") }
             FullDiskAccessSettingsView()
                 .tabItem { Label("Full Disk Access", systemImage: "externaldrive") }
+            RevealHandlerSettingsView()
+                .tabItem { Label("Reveal", systemImage: "doc.viewfinder") }
         }
         .frame(width: 480, height: 560)
     }
@@ -174,5 +177,72 @@ struct FullDiskAccessSettingsView: View {
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear { granted = FullDiskAccess.isGranted }
+    }
+}
+
+/// The reveal-handler switch (issue 54): make Diptychon the app that opens when
+/// something says "Show in Finder".
+///
+/// The receiving side has worked since merge `24f9396`; until now the only way to turn
+/// it on was a Terminal command, which meant nobody who downloaded the app ever found
+/// the app's strongest "it really replaces Finder" moment.
+///
+/// The switch reads the system on every appearance rather than remembering its own
+/// answer — the setting lives outside the app and can change behind our back.
+struct RevealHandlerSettingsView: View {
+    @State private var state = RevealHandler.currentState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Toggle("Use Diptychon when apps reveal files", isOn: Binding(
+                get: { state == .diptychon },
+                set: { on in
+                    on ? RevealHandler.enable() : RevealHandler.disable()
+                    state = RevealHandler.currentState
+                }
+            ))
+            .font(.headline)
+            .accessibilityIdentifier("reveal-handler-toggle")
+
+            Text(statusLine)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Divider()
+
+            // Says what this does NOT do, on purpose. macOS 26 blocks folder handlers
+            // at the content-type level, so promising more here would set up a
+            // disappointment the app cannot fix.
+            Text("This covers “Show in Finder” from other apps — a download in your "
+                 + "browser, an attachment, a build output. It does not change what "
+                 + "happens when you double-click a folder, and it leaves the Desktop "
+                 + "and Open/Save dialogs with Finder; macOS does not allow those to "
+                 + "be handed over.")
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // No "restart the other app" caveat here: measured on the running build
+            // (2026-08-31), a flip takes effect on the very next reveal, including
+            // launching Diptychon from cold. Saying otherwise would be false.
+
+            Spacer()
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onAppear { state = RevealHandler.currentState }
+    }
+
+    /// Names the third case out loud: another file manager may hold the setting, and
+    /// calling that "off" would tell the user Finder is handling reveals when it isn't.
+    private var statusLine: String {
+        switch state {
+        case .diptychon:
+            return "Reveals open in Diptychon."
+        case .systemDefault:
+            return "Reveals open in Finder — the macOS default."
+        case .otherApp(let bundleID):
+            return "Another app currently handles reveals (\(bundleID)). "
+                 + "Turning this on replaces it; turning it off restores Finder, not that app."
+        }
     }
 }
