@@ -1,7 +1,65 @@
 # 91 — Spaltenansicht (Miller Columns) + sichtbarer Ansichts-Umschalter
 
-Status: **ready-for-agent**
-Category: enhancement / panel
+Status: **ready-for-human** — gebaut, von mir am laufenden Build angesehen,
+wartet auf Tills Test. Volle Unit-Suite: **284 Tests, 0 Fehler** (vorher 270).
+Noch nicht auf `main`, Branch `feat/91-column-view`.
+
+## Was gebaut wurde
+
+- **`ColumnChain`** (neu, rein): `columns(for:)` = Vorfahren + der Ordner selbst,
+  `selectedChild(inColumnAt:chain:)` = was in einer Vorfahren-Spalte markiert ist.
+  Der ganze Verhaltenskern, ohne Fenster prüfbar.
+- **`ColumnBrowserView`** (neu): waagerecht scrollende Spalten, jede eine
+  **einspaltige Kurzansicht** aus #37. Erst probiert mit der Detail-Tabelle je
+  Spalte — am laufenden Build angesehen und verworfen: sie wiederholt ihre
+  Name/Type/Date/Size-Kopfzeile in jeder Spalte und lässt in 240pt nur
+  abgeschnittene Namen übrig. Die Kurzansicht bringt außerdem Zeilenbänder und
+  Haarlinien mit, also hat die App **eine** Raster-Sprache statt zwei.
+- **`PanelModel`**: `columnChain`, ein nach URL zwischengespeicherter
+  `columnModel(for:)` und `openColumn(_:)`. Der Cache wirft beim Navigieren alles
+  weg, was kein Vorfahre mehr ist — sonst sammeln sich Watcher für Ordner an, die
+  niemand ansieht.
+- **Drei Symbole in der Panel-Kopfzeile**: Liste, Kurzansicht, Spaltenansicht.
+  Das aktive in Akzentfarbe. Setzt den Modus direkt, statt zu wechseln.
+- **⌘2**, Ansicht-Menü, Befehlspalette, `docs/keyboard-reference.md`.
+- **← / → wechseln die Spalte**, ↑ / ↓ bleiben in einer. In einer einspaltigen
+  Kurzansicht haben die Links/Rechts-Tasten sonst nichts zu tun, also reicht sie
+  `BriefCollectionView` an den Aufrufer durch (`onHorizontalStep`).
+
+## Am laufenden Build angesehen
+
+Kette `Users → Till → Projects → 12.1 - Agents`, jede Spalte ein Ordner; die
+Vorfahren-Spalten markieren das Kind, das weiterführt; die letzte zeigt den
+Inhalt; das Breadcrumb läuft mit; ← und → springen zwischen den Spalten.
+Aufnahme über die CGWindowID, damit die Sonde Till nicht den Fokus stiehlt.
+
+## Akzeptanzkriterien
+
+- [x] Ordner auswählen zeigt den Inhalt in der nächsten Spalte (Story 1, 2).
+- [x] ← / → zwischen Spalten, ↑ / ↓ innerhalb (Story 3, 4, 5).
+- [x] Waagerechtes Scrollen hält die letzte Spalte im Bild (Story 6).
+- [x] Datei auswählen schneidet die Spalten rechts davon ab (Story 7).
+- [x] Breadcrumb folgt (Story 9) — er liest dasselbe `directory`.
+- [x] Zurück/Vorwärts bleiben sinnvoll (Story 10): Spaltenklicks schreiben
+      **keine** History, ⌘← führt weiterhin zum vorigen Ort.
+- [x] Pro Pane (Story 11), übersteht Neustart (Story 12) — `PaneState.displayMode`.
+- [x] Operationen, Ziehen, Kontextmenü, QuickLook (Story 13–16): die letzte Spalte
+      **ist** das Panel-Modell, also wirkt alles wie bisher auf seine Auswahl.
+- [x] Virtualisiert (Story 17): jede Spalte ist eine Kurzansicht, deren sichtbarer
+      Bereich seit #37 gerechnet und nicht gesucht wird.
+- [x] Trennlinien wie in der Kurzansicht (Story 21) — dieselbe Zeichnung.
+- [x] Drei Symbole, aktives hervorgehoben, wirkt auf die eigene Pane
+      (Story 22, 23, 24).
+- [x] ⌘2 (Story 25), Menü + Palette (Story 26).
+
+**Von Till im Gebrauch zu prüfen** (durch Ansehen nicht abschließend belegbar):
+Ordner ohne Leserecht (Story 18), leerer Ordner (Story 19), Dateisystem-
+Änderungen in offenen Spalten (Story 20).
+
+## Bewusst nicht drin
+
+Vorschau in der letzten Spalte, ziehbare Spaltenbreiten — beide im Ticket als
+Out-of-Scope. Inline-Umbenennen bleibt der Tabelle vorbehalten, geerbt aus #37.
 
 ## Parent
 
@@ -107,6 +165,57 @@ Anzeigeart pro Pane gilt. Das aktive Symbol trägt die Akzentfarbe, wie die
     passend zu ⌘1 für die Kurzansicht.
 26. Als Nutzer will ich die Ansichten weiterhin über das Ansicht-Menü und die
     Befehlspalette erreichen.
+
+## Entwurfs-Entscheidungen (2026-08-31, vor dem Bauen)
+
+**Die Kette wird abgeleitet, nicht getrennt gehalten.** Zwei Wege standen zur
+Wahl: die Spaltenkette als eigenen Zustand führen, oder sie aus dem einen
+`PanelModel.directory` ableiten. Gewählt: **ableiten.**
+
+    spalten(fuer: directory) = [vorfahren von directory ...] + [directory]
+
+Damit ist die letzte Spalte immer der Inhalt von `directory`, und das ist genau
+die Spalte, die das Panel ohnehin schon zeigt. Breadcrumb, Kopierziel,
+Terminal-Startordner und ⌘←/⌘→ lesen weiterhin denselben einen Wert und
+brauchen **keinen Sonderfall**. Die Alternative hätte `directory` mit Spalte 0
+in einen Kreis gebracht und Flickwerk an vielen Aufrufstellen erzwungen.
+
+**Die Auswahlregel, ausgedrückt über `directory`:**
+
+    ordner F in Spalte i gewaehlt  ->  directory = F        (Kette waechst)
+    datei  X in Spalte i gewaehlt  ->  directory = Ordner(i) (Kette schneidet ab)
+                                       selection = {X}
+
+Ein Ordner-Klick zeigt seinen Inhalt rechts daneben, weil `directory` auf ihn
+zeigt und die Kette daraus folgt. Ein Datei-Klick in einer mittleren Spalte wirft
+die rechten weg, weil die Kette bei dem Ordner endet, in dem die Datei liegt.
+
+**Spalten-Modelle sind ein Cache, kein Neubau je Bild.** Die *Identität* der
+Kette ist abgeleitet, die Zeilen darin nicht: jede Spalte braucht ein
+`PanelModel` für Inhalt, Sortierung und `DirectoryWatcher`. Diese Modelle werden
+nach URL zwischengespeichert. Bei jedem Bild neu zu bauen hieße: jeder Klick
+listet jede Spalte neu und meldet jeden Watcher neu an — ein Fehler, der bei 4
+Einträgen unsichtbar ist und bei 400 wehtut.
+
+**Spaltenauswahl schreibt KEINE History.** Sonst hinterlässt fünf Ebenen tief
+klicken fünf Zurück-Einträge, und ⌘← wird unbrauchbar. Der Finder verhält sich
+auch nicht so. Benutzt wird `PanelModel.relocate(to:)` — der vorhandene Weg,
+`directory` ohne History-Eintrag zu setzen (bisher für verschwundene Laufwerke,
+#41). ⌘← führt damit weiterhin zum vorigen **Ort**, nicht zur vorigen Spalte.
+
+**Persistenz: neues Feld gewinnt, altes trägt weiter.** `PaneState` bekommt
+`displayMode: String?` zusätzlich zu `briefColumns: Int?`. Beim Wiederherstellen
+wird **zuerst** `displayMode` gelesen und nur bei dessen Fehlen auf
+`briefColumns` zurückgefallen. Andersherum wäre still tödlich: eine
+Spaltenansicht persistiert mit `briefColumns: nil`, und die alte Regel
+`from(briefColumns: nil)` liefert `.table` — jede Spaltenansicht würde beim
+Neustart heimlich zur Tabelle. Der #37-Persistenztest fängt das nicht, weil er
+den dritten Fall nicht kennt.
+
+**Vorfahren-Kette:** `TopBarView.trail(of:)` rechnet diese Kette bereits für das
+Breadcrumb aus. Wiederverwenden statt einen zweiten Weg zu schreiben. Das
+Breadcrumb kappt auf die letzten fünf; die Spaltenansicht kappt **nicht**,
+sondern scrollt waagerecht und hält die letzte Spalte im Bild (Story 6).
 
 ## Implementation Decisions
 

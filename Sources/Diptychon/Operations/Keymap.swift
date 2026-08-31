@@ -46,6 +46,7 @@ enum AppAction: String, Equatable, Hashable, CaseIterable {
     case briefOneColumn  // palette/menu — brief view, 1 column (issue 37)
     case briefTwoColumns // palette/menu — brief view, 2 columns
     case briefThreeColumns // palette/menu — brief view, 3 columns
+    case toggleColumnView // ⌘2 — Active Panel: table ↔ column browser (issue 91)
 }
 
 extension AppAction {
@@ -92,6 +93,7 @@ extension AppAction {
         case .briefOneColumn:   return "Brief View: 1 Column"
         case .briefTwoColumns:  return "Brief View: 2 Columns"
         case .briefThreeColumns: return "Brief View: 3 Columns"
+        case .toggleColumnView: return "Toggle Column View"
         }
     }
 
@@ -239,6 +241,7 @@ enum Keymap {
         // ⌘1 — Finder's view-mode numbering (⌘1…⌘4); the one display-mode toggle
         // gets the first slot (issue 37). Column counts live in palette/menu.
         (KeyChord(.character("1"), command: true), .toggleBriefView),
+        (KeyChord(.character("2"), command: true), .toggleColumnView),
     ]
 
     static func action(for event: NSEvent,

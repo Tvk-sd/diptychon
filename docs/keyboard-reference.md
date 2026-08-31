@@ -104,6 +104,7 @@ set as one.
 | `⌥⌘C` | Copy path(s) |
 | `⌘J` | Show/hide the embedded terminal, opened in the Active Panel's folder |
 | `⌘1` | Toggle brief view (1–3 name-only columns) in the Active Panel — column count via palette/menu |
+| `⌘2` | Toggle column view in the Active Panel — one folder per column, contents of what's selected to the left |
 | `⌘K` | Command palette (run any action by name) |
 
 ---

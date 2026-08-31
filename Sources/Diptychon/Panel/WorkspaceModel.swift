@@ -300,9 +300,11 @@ final class WorkspaceModel {
         // Apply restored sort + display mode (folder is already set via the resolved
         // plan above).
         left.restore(directory: leftPlan.directory, sort: leftPlan.sort,
-                     briefColumns: leftPlan.briefColumns)
+                     briefColumns: leftPlan.briefColumns,
+                     displayMode: leftPlan.displayMode)
         right.restore(directory: rightPlan.directory, sort: rightPlan.sort,
-                      briefColumns: rightPlan.briefColumns)
+                      briefColumns: rightPlan.briefColumns,
+                      displayMode: rightPlan.displayMode)
         // Folders on an unmounted drive: remember them, restore on remount (step 5).
         if let t = leftPlan.pendingTarget { pendingRemount[.left] = t }
         if let t = rightPlan.pendingTarget { pendingRemount[.right] = t }
@@ -361,27 +363,34 @@ final class WorkspaceModel {
     private struct PanePlan {
         let directory: URL
         let sort: PaneSort
-        /// Restored display mode (issue 37): nil = table, 1–3 = brief columns.
+        /// Restored brief-view column count (issue 37): nil = not brief.
         let briefColumns: Int?
+        /// Restored display mode name (issue 91). Wins over `briefColumns` — see
+        /// `DisplayMode.from(persistedName:briefColumns:)`.
+        let displayMode: String?
         let pendingTarget: URL?
     }
 
     private static func plan(_ pane: PaneState?, home: URL, firstRun: URL,
                              mounted: [String]) -> PanePlan {
         guard let pane else { return PanePlan(directory: firstRun, sort: .default,
-                                              briefColumns: nil, pendingTarget: nil) }
+                                              briefColumns: nil, displayMode: nil,
+                                              pendingTarget: nil) }
         switch RestorePath.resolve(path: pane.directoryPath, home: home,
                                    fileExists: Self.directoryExists,
                                    mountedVolumeRoots: mounted) {
         case .use(let url):
             return PanePlan(directory: url, sort: pane.sort,
-                            briefColumns: pane.briefColumns, pendingTarget: nil)
+                            briefColumns: pane.briefColumns,
+                            displayMode: pane.displayMode, pendingTarget: nil)
         case .pending(let target, let fallback):
             return PanePlan(directory: fallback, sort: pane.sort,
-                            briefColumns: pane.briefColumns, pendingTarget: target)
+                            briefColumns: pane.briefColumns,
+                            displayMode: pane.displayMode, pendingTarget: target)
         case .fallback(let url):
             return PanePlan(directory: url, sort: pane.sort,
-                            briefColumns: pane.briefColumns, pendingTarget: nil)
+                            briefColumns: pane.briefColumns,
+                            displayMode: pane.displayMode, pendingTarget: nil)
         }
     }
 
@@ -673,6 +682,7 @@ final class WorkspaceModel {
         case .goToFolder: presentedSheet = .goToFolder
         case .toggleHidden: activeModel.showHidden.toggle()
         case .toggleBriefView: activeModel.toggleBriefView()
+        case .toggleColumnView: activeModel.toggleColumnView()
         case .briefOneColumn: activeModel.setBriefColumns(1)
         case .briefTwoColumns: activeModel.setBriefColumns(2)
         case .briefThreeColumns: activeModel.setBriefColumns(3)

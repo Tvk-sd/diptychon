@@ -79,6 +79,7 @@ enum CommandCatalog {
         cmd(.briefOneColumn, "Brief View: 1 Column", "View"),
         cmd(.briefTwoColumns, "Brief View: 2 Columns", "View"),
         cmd(.briefThreeColumns, "Brief View: 3 Columns", "View"),
+        cmd(.toggleColumnView, "Toggle Column View", "View"),
         cmd(.focusSearch, "Search Subtree", "View"),
         cmd(.focusFilter, "Filter Folder", "View"),
         toggle("togglePreview", "Toggle Preview Pane", shortcut: "⇧⌘P") { $0.togglePreviewPane() },

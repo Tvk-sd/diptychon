@@ -123,6 +123,7 @@ struct DiptychonApp: App {
                 ActionMenuItem(action: .briefOneColumn)
                 ActionMenuItem(action: .briefTwoColumns)
                 ActionMenuItem(action: .briefThreeColumns)
+                ActionMenuItem(action: .toggleColumnView)
                 ActionMenuItem(action: .preview)
             }
             CommandGroup(replacing: .help) {

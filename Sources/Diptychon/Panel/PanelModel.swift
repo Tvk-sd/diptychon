@@ -9,12 +9,27 @@ import Observation
 enum DisplayMode: Equatable {
     case table
     case brief(columns: Int)
+    /// Column browser (issue 91): one folder per column, each showing the contents of
+    /// what is selected in the column to its left.
+    case columns
 
-    /// Persisted form: nil = table, 1–3 = brief with that many columns.
+    /// Persisted form: nil = table, 1–3 = brief with that many columns. The column
+    /// browser has no count of its own — it persists through `persistedName`.
     var briefColumns: Int? {
         switch self {
-        case .table: return nil
+        case .table, .columns: return nil
         case .brief(let c): return c
+        }
+    }
+
+    /// Stable string for `PaneState.displayMode` (issue 91). Deliberately not the
+    /// enum's synthesized name: this ends up in a persisted blob, so it must survive
+    /// a rename of the case.
+    var persistedName: String {
+        switch self {
+        case .table: return "table"
+        case .brief: return "brief"
+        case .columns: return "columns"
         }
     }
 
@@ -23,6 +38,25 @@ enum DisplayMode: Equatable {
     static func from(briefColumns: Int?) -> DisplayMode {
         guard let c = briefColumns, (1...3).contains(c) else { return .table }
         return .brief(columns: c)
+    }
+
+    /// Restore from a snapshot (issue 91). **The named mode wins; `briefColumns` only
+    /// speaks when there is no name.**
+    ///
+    /// The order matters and getting it backwards would be silent: a columns pane
+    /// persists `briefColumns: nil`, and the old rule maps nil to `.table`, so every
+    /// column browser would quietly come back as a table. Pre-91 blobs carry no name
+    /// and keep decoding exactly as they did.
+    ///
+    /// An unknown name also degrades to the table rather than to nothing — a snapshot
+    /// written by a newer build must never open a broken pane.
+    static func from(persistedName: String?, briefColumns: Int?) -> DisplayMode {
+        switch persistedName {
+        case "columns": return .columns
+        case "brief": return from(briefColumns: briefColumns)
+        case "table": return .table
+        default: return from(briefColumns: briefColumns)
+        }
     }
 }
 
@@ -191,9 +225,70 @@ final class PanelModel {
     /// toggling out remembers it.
     func toggleBriefView() {
         switch displayMode {
-        case .table: displayMode = .brief(columns: lastBriefColumns)
+        case .table, .columns: displayMode = .brief(columns: lastBriefColumns)
         case .brief(let c): lastBriefColumns = c; displayMode = .table
         }
+    }
+
+    /// ⌘2: table ↔ column browser (issue 91). Mirrors `toggleBriefView` — pressing it
+    /// again returns to the table, so neither view can trap you.
+    func toggleColumnView() {
+        displayMode = (displayMode == .columns) ? .table : .columns
+    }
+
+    /// Set the display mode outright — what the header's three-way switcher calls, so
+    /// a click lands on the mode it shows rather than toggling from whatever was
+    /// there.
+    func setDisplayMode(_ mode: DisplayMode) {
+        if case .brief(let c) = mode { lastBriefColumns = min(3, max(1, c)) }
+        displayMode = mode
+    }
+
+    // MARK: - Column browser (issue 91)
+
+    /// The chain of folders the column browser shows: ancestors, then this pane's
+    /// folder. Derived from `directory` every time — see `ColumnChain`.
+    var columnChain: [URL] { ColumnChain.columns(for: directory) }
+
+    /// One model per ancestor column, **cached by URL**.
+    ///
+    /// The chain's identity is derived, but the rows inside a column are not: each
+    /// needs listing, sorting and a `DirectoryWatcher`. Rebuilding these per render
+    /// would re-list every column and re-arm every watcher on every click — invisible
+    /// at four entries, painful at four hundred.
+    ///
+    /// Not observed: the cache is plumbing, and the columns publish their own changes.
+    @ObservationIgnored private var columnModels: [URL: PanelModel] = [:]
+
+    /// The model for one column of the browser.
+    ///
+    /// The **last** column is this pane itself, so the pane's own selection stays the
+    /// one operations act on — copy, move, trash and tag need no knowledge of this
+    /// view. Ancestor columns get their own cached models.
+    func columnModel(for url: URL) -> PanelModel {
+        guard url != directory else { return self }
+        if let existing = columnModels[url] { return existing }
+        let model = PanelModel(directory: url, makeSource: makeSource)
+        model.showHidden = showHidden
+        model.sortOrder = sortOrder
+        model.load()
+        columnModels[url] = model
+        return model
+    }
+
+    /// Move the browser to `url` — the one mutation the column view performs.
+    ///
+    /// Uses `relocate`, so a column click records **no** navigation history. Clicking
+    /// five levels deep would otherwise leave five back-entries and make ⌘← useless;
+    /// the Finder doesn't behave that way either. ⌘← keeps meaning "the previous
+    /// *place* I was", not "the previous column".
+    ///
+    /// Evicts cached columns that are no longer ancestors, so walking around a tree
+    /// doesn't accumulate watchers for folders nobody is looking at.
+    func openColumn(_ url: URL) {
+        relocate(to: url)
+        let live = Set(columnChain)
+        columnModels = columnModels.filter { live.contains($0.key) }
     }
 
     /// Palette/menu entry point: switch to the brief view with an explicit column
@@ -290,8 +385,12 @@ final class PanelModel {
     /// This pane's restorable state — current folder + sort + display mode. Filters/
     /// search are deliberately excluded: panes always reopen unfiltered.
     var paneState: PaneState {
+        // The table is the default, so it writes no name at all: a table pane's blob
+        // stays byte-identical to what pre-91 builds wrote. Only a pane that is in
+        // something other than the table needs to say so.
         PaneState(directoryPath: directory.path, sort: PaneSort(sortOrder),
-                  briefColumns: displayMode.briefColumns)
+                  briefColumns: displayMode.briefColumns,
+                  displayMode: displayMode == .table ? nil : displayMode.persistedName)
     }
 
     /// Apply a restored snapshot at launch: set the starting folder + sort + display
@@ -299,10 +398,12 @@ final class PanelModel {
     /// a place it navigated to). Call before the first `load()`; the caller resolves
     /// `directory` against what exists on disk (`RestorePath`) so this never opens a
     /// broken pane.
-    func restore(directory: URL, sort: PaneSort, briefColumns: Int? = nil) {
+    func restore(directory: URL, sort: PaneSort, briefColumns: Int? = nil,
+                 displayMode persistedMode: String? = nil) {
         self.directory = directory
         self.sortOrder = sort.comparators
-        self.displayMode = DisplayMode.from(briefColumns: briefColumns)
+        self.displayMode = DisplayMode.from(persistedName: persistedMode,
+                                            briefColumns: briefColumns)
         if let c = displayMode.briefColumns { lastBriefColumns = c }
     }
 
