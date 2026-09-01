@@ -68,6 +68,11 @@ struct ColumnBrowserView: View {
                         .frame(width: spare)
                 }
                 .frame(maxHeight: .infinity)
+                // One surface under everything. The collection views draw their bands
+                // on a clear background, so without this the columns sat on the window
+                // colour and the spare room on the control colour — a tonal step that
+                // read as a column edge even where no column ended (Till, 2026-09-01).
+                .background(Color(nsColor: .controlBackgroundColor))
             }
             // Follow the navigation instead of waiting for the user to scroll: the
             // column they just opened is the one they are looking for.
@@ -168,7 +173,6 @@ struct ColumnBrowserView: View {
                 row += 1
             }
         }
-        .background(Color(nsColor: .controlBackgroundColor))
     }
 
     /// ← and → step between columns, which is what they mean to the eye here — ↑ and ↓
