@@ -40,8 +40,9 @@ struct ColumnBrowserView: View {
 
     @ViewBuilder
     private func browser(chain: [URL], viewportWidth: CGFloat) -> some View {
-        // One divider per column, hence the +1 per column.
-        let used = CGFloat(chain.count) * (Self.columnWidth + 1)
+        // Dividers sit between columns only, so there is one fewer of them than
+        // columns.
+        let used = CGFloat(chain.count) * Self.columnWidth + CGFloat(max(0, chain.count - 1))
         let spare = max(Self.columnWidth, viewportWidth - used)
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: true) {
@@ -50,9 +51,12 @@ struct ColumnBrowserView: View {
                         column(at: index, url: url, chain: chain)
                             .frame(width: Self.columnWidth)
                             .id(url)
-                        // The same hairline the brief view rules its columns with, so
-                        // the app has one grid language rather than two.
-                        Divider()
+                        // A rule only *between* columns — the same hairline the brief
+                        // view uses, so the app has one grid language. None after the
+                        // last one: a trailing rule would draw a column boundary with
+                        // nothing on the far side of it, which is the "columns already
+                        // there" look Till asked to get rid of.
+                        if index < chain.count - 1 { Divider() }
                     }
                     // Spare room, ruled like the rest. Without it the pane ended in a
                     // plain dark void next to the last column — "i dont like the black
@@ -135,34 +139,33 @@ struct ColumnBrowserView: View {
         }
     }
 
-    /// The width past the last column: the same row bands and column rules, with no
-    /// rows in them.
+    /// The width past the last column: the row bands carried on, and **nothing else**.
     ///
-    /// Drawn with a `Canvas` rather than a stack of rectangles — the bands are pure
-    /// paint, and a few hundred views to express "empty" would be a poor trade. All
-    /// three colours are the system's, so light/dark follows without a second theme.
+    /// Two corrections from Till live in this one view. It exists at all because the
+    /// pane used to end in a plain dark void next to the last column ("i dont like the
+    /// black box"). It draws no column rules because ruling the empty width made the
+    /// view open as a grid of columns that aren't there — "it should start like the
+    /// list and expand into the columns not have the columns pre visible". So a single
+    /// folder reads as one list across the pane, and a rule appears only when a real
+    /// column arrives to its right.
+    ///
+    /// A `Canvas` rather than a stack of rectangles: the bands are pure paint, and a
+    /// few hundred views to express "empty" would be a poor trade. Both colours are the
+    /// system's, so light/dark follows with no second theme.
     private var emptyRoom: some View {
         Canvas { context, size in
             let rowHeight = BriefLayout.itemHeight
             let bands = NSColor.alternatingContentBackgroundColors
-            if bands.count > 1 {
-                let band = Color(nsColor: bands[1])
-                var row = 0
-                while CGFloat(row) * rowHeight < size.height {
-                    if row.isMultiple(of: 2) {
-                        context.fill(Path(CGRect(x: 0, y: CGFloat(row) * rowHeight,
-                                                 width: size.width, height: rowHeight)),
-                                     with: .color(band))
-                    }
-                    row += 1
+            guard bands.count > 1 else { return }
+            let band = Color(nsColor: bands[1])
+            var row = 0
+            while CGFloat(row) * rowHeight < size.height {
+                if row.isMultiple(of: 2) {
+                    context.fill(Path(CGRect(x: 0, y: CGFloat(row) * rowHeight,
+                                             width: size.width, height: rowHeight)),
+                                 with: .color(band))
                 }
-            }
-            let rule = Color(nsColor: .separatorColor)
-            var x = Self.columnWidth
-            while x < size.width {
-                context.fill(Path(CGRect(x: x, y: 0, width: 1, height: size.height)),
-                             with: .color(rule))
-                x += Self.columnWidth
+                row += 1
             }
         }
         .background(Color(nsColor: .controlBackgroundColor))
