@@ -56,6 +56,49 @@ Aufnahme über die CGWindowID, damit die Sonde Till nicht den Fokus stiehlt.
 Ordner ohne Leserecht (Story 18), leerer Ordner (Story 19), Dateisystem-
 Änderungen in offenen Spalten (Story 20).
 
+## Nacharbeit nach Tills erstem Test (2026-09-01)
+
+Zwei Rückmeldungen, beide berechtigt.
+
+**1. Die Kette begann am Dateisystem-Wurzelverzeichnis.** Till:
+
+> „wenn ich projects navigiere ist project der header folder nicht till oder noch
+> welche drüber, die logik entsteht aus der navigation in der linken leiste"
+
+Der erste Entwurf leitete die Kette vollständig aus `directory` ab und begann
+deshalb immer bei `/`. Jetzt gibt es **einen** gespeicherten Wert: den Anker.
+Er wird bei gewöhnlicher Navigation gesetzt — Sidebar-Klick, Breadcrumb, Go to
+Folder, ⌘↑ — und bleibt liegen, während man durch die Spalten *hineinläuft*.
+`ColumnChain.columns(from:to:)` spannt die Kette vom Anker bis zum aktuellen
+Ordner. Damit ist Projects die erste Spalte, wenn man Projects anspringt.
+
+Liegt der Ordner nicht unter dem Anker (die Pane wurde ganz woanders hin
+bewegt), fällt die Kette auf eine einzelne Spalte zurück, statt eine
+zusammenhanglose Vorfahrenkette zu zeigen; die nächste gewöhnliche Navigation
+setzt den Anker neu. Der Vergleich läuft über Pfad-**Komponenten**, nicht über
+Zeichenketten-Präfixe — `Projects-old` liegt nicht in `Projects`.
+
+**2. „Aktuell muss es buffern bei jedem Klick in einen Ordner."** Zwei Ursachen,
+beide behoben:
+
+- `PanelView` schaltete auf `model.state` und ersetzte bei `.loading` den
+  **gesamten** Panelinhalt durch einen Spinner. In der Spaltenansicht hieß das:
+  jeder Klick blendete *alle* Spalten weg und wieder ein, während ein einziger
+  Ordner listete. Die Spaltenansicht wird jetzt unabhängig vom Panel-Zustand
+  gezeichnet.
+- `openColumn` navigierte über den gewöhnlichen Weg und setzte dabei den
+  Ladezustand. Es benutzt jetzt `relocate(showLoading: false)`: die vorhandenen
+  Spalten bleiben stehen, die neue füllt sich, wenn sie fertig ist.
+
+Jede Spalte meldet ihren Zustand nun **für sich** — ein kleiner Spinner nur,
+solange sie noch nichts zu zeigen hat, und ein benannter Hinweis („No access" /
+„Can't read") statt einer leeren Spalte, wenn ein Ordner nicht lesbar ist. Damit
+sind Story 18 und 19 abgedeckt, die vorher als „nur im Gebrauch prüfbar"
+offenstanden.
+
+Volle Unit-Suite nach der Nacharbeit: **290 Tests, 0 Fehler** (6 neue auf dem
+Anker, darunter der Fall `Projects-old`).
+
 ## Bewusst nicht drin
 
 Vorschau in der letzten Spalte, ziehbare Spaltenbreiten — beide im Ticket als

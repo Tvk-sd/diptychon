@@ -48,6 +48,55 @@ final class ColumnChainTests: XCTestCase {
         XCTAssertEqual(names(plain), names(slashed))
     }
 
+    // MARK: - The anchor (Till, 2026-09-01)
+
+    /// The point of the anchor: navigating to Projects makes **Projects** the first
+    /// column, not `/` with Users and Till in front of it. The chain grows to the
+    /// right as you walk in.
+    func testTheChainStartsAtTheFolderYouNavigatedTo() {
+        let root = URL(fileURLWithPath: "/Users/Till/Projects")
+        let deep = URL(fileURLWithPath: "/Users/Till/Projects/26 - Routing Lab/docs")
+        XCTAssertEqual(names(ColumnChain.columns(from: root, to: deep)),
+                       ["Projects", "26 - Routing Lab", "docs"])
+    }
+
+    /// Standing on the anchor itself is one column, not zero.
+    func testTheAnchorAloneIsOneColumn() {
+        let root = URL(fileURLWithPath: "/Users/Till/Projects")
+        XCTAssertEqual(names(ColumnChain.columns(from: root, to: root)), ["Projects"])
+    }
+
+    /// A stale anchor — the pane was moved somewhere else entirely — collapses to the
+    /// current folder rather than showing an unrelated chain. The caller re-anchors on
+    /// the next ordinary navigation.
+    func testAnAnchorTheFolderIsNotUnderCollapsesToOneColumn() {
+        let root = URL(fileURLWithPath: "/Users/Till/Projects")
+        let elsewhere = URL(fileURLWithPath: "/Users/Till/Downloads")
+        XCTAssertEqual(names(ColumnChain.columns(from: root, to: elsewhere)), ["Downloads"])
+    }
+
+    /// A sibling whose name merely *starts* with the anchor's must not be treated as
+    /// inside it — component comparison, not string prefix.
+    func testASimilarlyNamedSiblingIsNotInsideTheAnchor() {
+        let root = URL(fileURLWithPath: "/Users/Till/Projects")
+        let sibling = URL(fileURLWithPath: "/Users/Till/Projects-old/thing")
+        XCTAssertEqual(names(ColumnChain.columns(from: root, to: sibling)), ["thing"])
+    }
+
+    /// Going *above* the anchor is a move out of the subtree, so it collapses too.
+    func testAFolderAboveTheAnchorCollapsesToOneColumn() {
+        let root = URL(fileURLWithPath: "/Users/Till/Projects")
+        XCTAssertEqual(names(ColumnChain.columns(from: root, to: URL(fileURLWithPath: "/Users/Till"))),
+                       ["Till"])
+    }
+
+    /// The root anchor still yields the full chain — the old behaviour, kept for
+    /// `columns(for:)` and for a pane that really is at `/`.
+    func testARootAnchorStillYieldsTheWholeChain() {
+        XCTAssertEqual(names(ColumnChain.columns(for: URL(fileURLWithPath: "/Users/Till"))),
+                       ["/", "Users", "Till"])
+    }
+
     // MARK: - Derived selection
 
     /// What is highlighted in an ancestor column is the child that leads onward.

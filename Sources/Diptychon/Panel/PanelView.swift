@@ -81,6 +81,22 @@ struct PanelView: View {
             Divider()
 
             // Content
+            if model.displayMode == .columns {
+                // The column browser owns its own loading: each column reports for
+                // itself. Routing it through the pane's state would blank *every*
+                // column while one folder listed — which is exactly what read as
+                // buffering on each click (Till, 2026-09-01).
+                ColumnBrowserView(
+                    model: model,
+                    onDrop: onDrop,
+                    onPin: onPin,
+                    onAddToStaging: onAddToStaging,
+                    onActivate: onActivate,
+                    onRename: onRename,
+                    hasKeyFocus: hasKeyFocus,
+                    accessibilityID: tableIdentifier
+                )
+            } else {
             switch model.state {
             case .loading:
                 ProgressView("Loading…")
@@ -94,20 +110,6 @@ struct PanelView: View {
                         ContentUnavailableView.search(text: model.searchQueryDisplay)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                } else if model.displayMode == .columns {
-                    // Column browser (issue 91): the pane's folder plus its ancestors,
-                    // one per column. Derived from `directory`, so nothing else in the
-                    // app has to know about it.
-                    ColumnBrowserView(
-                        model: model,
-                        onDrop: onDrop,
-                        onPin: onPin,
-                        onAddToStaging: onAddToStaging,
-                        onActivate: onActivate,
-                        onRename: onRename,
-                        hasKeyFocus: hasKeyFocus,
-                        accessibilityID: tableIdentifier
-                    )
                 } else if case .brief(let columns) = model.displayMode {
                     // Brief display mode (issue 37): same visibleItems feed, same
                     // FileListView protocol — only the renderer changes.
@@ -167,6 +169,7 @@ struct PanelView: View {
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            }
             }
         }
         .task { model.load() }

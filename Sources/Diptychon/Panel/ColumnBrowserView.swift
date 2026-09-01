@@ -63,6 +63,24 @@ struct ColumnBrowserView: View {
         let columnModel = model.columnModel(for: url)
         @Bindable var bindable = columnModel
 
+        // A column reports for itself, and only while it has nothing to show. A folder
+        // that is re-listing keeps its rows on screen — the previous version let the
+        // pane's loading state blank the whole browser on every click.
+        if case .loading = columnModel.state, columnModel.visibleItems.isEmpty {
+            ProgressView()
+                .controlSize(.small)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if case .failed = columnModel.state {
+            // Named, not blank: an unreadable folder must not look like an empty one.
+            VStack(spacing: 6) {
+                Image(systemName: columnModel.accessDenied ? "lock" : "exclamationmark.triangle")
+                    .foregroundStyle(.secondary)
+                Text(columnModel.accessDenied ? "No access" : "Can't read")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
         // One name-only column each, reusing the brief view's renderer at a column
         // count of 1. The detailed table would repeat its Name/Type/Date/Size headers
         // in every column and leave nothing but truncated names in 240pt — checked on
@@ -92,6 +110,7 @@ struct ColumnBrowserView: View {
         .briefColumns(1)
         .onHorizontalStep { right in step(right: right, from: index, chain: chain) }
         .claimingKeyFocus(hasKeyFocus && isLast)
+        }
     }
 
     /// ← and → step between columns, which is what they mean to the eye here — ↑ and ↓

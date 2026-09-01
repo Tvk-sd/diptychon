@@ -28,10 +28,39 @@ enum ColumnChain {
     /// view, so trimming here would hide ancestors the user can otherwise scroll back
     /// to.
     static func columns(for directory: URL) -> [URL] {
-        let absolute = URL(fileURLWithPath: directory.path).standardizedFileURL
-        var result: [URL] = [URL(fileURLWithPath: "/")]
-        var url = result[0]
-        for component in absolute.pathComponents where component != "/" {
+        columns(from: URL(fileURLWithPath: "/"), to: directory)
+    }
+
+    /// `root` → `directory`, one entry per column.
+    ///
+    /// **The first column is where you navigated to, not the filesystem root**
+    /// (Till, 2026-09-01: „wenn ich projects navigiere ist project der header folder
+    /// nicht till oder noch welche drüber, die logik entsteht aus der navigation in
+    /// der linken leiste"). Clicking *Projects* in the sidebar makes Projects the
+    /// first column; the columns then grow to the right as you walk in. That is how
+    /// the Finder behaves, and it keeps the view about the subtree you chose rather
+    /// than about the whole disk.
+    ///
+    /// Built from path components — **not** by looping `deletingLastPathComponent()`,
+    /// which never converges for the directory-style URLs `contentsOfDirectory` hands
+    /// back and once pinned the CPU (issue 21).
+    ///
+    /// If `directory` is not inside `root` the anchor is stale (the pane was moved
+    /// somewhere else entirely), and the chain collapses to `directory` alone. The
+    /// caller re-anchors on the next navigation; showing an unrelated ancestor chain
+    /// in the meantime would be worse than showing one column.
+    static func columns(from root: URL, to directory: URL) -> [URL] {
+        let rootPath = URL(fileURLWithPath: root.path).standardizedFileURL
+        let target = URL(fileURLWithPath: directory.path).standardizedFileURL
+        let rootParts = rootPath.pathComponents
+        let targetParts = target.pathComponents
+        guard targetParts.count >= rootParts.count,
+              Array(targetParts.prefix(rootParts.count)) == rootParts else {
+            return [target]
+        }
+        var result: [URL] = [rootPath]
+        var url = rootPath
+        for component in targetParts.dropFirst(rootParts.count) {
             url.appendPathComponent(component)
             result.append(url)
         }

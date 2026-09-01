@@ -246,9 +246,22 @@ final class PanelModel {
 
     // MARK: - Column browser (issue 91)
 
-    /// The chain of folders the column browser shows: ancestors, then this pane's
-    /// folder. Derived from `directory` every time — see `ColumnChain`.
-    var columnChain: [URL] { ColumnChain.columns(for: directory) }
+    /// Where the column browser's first column sits.
+    ///
+    /// Set by ordinary navigation — a sidebar click, the breadcrumb, Go to Folder,
+    /// ⌘↑ — and left alone while you walk *into* the tree through the columns. So
+    /// navigating to Projects makes Projects the first column, rather than starting
+    /// every chain at `/` with Users and Till in front of it (Till, 2026-09-01).
+    ///
+    /// The one piece of state this view keeps. Everything else is still derived from
+    /// `directory`; this only says how far left the derivation reaches.
+    @ObservationIgnored private var columnRootStorage: URL?
+
+    /// The chain of folders the column browser shows: the anchor, then the way down to
+    /// this pane's folder. Derived every time — see `ColumnChain`.
+    var columnChain: [URL] {
+        ColumnChain.columns(from: columnRootStorage ?? directory, to: directory)
+    }
 
     /// One model per ancestor column, **cached by URL**.
     ///
@@ -286,10 +299,16 @@ final class PanelModel {
     /// Evicts cached columns that are no longer ancestors, so walking around a tree
     /// doesn't accumulate watchers for folders nobody is looking at.
     func openColumn(_ url: URL) {
-        relocate(to: url)
+        // No loading state: the columns already on screen stay put and the new one
+        // fills in when it is ready. Letting the pane go to `.loading` blanked the
+        // whole browser on every click, which is what read as buffering
+        // (Till, 2026-09-01).
+        relocate(to: url, showLoading: false, reAnchorColumns: false)
         let live = Set(columnChain)
         columnModels = columnModels.filter { live.contains($0.key) }
     }
+
+
 
     /// Palette/menu entry point: switch to the brief view with an explicit column
     /// count (clamped to the 1–3 the issue scopes).
@@ -461,10 +480,10 @@ final class PanelModel {
     /// Move the pane to `url` **without** recording history — used when the current
     /// folder vanishes under it (drive unmounted, issue 41) or comes back on remount.
     /// Unlike `go`, there is no "back" to a folder that no longer exists.
-    func relocate(to url: URL) {
+    func relocate(to url: URL, showLoading: Bool = true, reAnchorColumns: Bool = true) {
         guard url != directory else { return }
         directory = url
-        afterNavigation()
+        afterNavigation(showLoading: showLoading, reAnchorColumns: reAnchorColumns)
     }
 
     /// Step back to the previous directory (forward becomes available).
@@ -483,7 +502,11 @@ final class PanelModel {
         afterNavigation()
     }
 
-    private func afterNavigation() {
+    /// `reAnchorColumns` is false only for a move made *inside* the column browser:
+    /// walking into the tree must not move the anchor, or every click would make the
+    /// new folder the first column and the chain would never grow.
+    private func afterNavigation(showLoading: Bool = true, reAnchorColumns: Bool = true) {
+        if reAnchorColumns { columnRootStorage = directory }
         cancelReselect()   // a pending post-trash reselect belongs to the old folder
         searchQuery = ""   // leaving the folder exits search
         filter = ""
@@ -491,7 +514,7 @@ final class PanelModel {
         selection = []
         highlightedTargetURL = nil   // a fresh navigation drops any landing marker
 
-        reload()
+        reload(showLoading: showLoading)
     }
 
     /// Debounced recursive search of the current subtree. Cancels any in-flight
