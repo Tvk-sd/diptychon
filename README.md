@@ -35,10 +35,12 @@ Diptychon is built from source with Xcode. The `.xcodeproj` is **generated** fro
 regenerate it after cloning or after editing `project.yml`.
 
 ```sh
-brew install xcodegen          # one-time
-xcodegen generate              # create Diptychon.xcodeproj from project.yml
+./scripts/setup.sh             # installs XcodeGen if missing + generates the project
 open Diptychon.xcodeproj        # build & run in Xcode (⌘R)
 ```
+
+(Equivalent by hand: `brew install xcodegen` once, then `xcodegen generate`.
+Re-run either whenever you edit `project.yml` or add/remove a `.swift` file.)
 
 Or from the command line:
 
