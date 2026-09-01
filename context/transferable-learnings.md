@@ -920,6 +920,239 @@ docs the rules point at rot the same way.)
 
 ---
 
+## 27. The user's throwaway qualifier is the search key — grep the condition, not the symptom
+
+*Captured 2026-08-26.*
+
+**Diptychon moment.** Till: "das terminal ist buggy wenn ich es öffne **während ich
+zwei panes offen habe** — es wählt automatisch das rechte". The symptom (terminal opens
+in the wrong folder) had four plausible causes and I generated all of them. The
+qualifier had exactly **one** match in the codebase: a single line gated on
+`rightPanelVisible`, in a mouse monitor that derived the Active Panel from the click's
+x-position. The bottom bar was never excluded from that logic, so clicking *any* toggle
+there — the toggles sit at the far right — set `active = .right` before the toggle's own
+action ran. Found by reading, not by probing; fixed in `550dc29`.
+
+**Principle.** A bug report has two halves: what the user noticed, and the circumstance
+they mentioned in passing because it felt irrelevant. The symptom is usually
+over-determined — many code paths could produce it. The **circumstance is usually
+under-determined**: it maps to one flag, one branch, one condition. Search the
+circumstance.
+
+**The guard.** *Before generating hypotheses for a symptom, extract every conditional
+the user attached to it ("when X is open", "only after Y", "on the second try") and grep
+the codebase for that condition. If exactly one site is gated on it, that is the bug —
+stop guessing.*
+
+**Where it transfers.**
+*Classical PM.* Triage quality is mostly extraction quality. The reproduction steps a
+reporter volunteers unprompted are the discriminating evidence; the part they emphasize
+is usually the part they can see, which is the effect.
+*AI lookout.* An agent will happily produce five ranked hypotheses and start testing the
+first. That reads as thoroughness and is often just expensive. Make the agent name the
+user's stated condition and search for it *before* it is allowed to hypothesize.
+
+---
+
+## 28. "I can't describe how it's failing" is a finding about the interaction, not a gap in the report — and it is the abort signal
+
+*Captured 2026-08-29.*
+
+**Diptychon moment.** Dragging a folder path from the breadcrumb into the embedded
+terminal (#88). Three build-and-test rounds. Round 1: nothing dragged — `onDrag` never
+starts on a SwiftUI `Button`, its press gesture eats it. Round 2: the item lifted, then
+the window moved instead — with a hidden title bar the header band sits in the window's
+own drag region, and window dragging outranks a view drag. Round 3, Till: *"ok this does
+not work and i can not describe how it is not working - can we reverse this development
+and put the ticket ad acta."* Reverted the same day; the ticket carries both proven
+obstacles and two ways back in.
+
+**Principle.** A tester who can still name the failure is describing a **bug**. A tester
+who can no longer name it is describing an **interaction that has stopped being legible**
+— the gesture now fails in a way that has no shape. That is a verdict on the design, not
+a deficiency in the report, and it does not get fixed by another attempt at the same
+mechanism.
+
+**The guard.** *Treat "I can't explain what it's doing" as a stop condition, not a
+request for better instrumentation. Revert, write down what was actually proven, and if
+the job still matters, reach it by a different mechanism — not a fourth attempt at the
+same one.*
+
+**Where it transfers.**
+*Classical PM.* Usability sessions have this signal too: the participant who goes quiet
+and starts clicking randomly has told you more than the one who articulates a
+complaint. Sunk cost hides here — three rounds in, "one more fix" is always the cheap
+story.
+*AI lookout.* An agent will keep iterating as long as it can form a next hypothesis, and
+it can always form one. The abort condition has to be about *the user's ability to
+describe*, because the agent's ability to hypothesize never runs out. (Pairs with §18 —
+trust what ran, not the rolled-up green.)
+
+---
+
+## 29. A build nobody looked at was never tested — for anything visual, "suite green" is a category error
+
+*Captured 2026-08-31.*
+
+**Diptychon moment.** The multi-column brief view (#37) shipped to `main` as `203bd39`
+with a full green suite and a commit message asserting the virtualization posture held.
+It was rejected on sight — it drew no visible columns — and reverted the next minute
+(`c726651`). The root cause sat undiagnosed for five days. The second attempt started by
+*reading* the reverted code: the layout computed column width and row count from
+`collectionView.bounds`, but that view is the scroll view's `documentView`, so AppKit
+sizes it **from** `collectionViewContentSize` — the layout was consuming its own output.
+First pass, bounds near zero, one row per column at the 80pt minimum: a single line of
+names marching sideways. Fixed by reading the viewport instead, then **screenshotting
+the running app before showing it to anyone**. It rendered correctly on first paint.
+
+**Principle.** Automated tests answer "did the code do what I asked?". They cannot
+answer "is what appeared the thing I meant?" — nothing in the suite has eyes. For any
+change whose output is a rendering, a look at the running artifact is not extra
+diligence, it is *the* test. The first attempt didn't lack tests; it lacked a glance.
+
+**The guard.** *For any visual change, the definition of done includes an image of the
+result, examined before handoff. If you cannot see it, you have not tested it — say so
+in those words rather than reporting the suite.*
+
+**Where it transfers.**
+*Classical PM.* The same trap as a dashboard that passes its data tests and is
+unreadable, or a report that reconciles and answers nobody's question. Correct ≠ legible,
+and only the second is the deliverable.
+*AI lookout.* An agent's confidence comes from the checks it can run, so it will
+overweight the suite exactly where the suite is blind. Give it a way to *see* the output
+(screenshot the window, render the page) and require the look as a gate — otherwise the
+green becomes the argument. (Pairs with §22 — the faster the action, the louder its
+status must be.)
+
+---
+
+## 30. Verification tooling must not compete with the user for their machine
+
+*Captured 2026-08-31.*
+
+**Diptychon moment.** Checking #37 meant driving the app and capturing its window. The
+straightforward way — activate the process, capture a screen region — took two
+screenshots of Till's *editor* instead, because he was working in it at the time, and
+each attempt stole his focus mid-task. Switching to capture-by-`CGWindowID` (a nine-line
+Swift helper listing on-screen windows) captured the app's window without activating it.
+Verification continued in the background from then on; the earlier memory note "probes
+collide with Till's live usage" had recorded the problem months before without solving
+it.
+
+**Principle.** Any check that seizes a shared resource — focus, the clipboard, the
+frontmost window, a port, a database — will eventually run while the owner is using it,
+and then it corrupts both the check and their work. The fix is almost always to find the
+*addressable* form of the resource (a window id instead of "frontmost", a fixture
+database instead of "the" database) rather than to schedule around the conflict.
+
+**The guard.** *When automation has to touch something the user is also holding, ask
+"what is the addressable handle for this?" before "when can I do it without disturbing
+them?". Scheduling is a truce; addressing is a fix.*
+
+**Where it transfers.**
+*Classical PM.* Same shape as running an analysis against production, or a test cohort
+that overlaps a live campaign: the measurement disturbs the thing measured, and both
+results are then untrustworthy.
+*AI lookout.* Agents are worse at this than humans because they cannot see that you are
+mid-sentence. An agent operating a GUI needs handles, not politeness — and when it does
+steal focus, it should say so plainly rather than let the user wonder what moved.
+
+---
+
+## 31. A capability with no affordance has not shipped — and the gap hides best behind "it's already merged"
+
+*Captured 2026-08-31.*
+
+**Diptychon moment.** Diptychon could already answer "Show in Finder" from other apps —
+merged and verified in July. The only way to turn it on was
+`defaults write -g NSFileViewer com.diptychon.app` in a Terminal, which no downloader
+will ever type. The strongest "this really replaces Finder" moment in the product was
+invisible for six weeks. Building the switch took one afternoon (#54, `83c86f2`). The
+same shape appeared again the same day: the brief view from #37 was reachable only via
+⌘1 or a menu entry, so #91 folded in three visible display-mode icons.
+
+**Principle.** A feature exists at the layer the user can reach it, not at the layer it
+was implemented. Anything gated behind a command line, a hidden preference, or a
+shortcut nobody was told about is inventory, not shipped work — and it is *especially*
+easy to overlook, because the tracker says done and the tests are green.
+
+**The guard.** *For every merged capability, name the visible control that reaches it.
+If the answer is a shortcut, a config file, or "you have to know", the ticket is not
+closed — the affordance is the last slice, not a follow-up.*
+
+**Where it transfers.**
+*Classical PM.* This is the recurring audit nobody schedules: walk the feature list and
+ask which ones a new user could find. Adoption gaps hide here far more often than in
+capability gaps. (Sharpens §17 — a capability is an *input* to value, not proof of it.)
+*AI lookout.* An agent reports completion against the acceptance criteria it was given.
+If discoverability was not written into the criteria, it will be true that the feature
+works and false that anyone can use it — both statements from the same honest report.
+
+---
+
+## 32. When a fix produces the opposite complaint, the boundary you drew wasn't real
+
+*Captured 2026-09-01.*
+
+**Diptychon moment.** The new column view left the pane's unused width as plain dark
+background. Till: *"i dont like the black box when in the spalten view."* I filled it
+with the grid — row bands **and** column rules — matching what the Finder does. Next
+round, same surface, opposite complaint: *"it should start like the list and expand into
+the columns not have the columns pre visible."* The rules were drawing column boundaries
+where no column existed. Keeping the bands (a continuous *surface*) and dropping the
+rules (a false *boundary*) satisfied both, and a single folder now opens looking like a
+plain list.
+
+**Principle.** Two contradictory complaints about one surface usually are not a matter of
+taste to be split down the middle. They are two symptoms of the same error: something was
+drawn that does not correspond to a real thing. Separate the marks into "this continues"
+and "this divides", then check each divider against something that actually ends there.
+
+**The guard.** *When correcting a visual complaint produces the reverse complaint, stop
+adjusting the amount. Ask which of your marks claims a boundary, and whether that
+boundary exists in the model. Delete the ones that don't; the two complaints usually
+collapse into one fix.*
+
+**Where it transfers.**
+*Classical PM.* Same pattern in information design generally — a table with too many
+rules reads as fragmented, one with none reads as a soup; the resolution is which
+separations are semantic. Also in process: teams that ping-pong between "too much
+structure" and "too little" are usually enforcing a boundary that doesn't match how the
+work actually splits.
+*AI lookout.* An agent reads each round of feedback as an independent instruction and
+tunes the parameter, oscillating. The move is to treat round two as *evidence about round
+one's model*, not as a new requirement. (Pairs with §21 — depth is discovered by use.)
+
+---
+
+## 33. Widening a persisted enum: the new field must be read *before* the old one, or the new case degrades silently (offen)
+
+*Captured 2026-09-01.*
+
+**Moment.** Adding a third display mode (#91) to a pane state that persisted two. The
+old schema stored `briefColumns: Int?` — nil meant "table". The column browser has no
+column count, so it would persist `briefColumns: nil`, and the existing rule
+`from(briefColumns: nil) == .table` would have turned every column-view pane back into a
+table on relaunch. No error, no failed test: the #37 persistence tests pass either way,
+because they do not know a third case exists. Caught in review before shipping; the
+restore now reads the new `displayMode` name first and falls back to `briefColumns` only
+when absent, with a test naming the trap.
+
+**Status: offen.** The failure was *reasoned about and prevented*, never observed. What
+would settle it: an instance of this shape actually shipping and degrading in the wild —
+or, more usefully, a check across the other persisted enums in this repo (sort column,
+right-pane mode) to see whether the same nil-means-default pattern is waiting there. That
+check has not been run.
+
+**Übertragbar, sobald belegt.** If it holds, the rule is: *a schema whose default is
+encoded as absence cannot be widened by adding a case — absence already means something.
+The new discriminator must be read first, and the old field demoted to a parameter of one
+case.* The dangerous property is that the old tests keep passing, so nothing announces
+the loss. Adjacent to §19 (records drift toward flattering) and §18 (a rolled-up green
+can be a watermelon) — here the green is honest and simply blind.
+
+---
+
 ## How to use this doc
 - **When starting a new product:** read §1 and §5 *before* you design the second
   pane or hand consequential actions to any operator (a user or an agent). They're
@@ -975,6 +1208,25 @@ docs the rules point at rot the same way.)
 - **After changing a workflow convention (or when project setup changes):** §26 — grep
   every encoding of the old rule (global config, project config, skills, memories) and
   update each; a stale rule isn't ignored, it's executed.
+- **When triaging any bug report:** §27 — extract the circumstance the reporter mentioned
+  in passing ("only when two panes are open") and grep for that condition before
+  generating a single hypothesis; the symptom is over-determined, the circumstance is not.
+- **When a tester goes from complaining to shrugging:** §28 — "I can't describe how it's
+  failing" is a verdict on the interaction, not a weak report. Revert, record what was
+  actually proven, and if the job survives, reach it by a different mechanism.
+- **Before calling any visual change done:** §29 — look at the running artifact. A green
+  suite cannot see; for a rendering, the glance *is* the test, and its absence is what
+  cost the first attempt at the brief view.
+- **When automation has to drive something the user is also holding:** §30 — find the
+  addressable handle (a window id, a fixture) instead of scheduling around them.
+- **Before closing any "merged and working" ticket:** §31 — name the visible control that
+  reaches the capability. A shortcut nobody was told about means the last slice is
+  missing, not that a follow-up is due.
+- **When fixing a visual complaint produces the opposite complaint:** §32 — stop tuning
+  the amount; find the mark that claims a boundary which doesn't exist in the model.
+- **Before widening a persisted enum (open — see the status line):** §33 — a default
+  encoded as absence cannot absorb a new case; read the new discriminator first, and note
+  that the old tests will keep passing either way.
 - **Pairs with:** `dashboard-research.md` (§2 in depth), `competitor-benchmark.md`
   §3 (§4 in depth), and the issue spine — `18` (reversibility surfaced), `19`
   (discoverability surfaced).
