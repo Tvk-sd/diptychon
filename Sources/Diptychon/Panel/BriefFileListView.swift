@@ -34,6 +34,7 @@ struct BriefFileListView: NSViewRepresentable, FileListView {
     let onRename: (_ item: FileItem, _ newName: String) -> Bool
     /// Fixed column count, 1–3 (issue 37: explicit pick, no auto-fit).
     var columns = 2
+    var onHorizontalStep: ((Bool) -> Void)?
     /// See `NSTableViewFileList.claimsKeyFocus` — same Active-Panel contract.
     var claimsKeyFocus = false
     /// Path-paste landing target: scrolled into view (no grey highlight — the brief
@@ -70,6 +71,13 @@ struct BriefFileListView: NSViewRepresentable, FileListView {
     /// Fluent setters, same pattern as `NSTableViewFileList` — kept off the protocol
     /// `init` so the ADR-0002 swap-point signature stays minimal.
     func briefColumns(_ n: Int) -> Self { var c = self; c.columns = n; return c }
+    /// Hand ← / → to the caller instead of moving the cursor (issue 91). The column
+    /// browser lays each folder out as a one-column brief list, so within a column
+    /// those keys have nothing to do — they should step between *columns*, which only
+    /// the browser knows about. `true` = right.
+    func onHorizontalStep(_ handler: @escaping (Bool) -> Void) -> Self {
+        var c = self; c.onHorizontalStep = handler; return c
+    }
     func claimingKeyFocus(_ claims: Bool) -> Self { var c = self; c.claimsKeyFocus = claims; return c }
     func highlightingTarget(_ id: FileItem.ID?) -> Self { var c = self; c.highlightedTargetID = id; return c }
 
@@ -110,6 +118,9 @@ struct BriefFileListView: NSViewRepresentable, FileListView {
         // Down-then-across: the grid fits the height exactly and scrolls sideways.
         scroll.hasVerticalScroller = false
         scroll.hasHorizontalScroller = true
+        cv.onHorizontalStep = { [weak c = context.coordinator] right in
+            c?.parent.onHorizontalStep?(right)
+        }
         context.coordinator.collectionView = cv
         context.coordinator.layout = layout
         return scroll
@@ -121,6 +132,9 @@ struct BriefFileListView: NSViewRepresentable, FileListView {
         if context.coordinator.layout?.columns != columns {
             context.coordinator.layout?.columns = columns
             cv.collectionViewLayout?.invalidateLayout()
+        }
+        cv.onHorizontalStep = { [weak c = context.coordinator] right in
+            c?.parent.onHorizontalStep?(right)
         }
         context.coordinator.syncContents(cv)
         context.coordinator.syncSelection(cv)
@@ -611,6 +625,22 @@ final class BriefCollectionView: NSCollectionView {
             NSRect(x: CGFloat(column) * layout.columnWidth - hairline, y: dirtyRect.minY,
                    width: hairline, height: dirtyRect.height).fill()
         }
+    }
+
+    /// ← / → belong to the caller when it asked for them (issue 91): in the column
+    /// browser they step between columns, and the geometric move `NSCollectionView`
+    /// would make inside a one-column layout is never what the user meant.
+    var onHorizontalStep: ((Bool) -> Void)?
+
+    override func keyDown(with event: NSEvent) {
+        if let onHorizontalStep {
+            switch event.keyCode {
+            case 123: onHorizontalStep(false); return   // ←
+            case 124: onHorizontalStep(true); return    // →
+            default: break
+            }
+        }
+        super.keyDown(with: event)
     }
 
     override func mouseDown(with event: NSEvent) {

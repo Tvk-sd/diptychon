@@ -59,6 +59,8 @@ struct PanelView: View {
 
                 Spacer(minLength: 4)
 
+                displayModeSwitcher
+
                 // Icon-only toggle for hidden files (keeps the header compact when
                 // the preview pane narrows the panel — no wrapping "Hidden" label).
                 Button { model.showHidden.toggle() } label: {
@@ -79,6 +81,37 @@ struct PanelView: View {
             Divider()
 
             // Content
+            if model.displayMode != .table {
+                // The detailed table starts its rows below a 28pt column header. The
+                // brief and column views have no header, so their rows began 28pt
+                // higher and the row banding in the two panes ran out of step — visible
+                // straight across the divider (Till, 2026-09-01: "align the height of
+                // the horizontal lines between the panes").
+                //
+                // An empty strip of the same height, with the same closing hairline,
+                // puts every list's first row on the same line whatever its neighbour
+                // is showing. 28 is measured from a real `NSTableHeaderView`, not
+                // guessed — re-measure rather than nudge if the table's style changes.
+                Color.clear
+                    .frame(height: 28)
+                Divider()
+            }
+            if model.displayMode == .columns {
+                // The column browser owns its own loading: each column reports for
+                // itself. Routing it through the pane's state would blank *every*
+                // column while one folder listed — which is exactly what read as
+                // buffering on each click (Till, 2026-09-01).
+                ColumnBrowserView(
+                    model: model,
+                    onDrop: onDrop,
+                    onPin: onPin,
+                    onAddToStaging: onAddToStaging,
+                    onActivate: onActivate,
+                    onRename: onRename,
+                    hasKeyFocus: hasKeyFocus,
+                    accessibilityID: tableIdentifier
+                )
+            } else {
             switch model.state {
             case .loading:
                 ProgressView("Loading…")
@@ -152,6 +185,7 @@ struct PanelView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+            }
         }
         .task { model.load() }
         // Issue 86: no border overlay. The Active Panel is told apart the way Finder,
@@ -166,6 +200,46 @@ struct PanelView: View {
         //
         // The panel header already reads primary vs. secondary (above), so a panel
         // with no selection at all is still distinguishable.
+    }
+
+    /// The three display modes as three icons (issue 91). Until now the brief view was
+    /// reachable only by ⌘1 or the View menu — present but invisible, the same shape of
+    /// problem the reveal handler had before #54.
+    ///
+    /// It lives in the **panel header**, not the bottom bar: the bottom bar carries
+    /// window-level toggles (sidebar, preview, terminal), while the display mode belongs
+    /// to one pane. The header is the only chrome that already exists per pane, so a
+    /// click there changes the thing it sits on rather than "whichever pane is active".
+    ///
+    /// Header clicks are already exempt from the click-to-activate logic (issue 89's
+    /// top band), so pressing these can't flip the Active Panel out from under itself.
+    private var displayModeSwitcher: some View {
+        HStack(spacing: 2) {
+            modeIcon("list.bullet", mode: .table, help: "Detailed list")
+            modeIcon("rectangle.split.3x1", mode: .brief(columns: model.lastBriefColumns),
+                     help: "Brief view — names in columns (⌘1)")
+            modeIcon("rectangle.split.3x1.fill", mode: .columns,
+                     help: "Column view — one folder per column (⌘2)")
+        }
+        .fixedSize()
+    }
+
+    /// One switcher icon. Accent while its mode is the current one, so the active view
+    /// is readable without trying it. Sets the mode outright rather than toggling —
+    /// a click should land on the mode it shows.
+    private func modeIcon(_ systemName: String, mode: DisplayMode, help: String) -> some View {
+        let isCurrent: Bool = {
+            // The brief icon is current for any column count, not just the last one used.
+            if case .brief = mode, case .brief = model.displayMode { return true }
+            return model.displayMode == mode
+        }()
+        return Button { model.setDisplayMode(mode) } label: {
+            Image(systemName: systemName)
+        }
+        .buttonStyle(.borderless)
+        .foregroundStyle(isCurrent ? Color.accentColor : Color.secondary)
+        .help(help)
+        .accessibilityIdentifier("display-mode-\(mode.persistedName)")
     }
 
     /// Header control to filter the Panel to a single tag (AC4). Lists the tags
