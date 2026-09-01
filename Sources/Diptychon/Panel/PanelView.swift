@@ -81,6 +81,21 @@ struct PanelView: View {
             Divider()
 
             // Content
+            if model.displayMode != .table {
+                // The detailed table starts its rows below a 28pt column header. The
+                // brief and column views have no header, so their rows began 28pt
+                // higher and the row banding in the two panes ran out of step — visible
+                // straight across the divider (Till, 2026-09-01: "align the height of
+                // the horizontal lines between the panes").
+                //
+                // An empty strip of the same height, with the same closing hairline,
+                // puts every list's first row on the same line whatever its neighbour
+                // is showing. 28 is measured from a real `NSTableHeaderView`, not
+                // guessed — re-measure rather than nudge if the table's style changes.
+                Color.clear
+                    .frame(height: 28)
+                Divider()
+            }
             if model.displayMode == .columns {
                 // The column browser owns its own loading: each column reports for
                 // itself. Routing it through the pane's state would blank *every*
