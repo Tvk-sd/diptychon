@@ -29,6 +29,20 @@ struct ColumnBrowserView: View {
 
     var body: some View {
         let chain = model.columnChain
+        // The viewport width has to be measured: inside a horizontal `ScrollView`,
+        // content is laid out at its ideal size, so `maxWidth: .infinity` on the spare
+        // room expands to nothing. Measuring it and setting an explicit width is what
+        // actually carries the grid to the pane's edge.
+        GeometryReader { geometry in
+            browser(chain: chain, viewportWidth: geometry.size.width)
+        }
+    }
+
+    @ViewBuilder
+    private func browser(chain: [URL], viewportWidth: CGFloat) -> some View {
+        // One divider per column, hence the +1 per column.
+        let used = CGFloat(chain.count) * (Self.columnWidth + 1)
+        let spare = max(Self.columnWidth, viewportWidth - used)
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: true) {
                 HStack(spacing: 0) {
@@ -40,6 +54,14 @@ struct ColumnBrowserView: View {
                         // the app has one grid language rather than two.
                         Divider()
                     }
+                    // Spare room, ruled like the rest. Without it the pane ended in a
+                    // plain dark void next to the last column — "i dont like the black
+                    // box when in the spalten view" (Till, 2026-09-01). The Finder
+                    // carries its grid to the edge for the same reason: the empty part
+                    // of a column browser is *room for more columns*, not a gap in the
+                    // window.
+                    emptyRoom
+                        .frame(width: spare)
                 }
                 .frame(maxHeight: .infinity)
             }
@@ -111,6 +133,39 @@ struct ColumnBrowserView: View {
         .onHorizontalStep { right in step(right: right, from: index, chain: chain) }
         .claimingKeyFocus(hasKeyFocus && isLast)
         }
+    }
+
+    /// The width past the last column: the same row bands and column rules, with no
+    /// rows in them.
+    ///
+    /// Drawn with a `Canvas` rather than a stack of rectangles — the bands are pure
+    /// paint, and a few hundred views to express "empty" would be a poor trade. All
+    /// three colours are the system's, so light/dark follows without a second theme.
+    private var emptyRoom: some View {
+        Canvas { context, size in
+            let rowHeight = BriefLayout.itemHeight
+            let bands = NSColor.alternatingContentBackgroundColors
+            if bands.count > 1 {
+                let band = Color(nsColor: bands[1])
+                var row = 0
+                while CGFloat(row) * rowHeight < size.height {
+                    if row.isMultiple(of: 2) {
+                        context.fill(Path(CGRect(x: 0, y: CGFloat(row) * rowHeight,
+                                                 width: size.width, height: rowHeight)),
+                                     with: .color(band))
+                    }
+                    row += 1
+                }
+            }
+            let rule = Color(nsColor: .separatorColor)
+            var x = Self.columnWidth
+            while x < size.width {
+                context.fill(Path(CGRect(x: x, y: 0, width: 1, height: size.height)),
+                             with: .color(rule))
+                x += Self.columnWidth
+            }
+        }
+        .background(Color(nsColor: .controlBackgroundColor))
     }
 
     /// ← and → step between columns, which is what they mean to the eye here — ↑ and ↓
