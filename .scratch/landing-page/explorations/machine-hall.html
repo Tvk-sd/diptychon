@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Diptychon - dual-panel keyboard-first file manager for macOS. Visual exploration: machine-hall daylight.">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Diptychon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Martian+Mono:wdth,wght@75..112.5,100..800&display=swap">
+<style>
+/* ============================================================
+   TOKENS — light is the primary world ("machine hall daylight")
+   ============================================================ */
+:root{
+  --ground:#e3e1d9;
+  --plate:#edebe3;
+  --recess:#d6d3c9;
+  --seam:#b2aea1;
+  --hair:#c9c5b9;
+  --ink:#1b1f26;
+  --ink-2:#4e5661;
+  --ink-3:#767d88;
+  --brass:#8c7f0a;
+  --brass-ink:#6b6100;
+  --brass-wash:rgba(140,127,10,.13);
+  --oxide:#97331c;
+  --keycap:#f6f4ed;
+  --keycap-edge:#b9b5a8;
+  --shadow:rgba(27,31,38,.10);
+  --sans:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"Martian Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --maxw:1140px;
+  --gut:clamp(18px,4vw,40px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#1b1e23;
+    --plate:#23272e;
+    --recess:#15181c;
+    --seam:#3f454d;
+    --hair:#2f343a;
+    --ink:#e9e7de;
+    --ink-2:#a9aeb6;
+    --ink-3:#7d848d;
+    --brass:#d9c451;
+    --brass-ink:#e3d275;
+    --brass-wash:rgba(217,196,81,.14);
+    --oxide:#d3775f;
+    --keycap:#2b3037;
+    --keycap-edge:#454c55;
+    --shadow:rgba(0,0,0,.42);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#1b1e23;
+  --plate:#23272e;
+  --recess:#15181c;
+  --seam:#3f454d;
+  --hair:#2f343a;
+  --ink:#e9e7de;
+  --ink-2:#a9aeb6;
+  --ink-3:#7d848d;
+  --brass:#d9c451;
+  --brass-ink:#e3d275;
+  --brass-wash:rgba(217,196,81,.14);
+  --oxide:#d3775f;
+  --keycap:#2b3037;
+  --keycap-edge:#454c55;
+  --shadow:rgba(0,0,0,.42);
+  color-scheme:dark;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink-2);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.62;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{color:var(--ink);margin:0;text-wrap:balance;font-family:var(--sans)}
+p{margin:0}
+a{color:var(--brass-ink);text-decoration:none;border-bottom:1px solid var(--brass-wash)}
+a:hover{border-bottom-color:var(--brass)}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px;border-radius:2px}
+img{max-width:100%}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding-inline:var(--gut)}
+
+/* Micro-label: the mono voice */
+.lab{
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-variation-settings:'wdth' 100,'wght' 500;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  display:block;
+}
+
+/* Display type: Archivo pushed wide + heavy (signage) */
+.h1{
+  font-size:clamp(38px,6.4vw,62px);
+  line-height:.99;
+  letter-spacing:-.022em;
+  font-weight:800;
+  font-stretch:112%;
+  font-variation-settings:'wdth' 118,'wght' 800;
+}
+.h2{
+  font-size:clamp(25px,3.2vw,34px);
+  line-height:1.1;
+  letter-spacing:-.015em;
+  font-weight:700;
+  font-stretch:112%;
+  font-variation-settings:'wdth' 114,'wght' 700;
+}
+.h3{
+  font-size:19px;
+  line-height:1.25;
+  letter-spacing:-.008em;
+  font-weight:700;
+  font-stretch:107%;
+  font-variation-settings:'wdth' 108,'wght' 700;
+}
+.lede{font-size:clamp(17px,1.9vw,20px);line-height:1.55;color:var(--ink-2);max-width:34em}
+.prose{max-width:65ch}
+
+/* Section rhythm — dense / quiet / dense, per the digit clustering */
+.band{border-top:1px solid var(--hair)}
+.band-pad{padding-block:clamp(44px,6vw,76px)}
+.band-quiet{padding-block:clamp(64px,9vw,116px)}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{
+  position:sticky;top:0;z-index:40;
+  background:color-mix(in srgb,var(--ground) 88%,transparent);
+  backdrop-filter:saturate(160%) blur(10px);
+  border-bottom:1px solid var(--hair);
+}
+.nav-in{display:flex;align-items:center;gap:16px;height:56px}
+.brand{
+  font-family:var(--mono);
+  font-size:13px;
+  font-variation-settings:'wdth' 100,'wght' 700;
+  letter-spacing:.02em;
+  color:var(--ink);
+  border:0;
+  display:flex;align-items:center;gap:9px;
+}
+.mark{width:15px;height:15px;flex:none}
+.nav-sp{flex:1}
+.nav-note{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+@media (max-width:640px){.nav-note{display:none}}
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+.btn{
+  font-family:var(--sans);
+  font-size:15px;font-weight:600;
+  font-variation-settings:'wdth' 106,'wght' 600;
+  border-radius:3px;
+  padding:9px 16px;
+  border:1px solid transparent;
+  cursor:pointer;
+  display:inline-flex;align-items:center;gap:9px;
+  transition:background .13s ease,border-color .13s ease,color .13s ease;
+  line-height:1.2;
+}
+.btn-solid{background:var(--brass-ink);color:var(--ground);border-color:var(--brass-ink)}
+.btn-solid:hover{background:var(--brass);border-color:var(--brass)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--seam)}
+.btn-ghost:hover{border-color:var(--ink-3);background:var(--plate)}
+.btn-sm{font-size:13px;padding:6px 11px}
+a.btn{border-bottom:1px solid transparent}
+a.btn-solid{border-color:var(--brass-ink)}
+
+kbd,.key{
+  font-family:var(--mono);
+  font-size:11px;
+  font-variation-settings:'wdth' 90,'wght' 500;
+  line-height:1;
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:22px;
+  padding:5px 6px 6px;
+  color:var(--ink);
+  background:var(--keycap);
+  border:1px solid var(--keycap-edge);
+  border-bottom-width:2px;
+  border-radius:4px;
+  white-space:nowrap;
+}
+
+/* ============================================================
+   HERO — dense opening
+   ============================================================ */
+.hero{padding-top:clamp(40px,6vw,72px);padding-bottom:clamp(28px,4vw,44px)}
+.hero-top{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;align-items:end}
+@media (min-width:900px){
+  .hero-top{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:48px}
+}
+.hero h1{margin-top:14px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:26px}
+.hero-fine{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+
+/* ============================================================
+   THE DEMO — two plates, one seam
+   ============================================================ */
+.demo{margin-top:clamp(28px,4vw,44px)}
+.demo-shell{
+  background:var(--plate);
+  border:1px solid var(--seam);
+  border-radius:0;
+  box-shadow:0 1px 0 var(--shadow);
+}
+.demo-shell:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.demo-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;
+  border-bottom:1px solid var(--hair);
+  background:var(--recess);
+}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--seam);flex:none}
+.demo-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.demo-hint{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-3)}
+@media (max-width:700px){.demo-hint{display:none}}
+
+.panels{display:grid;grid-template-columns:1fr;}
+@media (min-width:760px){.panels{grid-template-columns:1fr 1px 1fr}}
+.seam{background:var(--seam)}
+@media (max-width:759px){.seam{height:1px}}
+
+.panel{min-width:0;background:var(--plate);transition:background .13s ease}
+.panel[data-active="true"]{background:var(--plate)}
+.panel-head{
+  display:flex;align-items:baseline;gap:8px;
+  padding:11px 13px 9px;
+  border-bottom:1px dashed var(--hair);
+}
+.panel-path{
+  font-family:var(--mono);font-size:11.5px;
+  font-variation-settings:'wdth' 88,'wght' 500;
+  color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.panel-flag{
+  margin-left:auto;flex:none;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+.panel[data-active="true"] .panel-flag{color:var(--brass-ink)}
+.panel[data-active="true"] .panel-head{border-bottom-color:var(--brass)}
+.panel[data-active="true"] .panel-path{color:var(--ink)}
+
+.rows{list-style:none;margin:0;padding:4px 0;min-height:212px}
+.row{
+  display:grid;
+  grid-template-columns:12px minmax(0,1fr) auto;
+  align-items:center;gap:9px;
+  padding:5px 13px;
+  font-size:13.5px;
+  color:var(--ink-2);
+  cursor:default;
+}
+.row-name{
+  font-family:var(--mono);
+  font-size:12px;
+  font-variation-settings:'wdth' 86,'wght' 400;
+  color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.row-size{
+  font-family:var(--mono);font-size:11px;
+  font-variation-settings:'wdth' 86,'wght' 400;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink-3);
+}
+.tag{width:7px;height:7px;border-radius:50%;display:block}
+.panel[data-active="true"] .row[aria-selected="true"]{background:var(--brass-ink);}
+.panel[data-active="true"] .row[aria-selected="true"] .row-name,
+.panel[data-active="true"] .row[aria-selected="true"] .row-size{color:var(--ground)}
+.panel[data-active="false"] .row[aria-selected="true"]{background:var(--recess)}
+.row.landed{animation:landed .7s ease-out}
+@keyframes landed{from{background:var(--brass-wash)}to{background:transparent}}
+
+.demo-foot{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  padding:10px 12px;
+  border-top:1px solid var(--hair);
+  background:var(--recess);
+}
+.demo-foot .btn{background:var(--plate);border-color:var(--seam);color:var(--ink)}
+.demo-foot .btn:hover{border-color:var(--brass);color:var(--ink)}
+.status{
+  margin-left:auto;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+  color:var(--ink-3);
+  min-height:14px;
+  text-align:right;
+}
+.status b{color:var(--brass-ink);font-weight:500}
+@media (max-width:700px){.status{margin-left:0;width:100%;text-align:left}}
+
+/* ============================================================
+   SPEC STRIP — say the number
+   ============================================================ */
+.specs{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  border-top:1px solid var(--hair);
+  border-bottom:1px solid var(--hair);
+}
+.spec{
+  padding:16px 20px 16px 0;
+  border-right:1px solid var(--hair);
+}
+.spec:last-child{border-right:0}
+.spec-n{
+  display:block;
+  font-size:clamp(21px,2.6vw,27px);
+  font-weight:700;
+  font-stretch:112%;
+  font-variation-settings:'wdth' 112,'wght' 700;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em;
+  line-height:1.1;
+}
+.spec-n em{font-style:normal;font-size:.55em;color:var(--ink-3);font-variation-settings:'wdth' 100,'wght' 500;margin-left:3px}
+.spec .lab{margin-top:5px}
+
+/* ============================================================
+   CLAIMS — the quiet middle
+   ============================================================ */
+.claims{display:grid;gap:clamp(28px,4vw,44px);grid-template-columns:1fr}
+@media (min-width:820px){.claims{grid-template-columns:repeat(3,1fr);gap:clamp(28px,3.4vw,48px)}}
+.claim{display:flex;flex-direction:column;gap:11px}
+.claim p{font-size:15.5px;line-height:1.6}
+.claim .h3{padding-top:11px;border-top:2px solid var(--ink)}
+
+.split{display:grid;gap:clamp(24px,4vw,52px);grid-template-columns:1fr;align-items:start}
+@media (min-width:860px){.split{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}}
+
+/* Direction diagram */
+.xfer{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:0;
+  border:1px solid var(--seam);
+  background:var(--plate);
+}
+.xfer-side{padding:18px 16px;min-width:0}
+.xfer-side .lab{margin-bottom:6px}
+.xfer-side strong{
+  display:block;color:var(--ink);font-size:15px;font-weight:700;
+  font-variation-settings:'wdth' 106,'wght' 700;
+}
+.xfer-side span{display:block;font-size:13.5px;color:var(--ink-3);margin-top:3px;line-height:1.45}
+.xfer-mid{
+  align-self:stretch;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  padding:0 14px;
+  border-inline:1px solid var(--seam);
+  background:var(--recess);
+}
+.xfer-arrow{font-family:var(--mono);font-size:17px;color:var(--brass-ink);line-height:1}
+.xfer-active{outline:2px solid var(--brass);outline-offset:-2px}
+
+/* ============================================================
+   SHORTCUTS — the re-densified close
+   ============================================================ */
+.sc-grid{display:grid;gap:0 clamp(24px,4vw,54px);grid-template-columns:1fr}
+@media (min-width:820px){.sc-grid{grid-template-columns:1fr 1fr}}
+.sc-group{padding-block:18px;border-top:1px solid var(--hair)}
+.sc-group:first-child{border-top:0}
+@media (min-width:820px){.sc-grid>.sc-group:nth-child(2){border-top:0}}
+.sc-group h3{margin-bottom:8px}
+.sc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.sc-row{
+  display:flex;align-items:baseline;gap:8px;
+  padding:5px 0;
+  font-size:14.5px;
+}
+.sc-row .sc-act{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-dots{
+  flex:1;min-width:14px;
+  border-bottom:1px dotted var(--seam);
+  transform:translateY(-4px);
+}
+.sc-keys{display:flex;align-items:center;gap:4px;flex:none;color:var(--ink-3);font-family:var(--mono);font-size:10px}
+.sc-note{
+  margin-top:6px;font-size:13.5px;color:var(--ink-3);line-height:1.55;
+}
+
+/* ============================================================
+   LIMITS — the one place oxide is spent
+   ============================================================ */
+.limits{
+  border-left:3px solid var(--oxide);
+  padding-left:clamp(16px,2.4vw,26px);
+}
+.limits ul{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+.limits li{font-size:15.5px;line-height:1.55;color:var(--ink-2)}
+.limits li b{color:var(--ink);font-weight:600;font-variation-settings:'wdth' 104,'wght' 600}
+.limits .tagx{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--oxide);border:1px solid var(--oxide);border-radius:2px;padding:2px 5px;margin-right:7px;
+  white-space:nowrap;
+}
+
+/* ============================================================
+   CTA + FOOTER
+   ============================================================ */
+.cta{text-align:left}
+.cta .h2{max-width:16ch}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:22px}
+.foot{
+  border-top:1px solid var(--hair);
+  padding-block:26px 40px;
+  display:flex;flex-wrap:wrap;gap:12px 22px;align-items:baseline;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-3);
+}
+.foot a{color:var(--ink-3);border-bottom-color:var(--hair)}
+.foot a:hover{color:var(--ink)}
+.foot-sp{flex:1}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+</style>
+
+</head>
+<body>
+<header class="nav">
+  <div class="wrap nav-in">
+    <span class="brand">
+      <svg class="mark" viewBox="0 0 16 16" aria-hidden="true">
+        <rect x="0.5" y="1.5" width="6" height="13" fill="none" stroke="currentColor"/>
+        <rect x="9.5" y="1.5" width="6" height="13" fill="currentColor" opacity=".28"/>
+        <rect x="9.5" y="1.5" width="6" height="13" fill="none" stroke="currentColor"/>
+      </svg>
+      diptychon
+    </span>
+    <span class="nav-sp"></span>
+    <span class="nav-note">macOS 13+ · 2.7 MB</span>
+    <button class="btn btn-ghost btn-sm" id="theme" type="button" aria-label="Switch colour theme">Theme</button>
+    <a class="btn btn-solid btn-sm" href="https://diptychon.com/download">Download</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ========== HERO: dense ========== -->
+  <section class="wrap hero">
+    <div class="hero-top">
+      <div>
+        <span class="lab">Dual-panel file manager · free while in beta</span>
+        <h1 class="h1">Two panels.<br>One keystroke.</h1>
+      </div>
+      <p class="lede">You see where the file is and where it's going at the same time. One chord sends it
+        across. Every move, copy, rename and trash is undoable — with a toast that names what it undid.</p>
+    </div>
+
+    <div class="hero-cta">
+      <a class="btn btn-solid" href="https://diptychon.com/download">Download for macOS</a>
+      <span class="hero-fine">Notarized by Apple · Apple&nbsp;Silicon &amp; Intel · no telemetry</span>
+    </div>
+
+    <!-- The working demo -->
+    <div class="demo">
+      <div class="demo-shell" id="demo" tabindex="0" role="application"
+           aria-label="Interactive dual-panel demo. Use Tab to switch panels, arrow keys to select, right or left arrow with Option and Command to send a file across.">
+        <div class="demo-bar">
+          <span class="dot" aria-hidden="true"></span>
+          <span class="demo-title">Try it — this panel is live</span>
+          <span class="demo-hint">click, then use <kbd>Tab</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> <kbd>⌘Z</kbd></span>
+        </div>
+
+        <div class="panels">
+          <section class="panel" id="panel-L" data-active="true" aria-label="Left panel">
+            <div class="panel-head">
+              <span class="panel-path">~/Downloads</span>
+              <span class="panel-flag" data-flag>Active</span>
+            </div>
+            <ul class="rows" id="rows-L" role="listbox" aria-label="Files in Downloads"></ul>
+          </section>
+
+          <div class="seam" aria-hidden="true"></div>
+
+          <section class="panel" id="panel-R" data-active="false" aria-label="Right panel">
+            <div class="panel-head">
+              <span class="panel-path">~/Projects/atlas/assets</span>
+              <span class="panel-flag" data-flag>Inactive</span>
+            </div>
+            <ul class="rows" id="rows-R" role="listbox" aria-label="Files in Projects atlas assets"></ul>
+          </section>
+        </div>
+
+        <div class="demo-foot">
+          <button class="btn btn-sm" type="button" data-act="switch">Switch panel</button>
+          <button class="btn btn-sm" type="button" data-act="copy">Copy across</button>
+          <button class="btn btn-sm" type="button" data-act="move">Move across</button>
+          <button class="btn btn-sm" type="button" data-act="undo">Undo</button>
+          <p class="status" id="status" role="status" aria-live="polite">Left panel is active. Select a file and send it across.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SPECS ========== -->
+  <section class="wrap" style="padding-bottom:clamp(36px,5vw,60px)">
+    <div class="specs">
+      <div class="spec"><span class="spec-n">2.7<em>MB</em></span><span class="lab">Download</span></div>
+      <div class="spec"><span class="spec-n">9<em>MB</em></span><span class="lab">Installed</span></div>
+      <div class="spec"><span class="spec-n">13+</span><span class="lab">macOS</span></div>
+      <div class="spec"><span class="spec-n">29</span><span class="lab">Commands</span></div>
+      <div class="spec"><span class="spec-n">0</span><span class="lab">Trackers</span></div>
+    </div>
+  </section>
+
+  <!-- ========== CLAIMS: the quiet middle ========== -->
+  <section class="band">
+    <div class="wrap band-quiet">
+      <span class="lab" style="margin-bottom:26px">What it actually does</span>
+      <div class="claims">
+        <div class="claim">
+          <h3 class="h3">See everything.<br>Undo anything.</h3>
+          <p>Both panels show source and destination at once. A staging area collects files before you
+            commit. Undo is multi-level across move, copy, rename and trash.</p>
+        </div>
+        <div class="claim">
+          <h3 class="h3">Small, native,<br>on your machine.</h3>
+          <p>Native Swift, 2.7&nbsp;MB to download and 9&nbsp;MB installed. No account, no telemetry,
+            no subscription — nothing about your files leaves the Mac.</p>
+        </div>
+        <div class="claim">
+          <h3 class="h3">Rides the Mac,<br>not against it.</h3>
+          <p>Real Finder tags that round-trip both ways. Finder's own chords for copy, paste, go-to-folder
+            and Quick&nbsp;Look, so your muscle memory transfers unchanged.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== THE SEAM / DIRECTION ========== -->
+  <section class="band">
+    <div class="wrap band-pad">
+      <div class="split">
+        <div>
+          <span class="lab">The rule that removes the guesswork</span>
+          <h2 class="h2" style="margin-top:12px">The arrow is just<br>which side is inactive.</h2>
+        </div>
+        <div>
+          <p class="prose" style="margin-bottom:20px">There is no "source" setting to remember. The panel you are
+            in is the source; the other one is the destination. Add <kbd>⇧</kbd> and the file moves instead of copies.</p>
+          <div class="xfer">
+            <div class="xfer-side xfer-active">
+              <span class="lab">Active panel</span>
+              <strong>Source</strong>
+              <span>Where your keyboard is. Holds the selection.</span>
+            </div>
+            <div class="xfer-mid" aria-hidden="true">
+              <span class="xfer-arrow">→</span>
+              <kbd>⌥⌘→</kbd>
+            </div>
+            <div class="xfer-side">
+              <span class="lab">Inactive panel</span>
+              <strong>Destination</strong>
+              <span>Receives the file. Never has to be clicked.</span>
+            </div>
+          </div>
+          <p class="sc-note" style="margin-top:12px">Reverse the panels and the chord reverses with them: <kbd>⌥⌘←</kbd>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SHORTCUTS: re-densified ========== -->
+  <section class="band">
+    <div class="wrap band-pad">
+      <span class="lab">The whole key table — 29 commands</span>
+      <h2 class="h2" style="margin:12px 0 26px">Every command has a chord.</h2>
+
+      <div class="sc-grid">
+        <div class="sc-group">
+          <h3 class="h3">Panels &amp; navigation</h3>
+          <ul class="sc-list">
+            <li class="sc-row"><span class="sc-act">Switch active panel</span><span class="sc-dots"></span><span class="sc-keys"><kbd>Tab</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Open folder / file</span><span class="sc-dots"></span><span class="sc-keys"><kbd>Return</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Go up</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘↑</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Back · Forward</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘[</kbd>·<kbd>⌘]</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Go to folder</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘⇧G</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Type-ahead filter</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘F</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Show hidden files</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘⇧.</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Show sidebar</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘B</kbd></span></li>
+          </ul>
+        </div>
+
+        <div class="sc-group">
+          <h3 class="h3">File operations</h3>
+          <ul class="sc-list">
+            <li class="sc-row"><span class="sc-act">Copy · Paste</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘C</kbd>·<kbd>⌘V</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Paste as move</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌥⌘V</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Duplicate · Rename</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘D</kbd>·<kbd>⌘R</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">New folder · New file</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘⇧N</kbd>·<kbd>⌃⌘N</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Move to Trash</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘⌫</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Undo · Redo</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘Z</kbd>·<kbd>⇧⌘Z</kbd></span></li>
+          </ul>
+          <p class="sc-note">Undo is multi-level across move, copy, trash and rename. Overwrites are the
+            exception — Diptychon says so instead of faking an undo.</p>
+        </div>
+
+        <div class="sc-group">
+          <h3 class="h3">Selection</h3>
+          <ul class="sc-list">
+            <li class="sc-row"><span class="sc-act">Select all</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘A</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Clear selection</span><span class="sc-dots"></span><span class="sc-keys"><kbd>Esc</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Invert selection</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘⇧I</kbd></span></li>
+          </ul>
+        </div>
+
+        <div class="sc-group">
+          <h3 class="h3">Across panels</h3>
+          <ul class="sc-list">
+            <li class="sc-row"><span class="sc-act">Copy to other panel</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌥⌘→</kbd>·<kbd>⌥⌘←</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Move to other panel</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌥⇧⌘→</kbd>·<kbd>⌥⇧⌘←</kbd></span></li>
+          </ul>
+        </div>
+
+        <div class="sc-group">
+          <h3 class="h3">Tags &amp; staging</h3>
+          <ul class="sc-list">
+            <li class="sc-row"><span class="sc-act">Edit Finder tags</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘T</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Add to Staging</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘⇧S</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Show Staging panel</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘⇧B</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Remove from Staging</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌫</kbd></span></li>
+          </ul>
+        </div>
+
+        <div class="sc-group">
+          <h3 class="h3">View &amp; tools</h3>
+          <ul class="sc-list">
+            <li class="sc-row"><span class="sc-act">Quick Look</span><span class="sc-dots"></span><span class="sc-keys"><kbd>Space</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Get Info</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘I</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Open With…</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘Return</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Reveal in Finder</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⇧⌘R</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Copy path</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌥⌘C</kbd></span></li>
+            <li class="sc-row"><span class="sc-act">Command palette</span><span class="sc-dots"></span><span class="sc-keys"><kbd>⌘K</kbd></span></li>
+          </ul>
+          <p class="sc-note">Missing a command? Gadgets hand the current selection to any app or CLI tool —
+            no plugin runtime to learn.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== LIMITS ========== -->
+  <section class="band">
+    <div class="wrap band-pad">
+      <div class="split">
+        <div>
+          <span class="lab">Before you download</span>
+          <h2 class="h2" style="margin-top:12px">What it doesn't do.</h2>
+        </div>
+        <div class="limits">
+          <ul>
+            <li><span class="tagx">Not planned</span><b>Remote drives.</b> No SFTP, no WebDAV, no S3. If you
+              mount servers all day, ForkLift 4 is the better tool and we say so on the comparison page.</li>
+            <li><b>Overwrites can't be undone.</b> Every other operation is reversible; an overwrite isn't,
+              and the app tells you before it happens rather than faking a rollback.</li>
+            <li><b>It's a beta.</b> Signed and notarized by Apple, free while the beta lasts. The price
+              afterwards isn't decided — what is decided: never recurring billing.</li>
+          </ul>
+          <p class="sc-note" style="margin-top:18px">Every competitor figure on the
+            <a href="https://diptychon.com/vs">comparison page</a> is dated and linked to the vendor's own page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA ========== -->
+  <section class="band">
+    <div class="wrap band-pad cta">
+      <span class="lab">Free while in beta</span>
+      <h2 class="h2" style="margin-top:12px">Give your keyboard the file manager.</h2>
+      <div class="cta-row">
+        <a class="btn btn-solid" href="https://diptychon.com/download">Download for macOS</a>
+        <a class="btn btn-ghost" href="https://diptychon.com/docs/">Read the docs</a>
+        <span class="hero-fine">2.7 MB · macOS 13+ · Apple Silicon &amp; Intel</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <span>© Diptychon — native macOS, built by Till von Krueger</span>
+  <span class="foot-sp"></span>
+  <a href="https://diptychon.com/vs">Comparison</a>
+  <a href="https://diptychon.com/docs/">Documentation</a>
+  <a href="https://diptychon.com/impressum">Impressum</a>
+  <a href="https://diptychon.com/datenschutz">Privacy</a>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- theme toggle ---------- */
+  var root=document.documentElement;
+  try{ var saved=localStorage.getItem("dx-theme"); if(saved){root.setAttribute("data-theme",saved);} }catch(e){}
+  document.getElementById("theme").addEventListener("click",function(){
+    var cur=root.getAttribute("data-theme");
+    if(!cur){ cur=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"; }
+    var next=cur==="dark"?"light":"dark";
+    root.setAttribute("data-theme",next);
+    try{ localStorage.setItem("dx-theme",next); }catch(e){}
+  });
+
+  /* ---------- the dual-panel demo ---------- */
+  var TAGS={red:"#e0483f",orange:"#e08b2c",yellow:"#d8bd2a",green:"#4ea34a",blue:"#3f7fe0",purple:"#9a5fd0",grey:"#8d939c"};
+
+  var state={
+    active:"L",
+    sel:{L:0,R:0},
+    files:{
+      L:[
+        {n:"panel-spec.pdf",     s:"1.4 MB", t:"blue"},
+        {n:"keymap-draft.md",    s:"8 KB",   t:null},
+        {n:"render-final.png",   s:"6.2 MB", t:"orange"},
+        {n:"invoice-0421.pdf",   s:"214 KB", t:null},
+        {n:"handover-notes.txt", s:"2 KB",   t:"grey"}
+      ],
+      R:[
+        {n:"icon@2x.png",   s:"88 KB", t:null},
+        {n:"palette.json",  s:"4 KB",  t:"green"},
+        {n:"type-scale.css",s:"12 KB", t:null}
+      ]
+    },
+    undo:[]
+  };
+
+  var other=function(p){return p==="L"?"R":"L";};
+  var PATH={L:"~/Downloads",R:"~/Projects/atlas/assets"};
+  var statusEl=document.getElementById("status");
+  var landed=null;
+
+  function say(html){ statusEl.innerHTML=html; }
+
+  function render(){
+    ["L","R"].forEach(function(p){
+      var panel=document.getElementById("panel-"+p);
+      panel.setAttribute("data-active", state.active===p ? "true":"false");
+      panel.querySelector("[data-flag]").textContent = state.active===p ? "Active":"Inactive";
+
+      var ul=document.getElementById("rows-"+p);
+      ul.innerHTML="";
+      state.files[p].forEach(function(f,i){
+        var li=document.createElement("li");
+        li.className="row"+(landed&&landed.p===p&&landed.n===f.n?" landed":"");
+        li.setAttribute("role","option");
+        li.setAttribute("aria-selected", state.sel[p]===i ? "true":"false");
+
+        var dot=document.createElement("span");
+        if(f.t){ dot.className="tag"; dot.style.background=TAGS[f.t]||"#8d939c";
+                 dot.title="Finder tag: "+f.t; }
+        li.appendChild(dot);
+
+        var nm=document.createElement("span");
+        nm.className="row-name"; nm.textContent=f.n;
+        li.appendChild(nm);
+
+        var sz=document.createElement("span");
+        sz.className="row-size"; sz.textContent=f.s;
+        li.appendChild(sz);
+
+        li.addEventListener("click",function(){ state.active=p; state.sel[p]=i; landed=null; render(); });
+        ul.appendChild(li);
+      });
+    });
+    landed=null;
+  }
+
+  function current(){ return state.files[state.active][state.sel[state.active]]; }
+
+  function transfer(move){
+    var src=state.active, dst=other(src), f=current();
+    if(!f){ say("Nothing selected."); return; }
+    if(state.files[dst].some(function(x){return x.n===f.n;})){
+      say("<b>"+f.n+"</b> is already in "+PATH[dst]+".");
+      return;
+    }
+    var copy={n:f.n,s:f.s,t:f.t};
+    state.files[dst].unshift(copy);
+    if(move){
+      state.files[src].splice(state.sel[src],1);
+      if(state.sel[src]>=state.files[src].length) state.sel[src]=Math.max(0,state.files[src].length-1);
+    }
+    state.undo.push({move:move,src:src,dst:dst,file:copy,at:state.sel[src]});
+    state.sel[dst]=0;
+    landed={p:dst,n:copy.n};
+    render();
+    say((move?"Moved ":"Copied ")+"<b>"+copy.n+"</b> → "+PATH[dst]+" · ⌘Z to undo");
+  }
+
+  function undo(){
+    var op=state.undo.pop();
+    if(!op){ say("Nothing left to undo."); return; }
+    var i=state.files[op.dst].findIndex(function(x){return x.n===op.file.n;});
+    if(i>-1) state.files[op.dst].splice(i,1);
+    if(op.move){ state.files[op.src].splice(op.at,0,op.file); state.sel[op.src]=op.at; }
+    state.sel[op.dst]=Math.min(state.sel[op.dst],Math.max(0,state.files[op.dst].length-1));
+    render();
+    say("Undid "+(op.move?"move":"copy")+" of <b>"+op.file.n+"</b>");
+  }
+
+  function switchPanel(){
+    state.active=other(state.active);
+    render();
+    say(PATH[state.active]+" is active — it is now the source.");
+  }
+
+  function step(d){
+    var p=state.active, n=state.files[p].length;
+    if(!n) return;
+    state.sel[p]=(state.sel[p]+d+n)%n;
+    render();
+  }
+
+  var demo=document.getElementById("demo");
+
+  demo.addEventListener("keydown",function(e){
+    var k=e.key;
+    if(k==="Tab" && !e.shiftKey){ e.preventDefault(); switchPanel(); return; }
+    if(k==="ArrowDown"){ e.preventDefault(); step(1); return; }
+    if(k==="ArrowUp"){ e.preventDefault(); step(-1); return; }
+    if((k==="z"||k==="Z") && (e.metaKey||e.ctrlKey)){ e.preventDefault(); undo(); return; }
+    if(k==="ArrowRight"||k==="ArrowLeft"){
+      var toward = (k==="ArrowRight") ? "R" : "L";
+      /* the chord only fires when it points at the inactive panel — as in the app */
+      if(other(state.active)!==toward){
+        e.preventDefault();
+        say("That arrow points at the active panel. Use "+(state.active==="L"?"→":"←")+".");
+        return;
+      }
+      e.preventDefault();
+      transfer(e.shiftKey);
+      return;
+    }
+    if(k===" "){ e.preventDefault(); var f=current(); say(f?("Quick Look would open <b>"+f.n+"</b> — in the app."):"Nothing selected."); }
+  });
+
+  demo.addEventListener("focus",function(){
+    say("Keyboard connected — <b>Tab</b> switches, <b>↑↓</b> selects, <b>"+(state.active==="L"?"→":"←")+"</b> sends across.");
+  });
+
+  Array.prototype.forEach.call(demo.querySelectorAll("[data-act]"),function(b){
+    b.addEventListener("click",function(){
+      var a=b.getAttribute("data-act");
+      if(a==="switch") switchPanel();
+      else if(a==="copy") transfer(false);
+      else if(a==="move") transfer(true);
+      else if(a==="undo") undo();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
