@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diptychon: the dual-pane file manager for your Mac (prototype, Linear composition)</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icon.png">
+<script>
+  // Apply a saved theme override before first paint (no flash). Default: system.
+  (function(){
+    try{
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+<style>
+  /* Prototype: Linear's composition and rhythm, rendered strictly in the
+     Diptychon lattice (DESIGN.md). Borrowed: hero-scale product shot, spec
+     band, statement band, numbered chapters, mega footer. Not borrowed:
+     gradients, glow, rounded cards, shadows, entrance animation. */
+  :root{
+    color-scheme:light;
+    --bg:#f6f6f4;--bg-raise:#ffffff;--bg-inset:#efefec;--hover:#f1f1ee;
+    --line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;--leader:#d8d8d3;
+    --ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;
+    --accent:#0066d6;--accent-hover:#0a84ff;--me-tint:rgba(10,132,255,.11);
+    --nav-bg:rgba(246,246,244,.8);--selection:rgba(10,132,255,.22);--selection-ink:#1a1a1c;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    --display:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;
+    --maxw:1080px;
+    --col:min(var(--maxw), 100vw - 36px);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      color-scheme:dark;
+      --bg:#0b0b0d;--bg-raise:#131316;--bg-inset:#101013;--hover:#17171b;
+      --line:#232327;--line-soft:#303038;--line-strong:#33333a;--leader:#2a2a2f;
+      --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
+      --accent:#0a84ff;--accent-hover:#3a9bff;--me-tint:rgba(10,132,255,.08);
+      --nav-bg:rgba(11,11,13,.78);--selection:rgba(10,132,255,.28);--selection-ink:#fff;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0b0b0d;--bg-raise:#131316;--bg-inset:#101013;--hover:#17171b;
+    --line:#232327;--line-soft:#303038;--line-strong:#33333a;--leader:#2a2a2f;
+    --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
+    --accent:#0a84ff;--accent-hover:#3a9bff;--me-tint:rgba(10,132,255,.08);
+    --nav-bg:rgba(11,11,13,.78);--selection:rgba(10,132,255,.28);--selection-ink:#fff;
+  }
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --bg:#f6f6f4;--bg-raise:#ffffff;--bg-inset:#efefec;--hover:#f1f1ee;
+    --line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;--leader:#d8d8d3;
+    --ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;
+    --accent:#0066d6;--accent-hover:#0a84ff;--me-tint:rgba(10,132,255,.11);
+    --nav-bg:rgba(246,246,244,.8);--selection:rgba(10,132,255,.22);--selection-ink:#1a1a1c;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;letter-spacing:.005em;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:var(--accent);text-decoration:none}a:hover{color:var(--accent-hover)}
+  ::selection{background:var(--selection);color:var(--selection-ink)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+  body,nav,.theme-toggle{transition:background-color .15s ease,border-color .15s ease,color .15s ease}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+
+  .wrap{width:var(--col);margin-inline:auto;padding-inline:24px;position:relative;z-index:1}
+  .rails{position:fixed;inset:0;margin-inline:auto;width:var(--col);border-inline:1px solid var(--line-soft);pointer-events:none;z-index:0}
+  .rule{border-top:1px solid var(--line-soft)}
+
+  /* mono micro-label, one per section */
+  .label{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0}
+  .label b{color:var(--ink);font-weight:500}
+
+  kbd,.key{font-family:var(--mono);font-size:.82em;font-weight:500;color:var(--ink);background:var(--bg-raise);border:1px solid var(--line);border-bottom-color:var(--line-strong);border-bottom-width:2px;border-radius:5px;padding:1px 6px;white-space:nowrap}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;background:var(--nav-bg);backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--line-soft)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:11px;color:var(--ink);font-family:var(--mono);font-size:15px}
+  .brand:hover{color:var(--ink)}
+  .brand img{width:26px;height:26px;border-radius:7px;display:block}
+  .nav-links{display:flex;gap:28px;font-size:14px}
+  .nav-links a{color:var(--ink-dim)}.nav-links a:hover{color:var(--ink)}
+  .nav-right{display:flex;align-items:center;gap:10px}
+  .theme-toggle{display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink-dim);cursor:pointer;padding:0}
+  .theme-toggle:hover{color:var(--ink)}
+  .theme-toggle svg{width:15px;height:15px}
+  .tt-moon{display:none}
+  :root[data-theme="dark"] .tt-sun{display:none}:root[data-theme="dark"] .tt-moon{display:block}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tt-sun{display:none}:root:not([data-theme="light"]) .tt-moon{display:block}}
+  @media (max-width:760px){.nav-links{display:none}}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:500;border-radius:8px;padding:10px 18px;border:1px solid transparent;white-space:nowrap}
+  .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover);color:#fff}
+  .btn-secondary{font-family:var(--mono);font-size:13.5px;color:var(--ink);border-color:var(--line);background:var(--bg-raise)}.btn-secondary:hover{color:var(--ink);border-color:var(--line-strong)}
+  .nav-cta{padding:7px 14px;font-size:13.5px}
+  .beta-note{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
+
+  /* hero: headline left, sub + CTA bottom-right (Linear's split) */
+  .hero{padding:104px 0 56px}
+  .hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:40px;align-items:end;margin-top:22px}
+  h1{font-family:var(--display);font-size:clamp(42px,7vw,80px);line-height:1.02;letter-spacing:-.035em;font-weight:600;margin:0;text-wrap:balance}
+  h1 .dim{color:var(--ink-faint)}
+  .subhead{font-size:18px;color:var(--ink-dim);margin:0 0 22px;max-width:30em}
+  .cta-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  @media (max-width:860px){.hero{padding-top:72px}.hero-grid{grid-template-columns:1fr;gap:28px}}
+
+  /* the product shot starts at the left rail and bleeds to the viewport's right edge */
+  .shot-band{border-block:1px solid var(--line-soft);overflow:hidden;position:relative;z-index:1;background:var(--bg)}
+  .shot-in{margin-left:calc(50% - var(--col) / 2);width:calc(50% + var(--col) / 2);border-left:1px solid var(--line-soft)}
+  .shot-in video{display:block;width:100%;height:auto;background:#1e1e1e}
+
+  /* spec band: facts as big numbers, one cell each */
+  .specs{display:grid;grid-template-columns:repeat(4,1fr)}
+  .spec{padding:30px 24px 28px;border-left:1px solid var(--line-soft)}
+  .spec:first-child{border-left:0}
+  .spec .n{font-family:var(--display);font-size:34px;font-weight:600;letter-spacing:-.03em;line-height:1.1}
+  .spec .u{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-top:6px}
+  .specs-wrap{width:var(--col);margin-inline:auto;position:relative;z-index:1}
+  @media (max-width:760px){.specs{grid-template-columns:1fr 1fr}.spec:nth-child(3){border-left:0}.spec:nth-child(n+3){border-top:1px solid var(--line-soft)}}
+
+  /* statement band: one big paragraph, bright lead, dim tail */
+  .statement{padding:120px 0}
+  .statement p:not(.label){font-family:var(--display);font-size:clamp(26px,3.6vw,40px);line-height:1.2;letter-spacing:-.02em;font-weight:500;margin:22px 0 0;max-width:21em}
+  .statement .dim{color:var(--ink-faint)}
+
+  /* three cells, each a claim plus a UI fragment */
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);width:var(--col);margin-inline:auto;position:relative;z-index:1}
+  .cell{padding:0 24px 36px;border-left:1px solid var(--line-soft);display:flex;flex-direction:column}
+  .cell:first-child{border-left:0}
+  .cell .vis{height:210px;display:grid;place-items:center;border-bottom:1px dashed var(--line-soft);margin:0 -24px 26px;padding:0 24px}
+  .cell h3{font-size:19px;font-weight:600;letter-spacing:-.01em;margin:0 0 8px}
+  .cell p{font-size:15.5px;color:var(--ink-dim);margin:0}
+  @media (max-width:860px){.trio{grid-template-columns:1fr}.cell{border-left:0;border-top:1px solid var(--line-soft)}.cell:first-child{border-top:0}}
+
+  .toast{display:flex;align-items:center;gap:10px;font-size:14px;background:var(--bg-raise);border:1px solid var(--line);border-radius:9px;padding:10px 16px;color:var(--ink)}
+  .toast svg{width:15px;height:15px;color:var(--ink-dim)}
+  .stack{display:grid;gap:10px;justify-items:center}
+  .stack .ghost{opacity:.45;transform:scale(.94)}
+  .stack .ghost2{opacity:.2;transform:scale(.88)}
+
+  .leaders{width:100%;max-width:280px;font-family:var(--mono);font-size:13px}
+  .lr{display:flex;align-items:baseline;gap:8px;padding:7px 0}
+  .lr .a{color:var(--ink-dim)}.lr .b{color:var(--ink)}
+  .lr .l{flex:1;border-bottom:1px dotted var(--leader);transform:translateY(-4px)}
+
+  .tags{display:grid;gap:10px;font-size:14px;width:100%;max-width:260px}
+  .tagrow{display:flex;align-items:center;gap:10px}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .tagrow .side{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+
+  /* numbered chapters */
+  .chapter{padding:96px 0 0}
+  .ch-head{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:end;margin-top:20px}
+  h2{font-family:var(--display);font-size:clamp(30px,4.4vw,48px);line-height:1.06;letter-spacing:-.03em;font-weight:600;margin:0;text-wrap:balance}
+  .ch-head p{color:var(--ink-dim);margin:0;font-size:16.5px}
+  .ch-vis{margin-top:56px;border-top:1px solid var(--line-soft);position:relative;z-index:1}
+  @media (max-width:860px){.ch-head{grid-template-columns:1fr;gap:18px}}
+
+  /* app mock: two panes sharing one divider, drawn in the lattice */
+  .app{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:1fr 1fr;background:var(--bg-inset);font-size:13.5px}
+  .pane{min-width:0}
+  .pane + .pane{border-left:1px solid var(--line-soft)}
+  .ph{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;font-weight:600;border-bottom:1px solid var(--line-soft)}
+  .ph .meta{font-family:var(--mono);font-size:11.5px;font-weight:400;color:var(--ink-faint)}
+  .row{display:grid;grid-template-columns:1fr 64px 76px;gap:12px;padding:6px 18px;color:var(--ink-dim)}
+  .row:nth-child(odd){background:color-mix(in srgb,var(--bg) 55%,transparent)}
+  .row .t,.row .s{font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+  .row .s{text-align:right}
+  .row.head{font-size:11.5px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);background:transparent;border-bottom:1px dashed var(--line-soft)}
+  .row.sel{background:var(--accent);color:#fff}
+  .row.sel .t,.row.sel .s{color:rgba(255,255,255,.8)}
+  .row.new{background:var(--me-tint);color:var(--ink)}
+  .row .f::before{content:"";display:inline-block;width:11px;height:13px;border:1px solid currentColor;border-radius:2px;opacity:.5;margin-right:9px;vertical-align:-2px}
+  .row .d::before{content:"";display:inline-block;width:14px;height:11px;background:#5ab0f7;border-radius:2px;margin-right:9px;vertical-align:-1px}
+  .app-wrap{position:relative}
+  .chord{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:6px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:9px;background:var(--bg-raise);z-index:2}
+  .chord .key{font-size:18px;padding:5px 12px}
+  @media (max-width:760px){.app{grid-template-columns:1fr}.pane + .pane{border-left:0;border-top:1px solid var(--line-soft)}.row{grid-template-columns:1fr 64px}.row .s{display:none}.chord{display:none}}
+
+  /* chapter 3: four view cells */
+  .views{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:repeat(4,1fr);background:var(--bg-inset)}
+  .view{border-left:1px solid var(--line-soft);padding:22px 20px 20px;display:flex;flex-direction:column;gap:16px;min-height:250px}
+  .view:first-child{border-left:0}
+  .view .cap{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600}
+  .mini{flex:1;display:grid;gap:5px;align-content:start}
+  .bar{height:7px;background:var(--line-soft);border-radius:2px}
+  .bar.on{background:var(--accent)}
+  .mini.brief{grid-template-columns:repeat(3,1fr);column-gap:10px}
+  .mini.cols{grid-template-columns:repeat(3,1fr);gap:0}
+  .mini.cols > div{display:grid;gap:5px;align-content:start;padding:0 8px;border-left:1px solid var(--line-soft)}
+  .mini.cols > div:first-child{border-left:0;padding-left:0}
+  .mini.term{font-family:var(--mono);font-size:12px;color:var(--ink-dim);gap:4px}
+  .mini.term .p{color:var(--ink-faint)}
+  .caret{display:inline-block;width:7px;height:13px;background:var(--ink-dim);vertical-align:-2px}
+  @media (max-width:860px){.views{grid-template-columns:1fr 1fr}.view:nth-child(3){border-left:0}.view:nth-child(n+3){border-top:1px solid var(--line-soft)}}
+
+  /* chapter 4: command palette */
+  .pal-band{width:var(--col);margin-inline:auto;background:var(--bg-inset);padding:56px 24px;display:grid;place-items:center}
+  .palette{width:min(560px,100%);background:var(--bg-raise);border:1px solid var(--line);border-radius:9px;font-size:14px;overflow:hidden}
+  .pal-in{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line);font-size:16px}
+  .pal-in .q{color:var(--ink)}.pal-in .caret{height:17px;width:1.5px;background:var(--accent)}
+  .pal-in .hint{margin-left:auto}
+  .pal-row{display:flex;align-items:center;gap:12px;padding:9px 16px;color:var(--ink-dim)}
+  .pal-row .cat{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);width:52px}
+  .pal-row .k{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
+  .pal-row.on{background:var(--accent);color:#fff}.pal-row.on .cat,.pal-row.on .k{color:rgba(255,255,255,.8)}
+  .pal-row mark{background:none;color:inherit;font-weight:600}
+
+  /* command panel (the app's panel as a page element) */
+  .cmds{padding:96px 0 0}
+  .cmd-band{margin-top:40px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);position:relative;z-index:1}
+  .cmd-scroll{max-height:min(480px,68vh);overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;align-items:start}
+  .cmd-col + .cmd-col{border-left:1px solid var(--line-soft)}
+  .cmd-group{padding:0 24px 18px}
+  .sc-h{position:sticky;top:0;background:var(--bg);font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);padding:18px 0 8px;border-bottom:1px dashed var(--line-soft);margin-bottom:6px}
+  .sc-row{display:flex;align-items:baseline;gap:10px;padding:5px 0;font-size:14.5px}
+  .sc-act{color:var(--ink-dim)}
+  .sc-lead{flex:1;border-bottom:1px dotted var(--leader);transform:translateY(-4px)}
+  .sc-key{font-family:var(--mono);font-size:13px;color:var(--ink)}
+  @media (max-width:760px){.cmd-scroll{grid-template-columns:1fr}.cmd-col + .cmd-col{border-left:0}}
+
+  /* compare: a row of link cells */
+  .compare{padding:96px 0 0}
+  .cmp-row{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:1.4fr repeat(4,1fr);margin-top:40px;border-top:1px solid var(--line-soft);position:relative;z-index:1}
+  .cmp{display:flex;flex-direction:column;justify-content:space-between;gap:26px;padding:22px 24px;border-left:1px solid var(--line-soft);color:var(--ink);min-height:132px}
+  .cmp:first-child{border-left:0}
+  .cmp:hover{background:var(--hover);color:var(--ink)}
+  .cmp .k{font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
+  .cmp .t{font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .cmp .go{color:var(--accent)}
+  @media (max-width:860px){.cmp-row{grid-template-columns:1fr 1fr}.cmp:first-child{grid-column:1 / -1}.cmp:nth-child(2),.cmp:nth-child(4){border-left:0}.cmp:nth-child(n+2){border-top:1px solid var(--line-soft)}}
+
+  /* final CTA */
+  .final{padding:140px 0;text-align:left}
+  .final h2{font-size:clamp(36px,6vw,68px);margin:22px 0 30px;max-width:13em}
+
+  /* mega footer */
+  footer{position:relative;z-index:1}
+  .foot{display:grid;grid-template-columns:1.6fr repeat(3,1fr);width:var(--col);margin-inline:auto}
+  .fcol{padding:36px 24px 44px;border-left:1px solid var(--line-soft);font-size:14px}
+  .fcol:first-child{border-left:0}
+  .fcol h4{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:400;margin:0 0 14px}
+  .fcol a{display:block;color:var(--ink-dim);padding:3px 0}.fcol a:hover{color:var(--ink)}
+  .fcol a.brand{display:flex;color:var(--ink)}
+  .fcol .fine{color:var(--ink-faint);font-size:13px;margin:14px 0 0;line-height:1.55}
+  @media (max-width:760px){.foot{grid-template-columns:1fr 1fr}.fcol:first-child{grid-column:1 / -1}.fcol:nth-child(2),.fcol:nth-child(4){border-left:0}.fcol:nth-child(n+2){border-top:1px solid var(--line-soft)}}
+</style>
+</head>
+<body>
+
+<div class="rails" aria-hidden="true"></div>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="Diptychon home">
+      <img src="icon.png" alt="" width="26" height="26">
+      <span>diptychon</span>
+    </a>
+    <span class="nav-links">
+      <a href="#move">Features</a>
+      <a href="#shortcuts">Shortcuts</a>
+      <a href="#compare">Compare</a>
+      <a href="/docs">Docs</a>
+    </span>
+    <span class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+        <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
+      </button>
+      <a class="btn btn-primary nav-cta" href="/download?src=home-nav">Download free beta</a>
+    </span>
+  </div>
+</nav>
+
+<main id="top">
+
+  <header class="hero">
+    <div class="wrap">
+      <p class="label">Keyboard-first · macOS</p>
+      <div class="hero-grid">
+        <h1>The dual-pane file manager <span class="dim">for your Mac.</span></h1>
+        <div>
+          <p class="subhead">Two folders side by side. One keystroke moves a file across. Every action is undoable.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="/download?src=home-hero">Download for macOS</a>
+            <span class="beta-note">Free while in beta · notarized by Apple</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="shot-band">
+    <div class="shot-in">
+      <video src="demo.mp4" poster="demo-poster.jpg"
+             autoplay muted loop playsinline preload="auto"
+             width="1920" height="1080"
+             aria-label="23-second demo: navigating two folders side by side with the keyboard, selecting 10 images with Command-A, copying them to the other panel with Command-Option-Right-Arrow, then undoing the copy from the command palette. Each keystroke is shown on screen."></video>
+    </div>
+  </div>
+
+  <div class="specs-wrap">
+    <div class="specs">
+      <div class="spec"><div class="n">2.7 MB</div><div class="u">download</div></div>
+      <div class="spec"><div class="n">9 MB</div><div class="u">installed</div></div>
+      <div class="spec"><div class="n">macOS 13+</div><div class="u">Apple Silicon &amp; Intel</div></div>
+      <div class="spec"><div class="n">0</div><div class="u">telemetry, accounts, subscriptions</div></div>
+    </div>
+  </div>
+
+  <section class="statement rule">
+    <div class="wrap">
+      <p class="label">Why it's different</p>
+      <p>Finder conventions where they exist. Chords where they earn their keep. <span class="dim">Every key is rebindable, so your muscle memory just transfers.</span></p>
+    </div>
+  </section>
+
+  <div class="rule">
+    <div class="trio">
+      <div class="cell">
+        <div class="vis">
+          <div class="stack" aria-hidden="true">
+            <div class="toast ghost2"><span>Undone — Rename 3 items</span></div>
+            <div class="toast ghost"><span>Undone — Move 2 items to Trash</span></div>
+            <div class="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undone — Move 12 items</span></div>
+          </div>
+        </div>
+        <h3>See everything. Undo anything.</h3>
+        <p>Move, copy, rename and trash are all reversible. Multi-level <kbd>⌘Z</kbd>, with a toast that says exactly what was undone.</p>
+      </div>
+      <div class="cell">
+        <div class="vis">
+          <div class="leaders" aria-hidden="true">
+            <div class="lr"><span class="a">telemetry</span><span class="l"></span><span class="b">none</span></div>
+            <div class="lr"><span class="a">account</span><span class="l"></span><span class="b">none</span></div>
+            <div class="lr"><span class="a">subscription</span><span class="l"></span><span class="b">none</span></div>
+            <div class="lr"><span class="a">runs on</span><span class="l"></span><span class="b">your Mac</span></div>
+          </div>
+        </div>
+        <h3>Small, native, private.</h3>
+        <p>Native Swift, 2.7&nbsp;MB to download. No telemetry, no account, no subscription. Everything runs on your Mac.</p>
+      </div>
+      <div class="cell">
+        <div class="vis">
+          <div class="tags" aria-hidden="true">
+            <div class="tagrow"><span class="dot" style="background:#ff5f57"></span>Urgent<span class="side">Finder ⇄ Diptychon</span></div>
+            <div class="tagrow"><span class="dot" style="background:#0a84ff"></span>Review<span class="side">Finder ⇄ Diptychon</span></div>
+            <div class="tagrow"><span class="dot" style="background:#30d158"></span>Done<span class="side">Finder ⇄ Diptychon</span></div>
+          </div>
+        </div>
+        <h3>Rides the Mac, not against it.</h3>
+        <p>Real Finder tags that round-trip both ways. Finder's own keys for copy, paste, go-to-folder and Quick Look.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.0 Move -->
+  <section class="chapter rule" id="move">
+    <div class="wrap">
+      <p class="label"><b>1.0</b> &nbsp;Move</p>
+      <div class="ch-head">
+        <h2>See where a file is and where it's going.</h2>
+        <p>The active panel is the source, the inactive one is the destination. Select a file, press <kbd>⌥⌘→</kbd>, it lands on the right. Add <kbd>⇧</kbd> to move instead of copy.</p>
+      </div>
+    </div>
+    <div class="ch-vis">
+      <div class="app-wrap">
+        <div class="app" aria-hidden="true">
+          <div class="pane">
+            <div class="ph">Inbox <span class="meta">~/Inbox</span></div>
+            <div class="row head"><span>Name</span><span>Type</span><span class="s">Size</span></div>
+            <div class="row"><span class="f">budget-Q3.xlsx</span><span class="t">XLSX</span><span class="s">94 KB</span></div>
+            <div class="row"><span class="f">contract-draft.pdf</span><span class="t">PDF</span><span class="s">254 KB</span></div>
+            <div class="row"><span class="f">hero-v3.png</span><span class="t">PNG</span><span class="s">1.8 MB</span></div>
+            <div class="row sel"><span class="f">logo-final.svg</span><span class="t">SVG</span><span class="s">49 KB</span></div>
+            <div class="row"><span class="f">meeting-notes.md</span><span class="t">MD</span><span class="s">6 KB</span></div>
+            <div class="row"><span class="f">wireframes-v2.pdf</span><span class="t">PDF</span><span class="s">1.2 MB</span></div>
+            <div class="row"><span>&nbsp;</span></div>
+            <div class="row"><span>&nbsp;</span></div>
+          </div>
+          <div class="pane">
+            <div class="ph">Website Redesign <span class="meta">~/Clients/Website Redesign</span></div>
+            <div class="row head"><span>Name</span><span>Type</span><span class="s">Size</span></div>
+            <div class="row"><span class="d">01 Brief</span><span class="t">Folder</span><span class="s">—</span></div>
+            <div class="row"><span class="d">02 Design</span><span class="t">Folder</span><span class="s">—</span></div>
+            <div class="row"><span class="f">brand-guidelines.pdf</span><span class="t">PDF</span><span class="s">2.5 MB</span></div>
+            <div class="row new"><span class="f">logo-final.svg</span><span class="t">SVG</span><span class="s">49 KB</span></div>
+            <div class="row"><span class="f">README.md</span><span class="t">MD</span><span class="s">4 KB</span></div>
+            <div class="row"><span class="f">sitemap.png</span><span class="t">PNG</span><span class="s">840 KB</span></div>
+            <div class="row"><span>&nbsp;</span></div>
+            <div class="row"><span>&nbsp;</span></div>
+          </div>
+        </div>
+        <div class="chord" aria-hidden="true"><span class="key">⌥</span><span class="key">⌘</span><span class="key">→</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2.0 Stage -->
+  <section class="chapter rule" id="stage">
+    <div class="wrap">
+      <p class="label"><b>2.0</b> &nbsp;Stage</p>
+      <div class="ch-head">
+        <h2>Collect from anywhere. Act once.</h2>
+        <p><kbd>⌘⇧S</kbd> adds the selection to Staging, from any folder. <kbd>⌘⇧B</kbd> shows the set. <kbd>⌫</kbd> takes a file out of it and leaves the disk alone.</p>
+      </div>
+    </div>
+    <div class="ch-vis">
+      <div class="app" aria-hidden="true">
+        <div class="pane">
+          <div class="ph">Staging <span class="meta">4 items</span></div>
+          <div class="row head"><span>Name</span><span>Type</span><span class="s">Size</span></div>
+          <div class="row"><span class="f">contract-draft.pdf</span><span class="t">PDF</span><span class="s">254 KB</span></div>
+          <div class="row"><span class="f">brand-guidelines.pdf</span><span class="t">PDF</span><span class="s">2.5 MB</span></div>
+          <div class="row"><span class="f">hero-v3.png</span><span class="t">PNG</span><span class="s">1.8 MB</span></div>
+          <div class="row"><span class="f">copy-deck.docx</span><span class="t">DOCX</span><span class="s">123 KB</span></div>
+        </div>
+        <div class="pane">
+          <div class="ph">04 Handoff <span class="meta">destination</span></div>
+          <div class="row head"><span>Name</span><span>Type</span><span class="s">Size</span></div>
+          <div class="row"><span class="f">handoff-notes.md</span><span class="t">MD</span><span class="s">3 KB</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3.0 View -->
+  <section class="chapter rule" id="view">
+    <div class="wrap">
+      <p class="label"><b>3.0</b> &nbsp;View</p>
+      <div class="ch-head">
+        <h2>Table, brief, columns. A terminal in the same window.</h2>
+        <p><kbd>⌘1</kbd> turns a panel into brief view, up to three columns of names. <kbd>⌘2</kbd> turns it into a column browser, one folder per column. <kbd>⌘J</kbd> opens the built-in terminal.</p>
+      </div>
+    </div>
+    <div class="ch-vis">
+      <div class="views" aria-hidden="true">
+        <div class="view">
+          <div class="cap">Table <span class="key">default</span></div>
+          <div class="mini"><div class="bar"></div><div class="bar"></div><div class="bar on"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </div>
+        <div class="view">
+          <div class="cap">Brief <span class="key">⌘1</span></div>
+          <div class="mini brief"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar on"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </div>
+        <div class="view">
+          <div class="cap">Columns <span class="key">⌘2</span></div>
+          <div class="mini cols">
+            <div><div class="bar"></div><div class="bar on"></div><div class="bar"></div><div class="bar"></div></div>
+            <div><div class="bar"></div><div class="bar"></div><div class="bar on"></div></div>
+            <div><div class="bar"></div><div class="bar"></div></div>
+          </div>
+        </div>
+        <div class="view">
+          <div class="cap">Terminal <span class="key">⌘J</span></div>
+          <div class="mini term"><div><span class="p">%</span> ls</div><div>01 Brief&nbsp; 02 Design</div><div><span class="p">%</span> <span class="caret"></span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4.0 Extend -->
+  <section class="chapter rule" id="extend">
+    <div class="wrap">
+      <p class="label"><b>4.0</b> &nbsp;Extend</p>
+      <div class="ch-head">
+        <h2>Every command behind <kbd>⌘K</kbd>. Add the ones that are missing.</h2>
+        <p>The command palette finds any action by name and shows its keys. Gadgets hand the current selection to any app or CLI tool, with no plugin runtime to learn.</p>
+      </div>
+    </div>
+    <div class="ch-vis">
+      <div class="pal-band" aria-hidden="true">
+        <div class="palette">
+          <div class="pal-in"><span class="q">move</span><span class="caret"></span><span class="hint key">esc</span></div>
+          <div class="pal-row on"><span class="cat">File</span><span><mark>Move</mark> to Inactive Panel</span><span class="k">⌥⇧⌘→</span></div>
+          <div class="pal-row"><span class="cat">File</span><span><mark>Move</mark> to Trash</span><span class="k">⌘⌫</span></div>
+          <div class="pal-row"><span class="cat">Edit</span><span>Paste (<mark>Move</mark>)</span><span class="k">⌥⌘V</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cmds rule" id="shortcuts">
+    <div class="wrap">
+      <p class="label">Every command, one place</p>
+      <h2 style="margin-top:20px">Your hands stay on the keys.</h2>
+    </div>
+    <div class="cmd-band">
+      <div class="wrap" style="padding:0">
+        <div class="cmd-scroll" role="region" aria-label="All Diptychon commands, scrollable" tabindex="0">
+          <div class="cmd-col">
+          <div class="cmd-group">
+            <div class="sc-h">Panels &amp; navigation</div>
+            <div class="sc-row"><span class="sc-act">Switch active panel</span><span class="sc-lead"></span><span class="sc-key">Tab</span></div>
+            <div class="sc-row"><span class="sc-act">Open folder or file</span><span class="sc-lead"></span><span class="sc-key">Return</span></div>
+            <div class="sc-row"><span class="sc-act">Go up</span><span class="sc-lead"></span><span class="sc-key">⌘↑</span></div>
+            <div class="sc-row"><span class="sc-act">Back · Forward</span><span class="sc-lead"></span><span class="sc-key">⌘← · ⌘→</span></div>
+            <div class="sc-row"><span class="sc-act">Go to folder</span><span class="sc-lead"></span><span class="sc-key">⌘⇧G</span></div>
+            <div class="sc-row"><span class="sc-act">Search · Filter</span><span class="sc-lead"></span><span class="sc-key">⌘F · ⌘⇧F</span></div>
+            <div class="sc-row"><span class="sc-act">Show hidden files</span><span class="sc-lead"></span><span class="sc-key">⌘⇧.</span></div>
+            <div class="sc-row"><span class="sc-act">Show sidebar</span><span class="sc-lead"></span><span class="sc-key">⌘B</span></div>
+          </div>
+          <div class="cmd-group">
+            <div class="sc-h">Across panels</div>
+            <div class="sc-row"><span class="sc-act">Copy to other panel</span><span class="sc-lead"></span><span class="sc-key">⌥⌘→ · ⌥⌘←</span></div>
+            <div class="sc-row"><span class="sc-act">Move to other panel</span><span class="sc-lead"></span><span class="sc-key">⌥⇧⌘→ · ⌥⇧⌘←</span></div>
+          </div>
+          <div class="cmd-group">
+            <div class="sc-h">Views</div>
+            <div class="sc-row"><span class="sc-act">Brief view</span><span class="sc-lead"></span><span class="sc-key">⌘1</span></div>
+            <div class="sc-row"><span class="sc-act">Column view</span><span class="sc-lead"></span><span class="sc-key">⌘2</span></div>
+            <div class="sc-row"><span class="sc-act">Terminal</span><span class="sc-lead"></span><span class="sc-key">⌘J</span></div>
+            <div class="sc-row"><span class="sc-act">Command palette</span><span class="sc-lead"></span><span class="sc-key">⌘K</span></div>
+          </div>
+          <div class="cmd-group">
+            <div class="sc-h">Selection</div>
+            <div class="sc-row"><span class="sc-act">Select all</span><span class="sc-lead"></span><span class="sc-key">⌘A</span></div>
+            <div class="sc-row"><span class="sc-act">Clear selection</span><span class="sc-lead"></span><span class="sc-key">Esc</span></div>
+            <div class="sc-row"><span class="sc-act">Invert selection</span><span class="sc-lead"></span><span class="sc-key">⌘⇧I</span></div>
+          </div>
+          </div>
+          <div class="cmd-col">
+          <div class="cmd-group">
+            <div class="sc-h">File operations</div>
+            <div class="sc-row"><span class="sc-act">Copy · Paste</span><span class="sc-lead"></span><span class="sc-key">⌘C · ⌘V</span></div>
+            <div class="sc-row"><span class="sc-act">Paste as move</span><span class="sc-lead"></span><span class="sc-key">⌥⌘V</span></div>
+            <div class="sc-row"><span class="sc-act">Duplicate · Rename</span><span class="sc-lead"></span><span class="sc-key">⌘D · ⌘R</span></div>
+            <div class="sc-row"><span class="sc-act">New folder · New file</span><span class="sc-lead"></span><span class="sc-key">⌘⇧N · ⌃⌘N</span></div>
+            <div class="sc-row"><span class="sc-act">Move to Trash</span><span class="sc-lead"></span><span class="sc-key">⌘⌫</span></div>
+            <div class="sc-row"><span class="sc-act">Undo · Redo</span><span class="sc-lead"></span><span class="sc-key">⌘Z · ⇧⌘Z</span></div>
+          </div>
+          <div class="cmd-group">
+            <div class="sc-h">Tags &amp; staging</div>
+            <div class="sc-row"><span class="sc-act">Edit Finder tags</span><span class="sc-lead"></span><span class="sc-key">⌘T</span></div>
+            <div class="sc-row"><span class="sc-act">Add to Staging</span><span class="sc-lead"></span><span class="sc-key">⌘⇧S</span></div>
+            <div class="sc-row"><span class="sc-act">Show Staging</span><span class="sc-lead"></span><span class="sc-key">⌘⇧B</span></div>
+            <div class="sc-row"><span class="sc-act">Remove from Staging</span><span class="sc-lead"></span><span class="sc-key">⌫</span></div>
+          </div>
+          <div class="cmd-group">
+            <div class="sc-h">View &amp; tools</div>
+            <div class="sc-row"><span class="sc-act">Quick Look</span><span class="sc-lead"></span><span class="sc-key">Space</span></div>
+            <div class="sc-row"><span class="sc-act">Get Info</span><span class="sc-lead"></span><span class="sc-key">⌘I</span></div>
+            <div class="sc-row"><span class="sc-act">Open With…</span><span class="sc-lead"></span><span class="sc-key">⌘Return</span></div>
+            <div class="sc-row"><span class="sc-act">Reveal in Finder</span><span class="sc-lead"></span><span class="sc-key">⇧⌘R</span></div>
+            <div class="sc-row"><span class="sc-act">Copy path</span><span class="sc-lead"></span><span class="sc-key">⌥⌘C</span></div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="compare" id="compare">
+    <div class="wrap">
+      <p class="label">Compare</p>
+      <h2 style="margin-top:20px;max-width:18em">No clear winner among Mac file managers. We compared them honestly.</h2>
+    </div>
+    <div class="cmp-row">
+      <a class="cmp" href="/vs"><span class="k">/vs</span><span class="t">The full comparison, including where others beat Diptychon <span class="go">→</span></span></a>
+      <a class="cmp" href="/marta-alternative"><span class="k">coming from</span><span class="t">Marta <span class="go">→</span></span></a>
+      <a class="cmp" href="/forklift-alternative"><span class="k">coming from</span><span class="t">ForkLift <span class="go">→</span></span></a>
+      <a class="cmp" href="/path-finder-alternative"><span class="k">coming from</span><span class="t">Path Finder <span class="go">→</span></span></a>
+      <a class="cmp" href="/total-commander-for-mac"><span class="k">coming from</span><span class="t">Total Commander <span class="go">→</span></span></a>
+    </div>
+  </section>
+
+  <section class="final rule">
+    <div class="wrap">
+      <p class="label">Download</p>
+      <h2>Give your keyboard the file manager.</h2>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/download?src=home-final">Download for macOS</a>
+        <span class="beta-note">Free while in beta · 2.7&nbsp;MB · macOS&nbsp;13+</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="rule">
+  <div class="foot">
+    <div class="fcol">
+      <a class="brand" href="#top" style="padding:0"><img src="icon.png" alt="" width="26" height="26"><span>diptychon</span></a>
+      <p class="fine">Native macOS, 2.7&nbsp;MB. Free while in beta.<br>Built by Till von Krueger.</p>
+    </div>
+    <div class="fcol">
+      <h4>Product</h4>
+      <a href="/download?src=home-footer">Download</a>
+      <a href="#shortcuts">Keyboard shortcuts</a>
+      <a href="/docs">Docs</a>
+    </div>
+    <div class="fcol">
+      <h4>Compare</h4>
+      <a href="/vs">All file managers</a>
+      <a href="/marta-alternative">Marta</a>
+      <a href="/forklift-alternative">ForkLift</a>
+      <a href="/path-finder-alternative">Path Finder</a>
+      <a href="/total-commander-for-mac">Total Commander</a>
+    </div>
+    <div class="fcol">
+      <h4>Legal</h4>
+      <a href="/impressum">Impressum</a>
+      <a href="/datenschutz">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Theme toggle: flips to the opposite of the currently effective theme and
+  // persists the override. No override = follow the system.
+  (function(){
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var effective = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = effective === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+    });
+  })();
+</script>
+
+</body>
+</html>
