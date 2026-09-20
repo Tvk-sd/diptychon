@@ -246,11 +246,18 @@ enum Keymap {
 
     static func action(for event: NSEvent,
                        in map: [(chord: KeyChord, action: AppAction)] = Keymap.default) -> AppAction? {
+        lookup(event, in: map.map { (chord: $0.chord, value: $0.action) })
+    }
+
+    /// The value whose chord matches `event`, or nil. Shared by the action map and
+    /// the text-editing table below so both read a keystroke the same way.
+    private static func lookup<Value>(_ event: NSEvent,
+                                      in table: [(chord: KeyChord, value: Value)]) -> Value? {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         // Layout-aware character, ignoring modifiers (so ⇧ doesn't give "Z").
         let character = event.charactersIgnoringModifiers?.lowercased()
 
-        for entry in map {
+        for entry in table {
             let c = entry.chord
             guard flags.contains(.command) == c.command,
                   flags.contains(.option) == c.option,
@@ -260,11 +267,34 @@ enum Keymap {
 
             switch c.trigger {
             case .character(let ch):
-                if character == String(ch) { return entry.action }
+                if character == String(ch) { return entry.value }
             case .code(let code):
-                if event.keyCode == code { return entry.action }
+                if event.keyCode == code { return entry.value }
             }
         }
         return nil
+    }
+
+    // MARK: - Text-field editing (issue 95)
+
+    /// The standard editing chords a focused text field answers, and the selector each
+    /// one sends down the responder chain.
+    ///
+    /// AppKit does not answer ⌘X/⌘C/⌘V inside a text field by itself — the **Edit
+    /// menu** does, through the key equivalents on its standard Cut/Copy/Paste rows.
+    /// Issue 76 replaced those rows with `ActionMenuItem`s that carry no key equivalent
+    /// (by design: the monitor is the keyboard authority), which left a pasted path
+    /// arriving nowhere (issue 95). So the monitor delivers them itself while a text
+    /// field is focused. System conventions, not app actions: not in `default`, not
+    /// rebindable, and never seen by the tables.
+    static let textEditing: [(chord: KeyChord, value: Selector)] = [
+        (KeyChord(.character("x"), command: true), #selector(NSText.cut(_:))),
+        (KeyChord(.character("c"), command: true), #selector(NSText.copy(_:))),
+        (KeyChord(.character("v"), command: true), #selector(NSText.paste(_:))),
+    ]
+
+    /// The field-editor selector for `event`, or nil when it is not an editing chord.
+    static func textEditingSelector(for event: NSEvent) -> Selector? {
+        lookup(event, in: textEditing)
     }
 }

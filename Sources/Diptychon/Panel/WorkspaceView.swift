@@ -402,7 +402,17 @@ struct WorkspaceView: View {
                 }
                 // Don't steal keys while editing a text field (Filter, rename, new
                 // tag): plain keys like ␣/↩/⇥ must reach the field editor.
-                if event.window?.firstResponder is NSText { return event }
+                if event.window?.firstResponder is NSText {
+                    // Issue 95: ⌘X/⌘C/⌘V used to reach the field through the Edit
+                    // menu's standard rows, which issue 76 replaced. Deliver them
+                    // here — the responder chain starts at the field editor, so the
+                    // text is what gets cut, copied or pasted.
+                    if let selector = Keymap.textEditingSelector(for: event) {
+                        NSApp.sendAction(selector, to: nil, from: nil)
+                        return nil
+                    }
+                    return event
+                }
                 return model.handleKeyDown(event) ? nil : event
             }
         }
@@ -563,18 +573,37 @@ extension URL {
 private struct SearchFieldView: View {
     let model: WorkspaceModel
     @FocusState private var focused: Bool
+    /// The field's own text, mirrored to and from the Active Panel's `searchQuery`
+    /// rather than bound to it directly. A pasted path is cleared by the model *in the
+    /// same turn it arrives* (`navigateIfPath` → `afterNavigation`), so a direct
+    /// binding goes "" → path → "" between two renders and SwiftUI sees no change to
+    /// push — the field kept showing the path while the model was already empty, and
+    /// the next keystroke appended to that stale text (issue 95). With the field
+    /// owning its text, the path is a value SwiftUI rendered, and the model's clear is
+    /// a real change it applies — read back right after the hand-over below, because
+    /// an `onChange` on the model would be blind to the same round trip.
+    @State private var text = ""
 
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField("Search…", text: Binding(
-                get: { model.activeModel.searchQuery },
-                set: { model.activeModel.searchQuery = $0 }
-            ))
+            TextField("Search…", text: $text)
             .textFieldStyle(.plain)
             .accessibilityIdentifier("sidebar-search")
             .focused($focused)
+            .onAppear { text = model.activeModel.searchQuery }
+            .onChange(of: text) {
+                guard model.activeModel.searchQuery != text else { return }
+                model.activeModel.searchQuery = text
+                // A path jump has already cleared the query by now (issue 95).
+                if model.activeModel.searchQuery != text { text = model.activeModel.searchQuery }
+            }
+            // Model-side changes: the clear after a path jump or a navigation, the ✕
+            // button, and the Active Panel swapping (each panel keeps its own query).
+            .onChange(of: model.activeModel.searchQuery) {
+                if text != model.activeModel.searchQuery { text = model.activeModel.searchQuery }
+            }
             // Enter on an absolute/`~` path jumps there instead of fuzzy-searching
             // (paste a path → go). Falls through to search when it isn't a path.
             .onSubmit { model.activeModel.navigateIfPath(model.activeModel.searchQuery) }
