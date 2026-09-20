@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>Diptychon icon — alternative 01, staircase on near-black</title>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#17161A"/><stop offset="1" stop-color="#0E0D10"/>
+    </linearGradient>
+    <clipPath id="squircle"><rect width="1024" height="1024" rx="229" ry="229"/></clipPath>
+  </defs>
+  <g clip-path="url(#squircle)">
+        <rect width="1024" height="1024" fill="url(#g)"/>
+    <rect x="100" y="100" width="412.00" height="824.00" rx="26" fill="#1E1D22" fill-opacity="0.6"/>
+    <rect x="512.00" y="100" width="412.00" height="824.00" rx="26" fill="#241C1B" fill-opacity="0.6"/>
+    <rect x="105.00" y="791.67" width="127.33" height="127.33" rx="18" fill="#3E2A25"/>
+    <rect x="242.33" y="791.67" width="127.33" height="127.33" rx="18" fill="#57362B"/>
+    <rect x="242.33" y="654.33" width="127.33" height="127.33" rx="18" fill="#643C2E"/>
+    <rect x="379.67" y="791.67" width="127.33" height="127.33" rx="18" fill="#704231"/>
+    <rect x="379.67" y="654.33" width="127.33" height="127.33" rx="18" fill="#7D4834"/>
+    <rect x="379.67" y="517.00" width="127.33" height="127.33" rx="18" fill="#8A4F37"/>
+    <rect x="517.00" y="791.67" width="127.33" height="127.33" rx="18" fill="#8B4D33"/>
+    <rect x="517.00" y="654.33" width="127.33" height="127.33" rx="18" fill="#985436"/>
+    <rect x="517.00" y="517.00" width="127.33" height="127.33" rx="18" fill="#A55A3A"/>
+    <rect x="517.00" y="379.67" width="127.33" height="127.33" rx="18" fill="#B2613D"/>
+    <rect x="654.33" y="791.67" width="127.33" height="127.33" rx="18" fill="#A45939"/>
+    <rect x="654.33" y="654.33" width="127.33" height="127.33" rx="18" fill="#B1603C"/>
+    <rect x="654.33" y="517.00" width="127.33" height="127.33" rx="18" fill="#BE663F"/>
+    <rect x="654.33" y="379.67" width="127.33" height="127.33" rx="18" fill="#CB6D43"/>
+    <rect x="654.33" y="242.33" width="127.33" height="127.33" rx="18" fill="#D77346"/>
+    <rect x="791.67" y="791.67" width="127.33" height="127.33" rx="18" fill="#BD663F"/>
+    <rect x="791.67" y="654.33" width="127.33" height="127.33" rx="18" fill="#CA6C42"/>
+    <rect x="791.67" y="517.00" width="127.33" height="127.33" rx="18" fill="#D77245"/>
+    <rect x="791.67" y="379.67" width="127.33" height="127.33" rx="18" fill="#E37949"/>
+    <rect x="791.67" y="242.33" width="127.33" height="127.33" rx="18" fill="#F07F4C"/>
+    <rect x="791.67" y="105.00" width="127.33" height="127.33" rx="18" fill="#FD854F"/>
+    <rect x="509.00" y="0" width="6" height="1024" fill="#33313A"/>
+    <rect x="448.33" y="379.67" width="127.33" height="127.33" rx="18" fill="#FF7A3D"/>
+  </g>
+</svg>

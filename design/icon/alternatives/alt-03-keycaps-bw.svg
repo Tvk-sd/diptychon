@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>Diptychon icon — black and white, alternative 03, keycaps</title>
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F0F0F0"/><stop offset="1" stop-color="#DBDBDB"/>
+    </linearGradient>
+    <linearGradient id="capTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EDEDED"/>
+    </linearGradient>
+    <linearGradient id="capHotTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3C3C3C"/><stop offset="1" stop-color="#121212"/>
+    </linearGradient>
+    <clipPath id="squircle"><rect width="1024" height="1024" rx="229" ry="229"/></clipPath>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix type="saturate" values="0"/></filter>
+    <filter id="bed" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#2B2B2B" flood-opacity="0.20"/>
+    </filter>
+    <filter id="lift" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="34" stdDeviation="24" flood-color="#2B2B2B" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+  <g clip-path="url(#squircle)">
+    <rect width="1024" height="1024" fill="url(#ground)"/>
+    <rect width="1024" height="1024" filter="url(#grain)" opacity="0.08" style="mix-blend-mode:multiply"/>
+    <rect x="509" y="0" width="6" height="1024" fill="#C6C6C6"/>
+    <g filter="url(#bed)"><g><rect x="138" y="656" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="138" y="648" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="151" y="640" width="142" height="142" rx="22" fill="url(#capTop)"/></g><g><rect x="322" y="656" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="322" y="648" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="335" y="640" width="142" height="142" rx="22" fill="url(#capTop)"/></g><g><rect x="534" y="656" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="534" y="648" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="547" y="640" width="142" height="142" rx="22" fill="url(#capTop)"/></g><g><rect x="718" y="656" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="718" y="648" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="731" y="640" width="142" height="142" rx="22" fill="url(#capTop)"/></g><g><rect x="322" y="472" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="322" y="464" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="335" y="456" width="142" height="142" rx="22" fill="url(#capTop)"/></g><g><rect x="534" y="472" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="534" y="464" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="547" y="456" width="142" height="142" rx="22" fill="url(#capTop)"/></g><g><rect x="718" y="472" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="718" y="464" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="731" y="456" width="142" height="142" rx="22" fill="url(#capTop)"/></g><g><rect x="534" y="288" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="534" y="280" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="547" y="272" width="142" height="142" rx="22" fill="url(#capTop)"/></g><g><rect x="718" y="288" width="168" height="168" rx="30" fill="#BDBDBD"/><rect x="718" y="280" width="168" height="168" rx="30" fill="#D3D3D3"/><rect x="731" y="272" width="142" height="142" rx="22" fill="url(#capTop)"/></g></g>
+    <g filter="url(#lift)"><g><rect x="428" y="446" width="168" height="168" rx="30" fill="#000000"/><rect x="428" y="438" width="168" height="168" rx="30" fill="#101010"/><rect x="441" y="430" width="142" height="142" rx="22" fill="url(#capHotTop)"/></g></g>
+  </g>
+</svg>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Diptychon — icon alternatives</title>
+<style>
+  :root{
+    --bg:#0b0b0d; --line-soft:#303038;
+    --ink:#f2f1ec; --ink-dim:#a4a3a0; --ink-faint:#6d6c6a;
+    --mono: ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px;border-left:1px solid var(--line-soft);border-right:1px solid var(--line-soft);min-height:100vh}
+  header{padding:56px 0 28px;border-bottom:1px solid var(--line-soft)}
+  h1{font-size:30px;font-weight:600;letter-spacing:-.02em;margin:0 0 8px}
+  h2{font-size:20px;font-weight:600;margin:10px 0 2px;letter-spacing:-.01em}
+  .label{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+  p{color:var(--ink-dim);max-width:62ch;margin:10px 0 0}
+  section{padding:40px 0;border-bottom:1px solid var(--line-soft)}
+  .row{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap;margin-top:24px}
+  .big img{width:232px;height:232px;display:block}
+  .strip{display:flex;align-items:center;gap:18px;padding:14px 18px;border:1px solid var(--line-soft)}
+  .strip.light{background:#e8e6e2}
+  .strip.dark{background:#1c1c1f}
+  .strip img{display:block}
+  .cap{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+  .stack{display:flex;flex-direction:column;gap:12px}
+  footer{padding:40px 0 80px;color:var(--ink-faint);font-family:var(--mono);font-size:12px}
+  a{color:var(--ink-dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="label">Diptychon · icon alternatives</div>
+    <h1>Saved alternatives</h1>
+    <p>Each one is a finished, standalone SVG in this folder. Nothing here is shipped — the live icon is still <code>Resources/Assets.xcassets/AppIcon.appiconset</code>. Exploration that has not been picked yet lives in <a href="../concepts/index.html">../concepts/</a>.</p>
+  </header>
+  <div id="list"></div>
+  <footer>design/icon/alternatives/ · to add one: drop the SVG in this folder and add a line to the list in this file</footer>
+</div>
+
+<script>
+const BW = [
+  { file: 'alt-01-staircase-bw.svg', name: '01 — Staircase',
+    note: 'White blocks rising over near-black, split by a seam. The solid white block astride the seam is the one crossing.' },
+  { file: 'alt-02-frosted-bw.svg', name: '02 — Frosted transfer',
+    note: 'A frosted panel in front, a bright panel glowing through it from behind. The pane is empty now; the solid white block on its edge is the only mark, and that is the one crossing.' },
+  { file: 'alt-03-keycaps-bw.svg', name: '03 — Keycaps',
+    note: 'Keycaps with real depth on a grainy light ground. In black and white the travelling key goes dark instead of orange, which makes it the loudest thing in the mark.' },
+  { file: 'alt-04-glass-bw.svg', name: '04 — Glass over the stack',
+    note: 'Dark panel, white sheets, glass front. The block on the glass edge is gone, so nothing reads as crossing any more — see the note below the page.' }
+];
+
+const COLOUR = [
+  { file: 'alt-01-staircase-dark.svg', name: '01 — Staircase (warm)',
+    note: 'The original warm version, kept for reference.' },
+  { file: 'alt-02-frosted-transfer.svg', name: '02 — Frosted transfer (warm)',
+    note: 'The original warm version, kept for reference.' },
+  { file: 'alt-03-keycaps.svg', name: '03 — Keycaps (warm)',
+    note: 'The original warm version, kept for reference.' },
+  { file: 'alt-04-glass-stack.svg', name: '04 — Glass over the stack (warm)',
+    note: 'The original warm version, kept for reference.' }
+];
+
+const card = a => `
+  <section>
+    <div class="label">${a.file}</div>
+    <h2>${a.name}</h2>
+    <p>${a.note}</p>
+    <div class="row">
+      <div class="big"><img src="${a.file}" alt="${a.name}"></div>
+      <div class="stack">
+        <div class="strip light">
+          <span class="cap">light dock</span>
+          <img src="${a.file}" width="64" height="64" alt="">
+          <img src="${a.file}" width="32" height="32" alt="">
+          <img src="${a.file}" width="16" height="16" alt="">
+        </div>
+        <div class="strip dark">
+          <span class="cap">dark dock</span>
+          <img src="${a.file}" width="64" height="64" alt="">
+          <img src="${a.file}" width="32" height="32" alt="">
+          <img src="${a.file}" width="16" height="16" alt="">
+        </div>
+        <div class="cap">64 · 32 · 16 px, true size</div>
+      </div>
+    </div>
+  </section>`;
+
+document.getElementById('list').innerHTML =
+  `<section><div class="label">black and white</div><h2>Black and white</h2>
+     <p>All four marks with the colour taken out. Same shapes, same seam, same block in transit.</p></section>`
+  + BW.map(card).join('')
+  + `<section><div class="label">colour</div><h2>The warm versions</h2>
+     <p>Kept so you can compare. Say the word and I delete them.</p></section>`
+  + COLOUR.map(card).join('');
+</script>
+</body>
+</html>

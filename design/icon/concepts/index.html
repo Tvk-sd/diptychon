@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Diptychon — icon concepts (2026-09-19)</title>
+<style>
+  :root{
+    --bg:#0b0b0d; --line-soft:#303038;
+    --ink:#f2f1ec; --ink-dim:#a4a3a0; --ink-faint:#6d6c6a;
+    --mono: ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    --maxw:1180px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px;border-left:1px solid var(--line-soft);border-right:1px solid var(--line-soft);min-height:100vh}
+  header{padding:56px 0 28px;border-bottom:1px solid var(--line-soft)}
+  h1{font-size:30px;font-weight:600;letter-spacing:-.02em;margin:0 0 8px}
+  .label{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+  p{color:var(--ink-dim);max-width:62ch;margin:10px 0 0}
+  section{padding:40px 0;border-bottom:1px solid var(--line-soft)}
+  h2{font-size:20px;font-weight:600;margin:10px 0 2px;letter-spacing:-.01em}
+  .row{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap;margin-top:24px}
+  .big svg{width:232px;height:232px;display:block}
+  .strip{display:flex;align-items:center;gap:18px;padding:14px 18px;border:1px solid var(--line-soft)}
+  .strip.light{background:#e8e6e2}
+  .strip.dark{background:#1c1c1f}
+  .strip svg{display:block}
+  .s64,.s32,.s16{display:inline-block;flex:none}
+  .s64{width:64px;height:64px}
+  .s32{width:32px;height:32px}
+  .s16{width:16px;height:16px}
+  .cap{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+  .stack{display:flex;flex-direction:column;gap:12px}
+  ul{color:var(--ink-dim);margin:12px 0 0;padding-left:18px;max-width:62ch}
+  li{margin:4px 0}
+  footer{padding:40px 0 80px;color:var(--ink-faint);font-family:var(--mono);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="label">Diptychon · concept board · v2</div>
+    <h1>Staircase — the chosen direction</h1>
+    <p>Every block now carries a small corner radius. Two panels, a seam between them, one block astride the seam in transit. B leads; the rest are here for the colour and ground decision.</p>
+  </header>
+
+  <section id="b"></section>
+  <section id="bdark"></section>
+  <section id="bblue"></section>
+  <section id="a"></section>
+  <section id="c"></section>
+
+  <footer>design/icon/concepts/index.html · 2026-09-19 · concepts only, no shipped asset touched</footer>
+</div>
+
+<script>
+let UID = 0;
+const R  = 229;   // outer squircle radius on the 1024 canvas
+const BR = 18;    // block corner radius — slight, keeps the grid reading
+
+const PAL = {
+  warm: {
+    ground: ['#FFFFFF', '#F3EFE9'],
+    quiet:  '#E2DCD3',
+    hot:    ['#FF9A4D', '#EE4B23'],
+    transit:'#F4622C',
+    field:  '#EFEAE2',
+    fieldHot:'#FBE6DA',
+    line:   '#D8D2C8',
+    blend:  'multiply'
+  },
+  warmDark: {
+    ground: ['#17161A', '#0E0D10'],
+    quiet:  '#2C2A30',
+    hot:    ['#FF9A4D', '#EE4B23'],
+    transit:'#FF7A3D',
+    field:  '#1E1D22',
+    fieldHot:'#241C1B',
+    line:   '#33313A',
+    blend:  'screen'
+  },
+  blue: {
+    ground: ['#FFFFFF', '#ECEEF2'],
+    quiet:  '#D7DAE0',
+    hot:    ['#4AA5FF', '#0A63D6'],
+    transit:'#0A84FF',
+    field:  '#E6E8EC',
+    fieldHot:'#DCE9F8',
+    line:   '#D2D6DD',
+    blend:  'multiply'
+  }
+};
+
+function grad(id, stops, x1,y1,x2,y2){
+  return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="${stops[0]}"/><stop offset="1" stop-color="${stops[1]}"/></linearGradient>`;
+}
+function svg(inner, defs){
+  const c = `clip${++UID}`;
+  return `<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+    <defs>${defs}<clipPath id="${c}"><rect width="1024" height="1024" rx="${R}" ry="${R}"/></clipPath></defs>
+    <g clip-path="url(#${c})" style="isolation:isolate">${inner}</g></svg>`;
+}
+
+/* ---------- B. Staircase across the gutter (lead) ---------- */
+function conceptB(pk){
+  const p = PAL[pk], u = ++UID, gG = `bG${u}`;
+  const pad = 100, cell = 824/6, seam = pad + 3*cell;
+  const heights = [1,2,3,4,5,6];
+  let b = '';
+  b += `<rect x="${pad}" y="${pad}" width="${3*cell}" height="${6*cell}" rx="26" fill="${p.field}" fill-opacity="0.6"/>`;
+  b += `<rect x="${seam}" y="${pad}" width="${3*cell}" height="${6*cell}" rx="26" fill="${p.fieldHot}" fill-opacity="0.6"/>`;
+  heights.forEach((h,c)=>{
+    for(let k=0;k<h;k++){
+      const x = pad + c*cell + 5, y = pad + (5-k)*cell + 5, s = cell - 10;
+      const heat = (c/5)*0.55 + (k/5)*0.28;
+      b += `<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="${BR}"
+             fill="${p.transit}" fill-opacity="${(0.16+heat).toFixed(3)}"
+             style="mix-blend-mode:${p.blend}"/>`;
+    }
+  });
+  b += `<rect x="${seam-3}" y="0" width="6" height="1024" fill="${p.line}"/>`;
+  b += `<rect x="${seam - cell/2 + 5}" y="${pad + 2*cell + 5}" width="${cell-10}" height="${cell-10}" rx="${BR}" fill="${p.transit}"/>`;
+  return svg(`<rect width="1024" height="1024" fill="url(#${gG})"/>${b}`, grad(gG, p.ground, 0,0,1024,1024));
+}
+
+/* ---------- A. Overlap transfer ---------- */
+function conceptA(pk){
+  const p = PAL[pk], u = ++UID, gG = `aG${u}`, gH = `aH${u}`;
+  const rows = [165, 309, 453, 597, 741], H = 118;
+  const LX = 100, RX = 534;
+  const left  = [390, 390, 390, 288, 390];
+  const right = [390, 268, null, 390, 320];
+  let b = '';
+  b += `<rect x="${LX}" y="127" width="390" height="770" rx="26" fill="${p.field}"/>`;
+  b += `<rect x="${RX}" y="127" width="390" height="770" rx="26" fill="${p.fieldHot}"/>`;
+  rows.forEach((y,i)=>{ b += `<rect x="${LX}" y="${y}" width="${left[i]}" height="${H}" rx="${BR}" fill="${p.quiet}"/>`; });
+  rows.forEach((y,i)=>{ if(right[i]) b += `<rect x="${RX}" y="${y}" width="${right[i]}" height="${H}" rx="${BR}" fill="url(#${gH})"/>`; });
+  b += `<rect x="440" y="${rows[2]}" width="184" height="${H}" rx="${BR}" fill="${p.transit}" fill-opacity="0.94" style="mix-blend-mode:${p.blend}"/>`;
+  const defs = grad(gG, p.ground, 0,0,1024,1024) + grad(gH, p.hot, 534,165,924,859);
+  return svg(`<rect width="1024" height="1024" fill="url(#${gG})"/>${b}`, defs);
+}
+
+/* ---------- C. Flat two-tone reduction ---------- */
+function conceptC(){
+  const ground = '#282828', mark = '#D9D9D9';
+  const rows = [165, 309, 453, 597, 741], H = 118;
+  const LX = 100, RX = 534;
+  const left  = [390, 390, 390, 288, 390];
+  const right = [390, 268, null, 390, 320];
+  let b = '';
+  b += `<rect x="${LX}" y="127" width="390" height="770" rx="26" fill="#3A3A3A"/>`;
+  b += `<rect x="${RX}" y="127" width="390" height="770" rx="26" fill="#3A3A3A"/>`;
+  rows.forEach((y,i)=>{ b += `<rect x="${LX}" y="${y}" width="${left[i]}" height="${H}" rx="${BR}" fill="${mark}"/>`; });
+  rows.forEach((y,i)=>{ if(right[i]) b += `<rect x="${RX}" y="${y}" width="${right[i]}" height="${H}" rx="${BR}" fill="${mark}"/>`; });
+  b += `<rect x="416" y="${rows[2]-26}" width="232" height="${H+52}" rx="26" fill="${ground}"/>`;
+  b += `<rect x="440" y="${rows[2]}" width="184" height="${H}" rx="${BR}" fill="${mark}"/>`;
+  return svg(`<rect width="1024" height="1024" fill="${ground}"/>${b}`, '');
+}
+
+/* ---------- page assembly ---------- */
+const sized = m => m().replace('<svg ', '<svg width="100%" height="100%" ');
+function tile(maker, title, note, bullets){
+  return `
+    <div class="label">${title.split('—')[0].trim()}</div>
+    <h2>${title}</h2>
+    <p>${note}</p>
+    <ul>${bullets.map(x=>`<li>${x}</li>`).join('')}</ul>
+    <div class="row">
+      <div class="big">${maker()}</div>
+      <div class="stack">
+        <div class="strip light">
+          <span class="cap">light dock</span>
+          <span class="s64">${maker()}</span><span class="s32">${maker()}</span><span class="s16">${maker()}</span>
+        </div>
+        <div class="strip dark">
+          <span class="cap">dark dock</span>
+          <span class="s64">${maker()}</span><span class="s32">${maker()}</span><span class="s16">${maker()}</span>
+        </div>
+        <div class="cap">64 · 32 · 16 px, true size</div>
+      </div>
+    </div>`;
+}
+
+document.getElementById('b').innerHTML = tile(
+  ()=>sized(()=>conceptB('warm')),
+  'B — Staircase, warm on light (lead)',
+  'The rising field of see-through blocks, split by a seam into two panels. The block sitting astride the seam is drawn at full strength — that one is crossing.',
+  ['Every block has a small radius now (about 13% of a block).',
+   'The rise runs left to right, the same way the transfer does.',
+   'Overlapping blocks darken where they cross — depth without a shadow.']
+);
+document.getElementById('bdark').innerHTML = tile(
+  ()=>sized(()=>conceptB('warmDark')),
+  'B/dark — Staircase on near-black',
+  'Same shapes on a dark ground, blocks lightening instead of darkening. Closer to the icon you have today, and it keeps its edge on a light Dock.',
+  ['Best contrast of the set at 16 px.',
+   'Sits quieter next to Finder and Zed than the white version.']
+);
+document.getElementById('bblue').innerHTML = tile(
+  ()=>sized(()=>conceptB('blue')),
+  'B/blue — palette check',
+  'The staircase in the app’s own blue, so the colour question is one glance and not one more concept.',
+  ['Blue already exists in the product; orange would be new.',
+   'Downside: a blue-heavy Dock swallows it.']
+);
+document.getElementById('a').innerHTML = tile(
+  ()=>sized(()=>conceptA('warm')),
+  'A — Overlap transfer',
+  'Kept for comparison: two panels of content rows, one block mid-flight, multiplying where it still covers the source panel.',
+  ['Strongest “two panels” read of the set.',
+   'Further from the picture you started from.']
+);
+document.getElementById('c').innerHTML = tile(
+  ()=>sized(conceptC),
+  'C — Flat two-tone',
+  'Two flat tones, dark ground. The small-size fallback if the see-through version ever silts up.',
+  ['No gradient, no translucency.',
+   'Rounded blocks here too.']
+);
+</script>
+</body>
+</html>

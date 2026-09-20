@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>Diptychon icon — black and white, alternative 02, frosted transfer</title>
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#171717"/><stop offset="1" stop-color="#0C0C0C"/>
+    </linearGradient>
+    <linearGradient id="hot" x1="316" y1="200" x2="908" y2="652" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F2F2F2"/><stop offset="1" stop-color="#9B9B9B"/>
+    </linearGradient>
+    <clipPath id="squircle"><rect width="1024" height="1024" rx="229" ry="229"/></clipPath>
+    <clipPath id="frontPanel"><rect x="116" y="372" width="592" height="452" rx="64"/></clipPath>
+    <filter id="frostBlur" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="38"/>
+    </filter>
+    <g id="backPanel"><rect x="316" y="200" width="592" height="452" rx="64" fill="url(#hot)"/></g>
+  </defs>
+  <g clip-path="url(#squircle)">
+    <rect width="1024" height="1024" fill="url(#ground)"/>
+
+    <!-- destination panel -->
+    <use href="#backPanel"/>
+
+    <!-- source panel, frosted: the destination shows through it -->
+    <g clip-path="url(#frontPanel)">
+      <rect x="116" y="372" width="592" height="452" fill="#242424"/>
+      <use href="#backPanel" filter="url(#frostBlur)" opacity="0.85"/>
+      <rect x="116" y="372" width="592" height="452" fill="#FFFFFF" fill-opacity="0.30"/>
+    </g>
+    <rect x="116" y="372" width="592" height="452" rx="64" fill="none" stroke="#FFFFFF" stroke-opacity="0.40" stroke-width="3"/>
+
+
+    <!-- the block in transit: leaving the frosted panel, landing on the hot one -->
+    <rect x="642" y="470" width="132" height="132" rx="28" fill="#FFFFFF"/>
+  </g>
+</svg>
