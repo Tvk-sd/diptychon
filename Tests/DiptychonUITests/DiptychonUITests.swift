@@ -342,6 +342,52 @@ final class DiptychonUITests: XCTestCase {
                       "Panel should navigate to the typed folder")
     }
 
+    /// Issue 97: a search inside the column browser draws the flat result list — the
+    /// one with the location subtitle — and the column chain returns once the query
+    /// is cleared. Before the fix the browser stayed on screen and the results were
+    /// squeezed into its last column without their location. The browser's columns
+    /// are `NSCollectionView`s (brief renderer), the flat list an `NSTableView`, so
+    /// the element counts tell the two apart.
+    func testSearchInColumnViewShowsResultListThenColumnsReturn() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("dipt-97-\(UUID().uuidString)")
+        let beta = dir.appendingPathComponent("alpha/beta")
+        try fm.createDirectory(at: beta, withIntermediateDirectories: true)
+        fm.createFile(atPath: beta.appendingPathComponent("target.txt").path, contents: Data())
+        addTeardownBlock { try? fm.removeItem(at: dir) }
+
+        let app = XCUIApplication()
+        app.launchEnvironment["DIPTYCHON_DIR"] = dir.path
+        app.launch()
+        XCTAssertTrue(app.tables.element(boundBy: 0).staticTexts["alpha"].waitForExistence(timeout: 10))
+
+        // Into the column browser; picking `alpha` grows the chain to two columns.
+        app.buttons["display-mode-columns"].firstMatch.click()
+        let browser = app.collectionViews.firstMatch
+        XCTAssertTrue(browser.waitForExistence(timeout: 5), "the column browser is on screen")
+        browser.staticTexts["alpha"].click()
+        XCTAssertTrue(app.collectionViews.staticTexts["beta"].waitForExistence(timeout: 5),
+                      "picking a folder opens its column (issue 94)")
+        XCTAssertEqual(app.collectionViews.count, 2, "two columns in the left pane")
+
+        // Search: the flat list, carrying the location only the table shows.
+        let search = app.textFields["sidebar-search"]
+        search.click()
+        search.typeText("target")
+        XCTAssertTrue(app.tables.staticTexts["target.txt"].waitForExistence(timeout: 10),
+                      "results are drawn in the flat list")
+        XCTAssertTrue(app.tables.staticTexts["alpha/beta"].exists,
+                      "a result shows where it lives — the column browser never did")
+        XCTAssertEqual(app.collectionViews.count, 0, "no column chain while searching")
+
+        // Clear the query: the chain is back as it was.
+        search.typeKey("a", modifierFlags: .command)
+        search.typeKey(.delete, modifierFlags: [])
+        XCTAssertTrue(app.collectionViews.staticTexts["beta"].waitForExistence(timeout: 5),
+                      "columns return the moment the search clears")
+        XCTAssertEqual(app.collectionViews.count, 2)
+    }
+
     /// Issue 13: the toolbar button hides and restores the right file panel
     /// (two tables ↔ one), and the restored panel keeps its directory.
     func testToggleRightPanel() throws {
