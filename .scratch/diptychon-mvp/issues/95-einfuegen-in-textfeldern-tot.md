@@ -1,6 +1,6 @@
 # 95 — ⌘V (und ⌘C/⌘X) in Textfeldern tot: Pfad in die Suche einfügen geht nicht
 
-Status: **OPEN** — `ready-for-human`. Fix gebaut und am laufenden Build nachgewiesen, wartet auf Tills Test und Freigabe zum Commit (Branch `fix-path-search`). Gemeldet von Till am 2026-09-20: „path search
+Status: **CLOSED (2026-09-20)** — gemerged auf main als `9dc1061` (Fix-Commit `51e47c6`), Release-Build nach `/Applications` installiert. Gemeldet von Till am 2026-09-20: „path search
 does not work it seems" — ein voller Pfad, in allen drei Ansichten.
 
 ## Parent
@@ -48,7 +48,7 @@ funktioniert, ⌘A markiert, ⌘V mit einem Pfad in der Zwischenablage ändert n
   (`PanelView.swift:99` rendert den Column-Browser vor dem Such-Zweig). Echt, aber
   nicht dieser Bug — eigenes Ticket, falls gewünscht.
 
-## Outcome (2026-09-20, uncommitted im Worktree `fix-path-search`)
+## Outcome (2026-09-20, main `9dc1061`)
 
 Zwei Fehler, beide behoben:
 
