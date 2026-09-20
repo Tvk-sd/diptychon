@@ -21,10 +21,11 @@ Formen, die er trennen soll; übrig bleibt ein dunkles Kästchen mit einem helle
 Fleck. Genau diese Größen sind die Finder-Liste und die Seitenleiste, also der
 Ort, an dem Till das Icon am häufigsten sieht.
 
-Heute liegen in `Resources/Assets.xcassets/AppIcon.appiconset/` für alle sieben
-Slots Verkleinerungen derselben 1024er Zeichnung. Für 16/32 ist das der falsche
-Weg: Kleinstgrößen brauchen eine eigene, vereinfachte Zeichnung, kein
-heruntergerechnetes Bild.
+Heute enthält `Resources/AppIcon.icns` für alle Slots Verkleinerungen derselben
+1024er Zeichnung. Für 16/32 ist das der falsche Weg: Kleinstgrößen brauchen eine
+eigene, vereinfachte Zeichnung, kein heruntergerechnetes Bild. Gebaut wird das
+`.icns` mit `iconutil -c icns <name>.iconset`; die 16er und 32er Dateien im
+Iconset dürfen aus einer anderen Vorlage kommen als die großen.
 
 ## Umfang
 
@@ -56,5 +57,9 @@ heruntergerechnetes Bild.
 - Rendern der SVGs: headless Chrome mit
   `--headless=new --default-background-color=00000000`, Kunstwerk auf 824 px
   innerhalb einer 1024er Fläche für das App-Icon, randabfallend fürs Web.
-- Das Asset-Set lässt sich ohne vollen Build prüfen:
-  `xcrun actool Resources/Assets.xcassets --compile <out> --platform macosx --app-icon AppIcon`.
+- Das Icon kommt **nicht** aus dem Asset-Katalog, sondern als loses
+  `Resources/AppIcon.icns` mit `CFBundleIconFile` aus `Resources/Info.plist`
+  (siehe ADR 0009). Ein `AppIcon.appiconset` darf nicht zurückkommen.
+- Prüfen, was die Dock wirklich zeichnet, statt hinzusehen: ein Swift-Einzeiler
+  über `NSWorkspace.shared.icon(forFile:)`. Icon-Caches lügen — dafür das Bundle
+  kopieren und eine frische `CFBundleIdentifier` setzen.

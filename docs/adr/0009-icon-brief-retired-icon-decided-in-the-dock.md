@@ -39,9 +39,13 @@ two-tone reduction survives, but as a small-size fallback, not as the law.
 
 - `design/icon/alternatives/` holds finished, standalone SVGs plus a gallery;
   `design/icon/concepts/` holds the exploration board. Neither ships.
-- The current front-runner is `alt-02-frosted-bw.svg`, installed into
-  `Resources/Assets.xcassets/AppIcon.appiconset/` and verified through a real
-  `xcodebuild` build. Installed is not the same as decided — see PLAN.md.
+- The mark is `alt-02-frosted-bw.svg`, accepted by Till on 2026-09-20 at the
+  real Dock test. It ships as `Resources/AppIcon.icns` via `CFBundleIconFile`,
+  **not** through the asset catalogue: on macOS 26 a catalogue app icon is
+  treated as legacy and seated on a grey plate, whatever the artwork does.
+  `AppIcon.appiconset` is deleted, because an `AppIcon` set re-adds
+  `CFBundleIconName` on its own. The artwork keeps the classic inset squircle —
+  the deployment target is macOS 14, and 14/15 do not mask the corners.
 - At 16 px the frosted version still muddies. A simplified small-size artwork
   is outstanding for whichever concept wins.
 - The wordmark question from the old brief (set "diptychon" in a real mono
