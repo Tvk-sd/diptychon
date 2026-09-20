@@ -219,7 +219,7 @@ struct PanelView: View {
             modeIcon("rectangle.split.3x1", mode: .brief(columns: model.lastBriefColumns),
                      help: "Brief view — names in columns (⌘1)")
             modeIcon("rectangle.split.3x1.fill", mode: .columns,
-                     help: "Column view — one folder per column (⌘2)")
+                     help: "Column view — one folder per column (⌘2). ↑↓ in a column, → into a folder, ← back")
         }
         .fixedSize()
     }
