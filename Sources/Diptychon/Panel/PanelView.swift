@@ -81,7 +81,7 @@ struct PanelView: View {
             Divider()
 
             // Content
-            if model.displayMode != .table {
+            if model.renderedMode != .table {
                 // The detailed table starts its rows below a 28pt column header. The
                 // brief and column views have no header, so their rows began 28pt
                 // higher and the row banding in the two panes ran out of step — visible
@@ -96,7 +96,7 @@ struct PanelView: View {
                     .frame(height: 28)
                 Divider()
             }
-            if model.displayMode == .columns {
+            if model.renderedMode == .columns {
                 // The column browser owns its own loading: each column reports for
                 // itself. Routing it through the pane's state would blank *every*
                 // column while one folder listed — which is exactly what read as
@@ -125,7 +125,7 @@ struct PanelView: View {
                         ContentUnavailableView.search(text: model.searchQueryDisplay)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                } else if case .brief(let columns) = model.displayMode {
+                } else if case .brief(let columns) = model.renderedMode {
                     // Brief display mode (issue 37): same visibleItems feed, same
                     // FileListView protocol — only the renderer changes.
                     BriefFileListView(

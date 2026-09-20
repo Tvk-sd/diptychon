@@ -218,6 +218,15 @@ final class PanelModel {
     /// The pane-local display mode (issue 37). Rendering-only: switching modes never
     /// reloads or re-sorts — the brief view reads the same `visibleItems` feed.
     var displayMode: DisplayMode = .table
+    /// What the content area actually draws. Equal to `displayMode`, except that a
+    /// search in the column browser draws the detailed table (issue 97): the browser
+    /// has no place for results — they landed in the last 240pt column with no
+    /// location subtitle, and "Searching…" / "No Results" never appeared, which read
+    /// as "search does not work". The mode itself is untouched, so the switcher keeps
+    /// showing columns and the chain returns the moment the search is cleared.
+    var renderedMode: DisplayMode {
+        (displayMode == .columns && isSearching) ? .table : displayMode
+    }
     /// The column count the last brief view used; toggling back from table restores it.
     private(set) var lastBriefColumns = 2
 
