@@ -142,5 +142,7 @@ Unit-Suite 307/307 grün. Neue Tests: 17 in `ColumnFocusTests`.
 
 - Abnahme Runde 2 durch Till (2026-09-20): **bestanden** („good, looks good").
   Fix-Commit `e606996` (rebased auf main, ohne den Icon-Commit `5ce6013` des
-  Ausgangs-Worktrees). Web-Docs unter diptychon.com/docs neu generiert und
-  deployt, damit Hilfe → User Guide die Regeln zeigt.
+  Ausgangs-Worktrees). Web-Docs unter `.scratch/landing-page/docs` neu generiert
+  (Hilfe → User Guide zeigt auf diptychon.com/docs). **Deploy steht aus** — der
+  Agent darf nicht deployen; Till führt `npx wrangler deploy` aus
+  `.scratch/landing-page` selbst aus (live ist noch der Stand vom 2026-08-10).
