@@ -119,12 +119,17 @@ struct ColumnBrowserView: View {
         // hairlines, so both multi-column views share one grid language.
         BriefFileListView(
             items: columnModel.visibleItems,
-            selection: isLast
-                ? $bindable.selection
-                : Binding(
-                    get: { derivedSelection(at: index, chain: chain, in: columnModel) },
-                    set: { newValue in apply(newValue, at: index, chain: chain, in: columnModel) }
-                  ),
+            // One binding for every column (issue 94). Read: the pane's own selection in
+            // the last column, the child that leads onward in the others. Write: the
+            // model's pick rule, so a folder chosen anywhere — the last column
+            // included — opens to the right while the keyboard stays put.
+            selection: Binding(
+                get: {
+                    isLast ? columnModel.selection
+                           : derivedSelection(at: index, chain: chain, in: columnModel)
+                },
+                set: { newValue in model.pickInColumn(newValue, at: url) }
+            ),
             sortOrder: $bindable.sortOrder,
             onDrop: onDrop,
             onPin: onPin,
@@ -139,8 +144,11 @@ struct ColumnBrowserView: View {
             accessibilityID: isLast ? accessibilityID : "\(accessibilityID)-column-\(index)"
         )
         .briefColumns(1)
-        .onHorizontalStep { right in step(right: right, from: index, chain: chain) }
-        .claimingKeyFocus(hasKeyFocus && isLast)
+        .onHorizontalStep { right in model.stepColumnFocus(right: right) }
+        // The keyboard follows the focused column, not the last one (issue 94):
+        // picking a folder opens it to the right, but you keep stepping through its
+        // siblings until → takes you in.
+        .claimingKeyFocus(hasKeyFocus && url == model.focusedColumn)
         }
     }
 
@@ -175,53 +183,18 @@ struct ColumnBrowserView: View {
         }
     }
 
-    /// ← and → step between columns, which is what they mean to the eye here — ↑ and ↓
-    /// stay inside one. Both are expressed as a move of `directory`, like every other
-    /// change in this view.
-    ///
-    /// → on a folder opens it as the next column and lands the keyboard there (the
-    /// pane's own list claims focus, since the new folder becomes the last column).
-    /// → on a file does nothing: there is nothing to the right of it.
-    /// ← goes to the parent, which keeps the column you came from on screen with your
-    /// place in it still highlighted.
-    private func step(right: Bool, from index: Int, chain: [URL]) {
-        if right {
-            guard let item = model.selectedItems.first, item.isDirectory else { return }
-            model.openColumn(item.url)
-        } else {
-            let current = chain[index]
-            guard current.path != "/" else { return }
-            model.openColumn(current.deletingLastPathComponent())
-        }
-    }
-
     /// What is highlighted in an ancestor column: the child that leads to the next
     /// column. Nothing remembers this — it falls out of the chain.
     private func derivedSelection(at index: Int, chain: [URL],
                                   in columnModel: PanelModel) -> Set<FileItem.ID> {
+        // By path, not `URL ==`: the listing says `…/A/`, the chain walker `…/A`, and
+        // under /private the walker even drops the prefix (`standardizedFileURL`
+        // turns /private/tmp into /tmp). Same folder either way.
         guard let child = ColumnChain.selectedChild(inColumnAt: index, chain: chain),
-              let item = columnModel.visibleItems.first(where: { $0.url == child })
+              let item = columnModel.visibleItems.first(where: {
+                  $0.url.standardizedFileURL.path == child.standardizedFileURL.path
+              })
         else { return [] }
         return [item.id]
-    }
-
-    /// A click in any column. This is the whole interaction model:
-    ///
-    ///     folder F picked in column i → directory = F        (the chain grows)
-    ///     file   X picked in column i → directory = folder i (the chain is cut back)
-    ///
-    /// Both fall out of moving `directory`; nothing else is tracked. Picking a file in
-    /// a middle column drops the columns to its right because the chain then ends at
-    /// the folder that file lives in.
-    private func apply(_ newValue: Set<FileItem.ID>, at index: Int, chain: [URL],
-                       in columnModel: PanelModel) {
-        guard let id = newValue.first,
-              let item = columnModel.visibleItems.first(where: { $0.id == id }) else { return }
-        if item.isDirectory {
-            model.openColumn(item.url)
-        } else {
-            model.openColumn(chain[index])
-            model.selection = [item.id]
-        }
     }
 }

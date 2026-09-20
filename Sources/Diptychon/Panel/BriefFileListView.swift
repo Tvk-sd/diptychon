@@ -551,11 +551,22 @@ final class BriefItem: NSCollectionViewItem {
         updateSelectionAppearance()
     }
 
-    private func updateSelectionAppearance() {
+    /// Selected rows are blue only in the list that has the keyboard; elsewhere they
+    /// are the system's unemphasized grey — the table's rule, and the one cue that
+    /// says which column ← and → moved you to (issue 94: with every column's
+    /// highlight blue, ← looked like it did nothing).
+    func updateSelectionAppearance() {
         view.layer?.cornerRadius = 4
-        view.layer?.backgroundColor = isSelected
-            ? NSColor.selectedContentBackgroundColor.cgColor
-            : NSColor.clear.cgColor
+        let hasKeyboard = collectionView.map { $0.window?.firstResponder === $0 } ?? false
+        if isSelected {
+            view.layer?.backgroundColor = (hasKeyboard
+                ? NSColor.selectedContentBackgroundColor
+                : NSColor.unemphasizedSelectedContentBackgroundColor).cgColor
+            label.textColor = hasKeyboard ? .alternateSelectedControlTextColor : .labelColor
+        } else {
+            view.layer?.backgroundColor = NSColor.clear.cgColor
+            label.textColor = .labelColor
+        }
     }
 
     func configure(_ item: FileItem) {
@@ -578,6 +589,24 @@ final class BriefCollectionView: NSCollectionView {
     var onDoubleClick: ((Int) -> Void)?
     var menuProvider: ((Int) -> NSMenu?)?
     var claimsKeyFocusOnAttach: (() -> Bool)?
+
+    /// The selection's emphasis depends on who has the keyboard, so repaint the
+    /// visible items whenever that changes (issue 94).
+    override func becomeFirstResponder() -> Bool {
+        let ok = super.becomeFirstResponder()
+        if ok { repaintSelectionEmphasis() }
+        return ok
+    }
+
+    override func resignFirstResponder() -> Bool {
+        let ok = super.resignFirstResponder()
+        if ok { DispatchQueue.main.async { [weak self] in self?.repaintSelectionEmphasis() } }
+        return ok
+    }
+
+    private func repaintSelectionEmphasis() {
+        for item in visibleItems() { (item as? BriefItem)?.updateSelectionAppearance() }
+    }
 
     /// Draws the grid the names sit in: alternating row bands and a hairline between
     /// columns (Till, 2026-08-31 — "was fehlt ist die separierung der columns und der

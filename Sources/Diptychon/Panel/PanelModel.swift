@@ -234,6 +234,7 @@ final class PanelModel {
     /// again returns to the table, so neither view can trap you.
     func toggleColumnView() {
         displayMode = (displayMode == .columns) ? .table : .columns
+        openHighlightedFolderOnEnteringColumns()
     }
 
     /// Set the display mode outright — what the header's three-way switcher calls, so
@@ -242,6 +243,16 @@ final class PanelModel {
     func setDisplayMode(_ mode: DisplayMode) {
         if case .brief(let c) = mode { lastBriefColumns = min(3, max(1, c)) }
         displayMode = mode
+        openHighlightedFolderOnEnteringColumns()
+    }
+
+    /// Switching into the column browser with one folder highlighted (carried over
+    /// from the table) shows that folder's column at once, so the rule "a highlighted
+    /// folder has its contents to the right" holds from the first frame (issue 94).
+    private func openHighlightedFolderOnEnteringColumns() {
+        guard displayMode == .columns, selectedItems.count == 1,
+              let item = selectedItems.first, item.isDirectory else { return }
+        pickInColumn([item.id], at: directory)
     }
 
     // MARK: - Column browser (issue 91)
@@ -279,14 +290,23 @@ final class PanelModel {
     /// one operations act on — copy, move, trash and tag need no knowledge of this
     /// view. Ancestor columns get their own cached models.
     func columnModel(for url: URL) -> PanelModel {
-        guard url != directory else { return self }
-        if let existing = columnModels[url] { return existing }
+        let key = Self.columnKey(url)
+        guard key != Self.columnKey(directory) else { return self }
+        if let existing = columnModels[key] { return existing }
         let model = PanelModel(directory: url, makeSource: makeSource)
         model.showHidden = showHidden
         model.sortOrder = sortOrder
         model.load()
-        columnModels[url] = model
+        columnModels[key] = model
         return model
+    }
+
+    /// One spelling per folder for the cache and the focus pointer. The same folder
+    /// arrives as `…/A/` from `contentsOfDirectory`, as `…/A` from the chain's
+    /// path-component walk, and as either from a caller; `URL` equality tells them
+    /// apart, a path comparison does not.
+    private static func columnKey(_ url: URL) -> URL {
+        URL(fileURLWithPath: url.standardizedFileURL.path, isDirectory: true)
     }
 
     /// Move the browser to `url` — the one mutation the column view performs.
@@ -299,13 +319,139 @@ final class PanelModel {
     /// Evicts cached columns that are no longer ancestors, so walking around a tree
     /// doesn't accumulate watchers for folders nobody is looking at.
     func openColumn(_ url: URL) {
+        // Spelling-proof: the chain hands back `…/A`, the listing `…/A/`. Same folder,
+        // no move — relocating would reload the pane and drop its selection for nothing.
+        guard Self.columnKey(url) != Self.columnKey(directory) else { return }
+        // A pane that has not navigated since launch (restored, never moved) has no
+        // anchor yet; the folder it opened in is where the chain starts. Without
+        // this the first column opened from a fresh launch collapsed the chain to
+        // itself (issue 94).
+        if columnRootStorage == nil { columnRootStorage = directory }
+        // The column being left keeps its rows (issue 94). It was this pane; from now
+        // on it is an ancestor with a cached model of its own. That model starts with
+        // the listing the pane already holds rather than empty-and-loading — otherwise
+        // the column the user is typing in flashes a spinner, its collection view
+        // leaves the hierarchy, and the keyboard focus goes with it.
+        let leaving = directory
+        if columnModels[Self.columnKey(leaving)] == nil {
+            let column = PanelModel(directory: leaving, makeSource: makeSource)
+            column.showHidden = showHidden
+            column.sortOrder = sortOrder
+            column.adoptListing(from: self)
+            column.load()
+            columnModels[Self.columnKey(leaving)] = column
+        }
+        let arriving = columnModels[Self.columnKey(url)]
         // No loading state: the columns already on screen stay put and the new one
         // fills in when it is ready. Letting the pane go to `.loading` blanked the
         // whole browser on every click, which is what read as buffering
         // (Till, 2026-09-01).
-        relocate(to: url, showLoading: false, reAnchorColumns: false)
-        let live = Set(columnChain)
+        relocate(to: url, showLoading: arriving == nil, reAnchorColumns: false)
+        if let arriving {
+            // Cutting back to a column already on screen: show its rows now, and let
+            // the reload just started replace them when it lands.
+            adoptListing(from: arriving)
+        } else {
+            // Opening a folder not yet listed: the new column shows its own spinner
+            // until its rows arrive. Keeping the previous folder's rows on screen
+            // under the new header made → (and key repeat) pick rows of the wrong
+            // folder (issue 94).
+            loadedItems = []
+            recomputeVisible()
+        }
+        let live = Set(columnChain.map(Self.columnKey))
         columnModels = columnModels.filter { live.contains($0.key) }
+    }
+
+    /// Take over another model's listing for the same folder, so a column changes
+    /// hands between the pane and its cache without a blank frame in between
+    /// (issue 94). The caller still (re)loads; this only covers the gap.
+    private func adoptListing(from other: PanelModel) {
+        loadedItems = other.loadedItems
+        accessDenied = other.accessDenied
+        state = other.state
+        recomputeVisible()
+    }
+
+    /// Which column of the browser holds the keyboard (issue 94). Distinct from the
+    /// *last* column: picking a folder shows its contents to the right, but you stay
+    /// where you are and keep stepping with ↑/↓ through its siblings — the Finder's
+    /// rule. Only → moves you into the column you opened.
+    ///
+    /// Stored as the column's URL and resolved against the chain each time, so a
+    /// navigation that leaves the tree — sidebar, breadcrumb, ⌘← — needs no reset:
+    /// the URL simply isn't a column any more and the focus falls to the last one.
+    private var columnFocusStorage: URL?
+
+    /// The column that has the keyboard, resolved: the stored one while it is still
+    /// in the chain, else the last column.
+    var focusedColumn: URL {
+        let chain = columnChain
+        if let stored = columnFocusStorage,
+           let match = chain.first(where: { Self.columnKey($0) == stored }) { return match }
+        return chain.last ?? directory
+    }
+
+    /// The user picked `ids` in the column showing `folder` — the whole interaction
+    /// model of the browser, expressed as a move of `directory` (issue 91/94):
+    ///
+    ///     one folder F picked in column i → directory = F        (the chain grows)
+    ///     anything else picked in column i → directory = folder i (the chain is cut)
+    ///                                        selection = ids
+    ///
+    /// Focus stays in column i either way. A file, several rows, or nothing in a
+    /// middle column drops the columns to its right, because the chain then ends at
+    /// the folder those rows live in; in the last column the cut is a no-op and the
+    /// pane's own selection just changes as in any other view.
+    func pickInColumn(_ ids: Set<FileItem.ID>, at folder: URL) {
+        columnFocusStorage = Self.columnKey(folder)
+        // Nothing picked is not a pick. `NSCollectionView` reports a move as
+        // "deselect old, select new", and a click on empty space deselects. Neither
+        // may cut the chain — the ancestor columns keep their derived highlight, and
+        // only the last column's own selection can actually become empty.
+        guard !ids.isEmpty else {
+            if Self.columnKey(folder) == Self.columnKey(directory) { selection = [] }
+            return
+        }
+        let column = columnModel(for: folder)
+        let picked = column.visibleItems.filter { ids.contains($0.id) }
+        if picked.count == 1, let item = picked.first, item.isDirectory {
+            openColumn(item.url)
+        } else {
+            openColumn(folder)
+            selection = ids
+        }
+    }
+
+    /// ← and → move the keyboard between columns; neither changes the chain
+    /// (issue 91 stories 4 and 5). → lands on the first row of the next column and
+    /// picks it, so a folder there opens onward at once; ← steps back with the
+    /// column you left still on screen and its highlight intact.
+    ///
+    /// Neither key ever changes the chain, so the columns on screen only move when
+    /// you pick something. ← in the first column does nothing (⌘↑ leaves the tree);
+    /// → into a column still listing does nothing — press it again when the rows
+    /// are there, rather than landing in an empty column.
+    func stepColumnFocus(right: Bool) {
+        var chain = columnChain
+        guard let index = chain.firstIndex(of: focusedColumn) else { return }
+        if right {
+            if index + 1 == chain.count {
+                // Last column with a lone folder highlighted but not yet opened — the
+                // selection carried over from the table, say. Open it first.
+                guard selectedItems.count == 1, let item = selectedItems.first,
+                      item.isDirectory else { return }
+                columnFocusStorage = Self.columnKey(chain[index])
+                openColumn(item.url)
+                chain = columnChain
+                guard index + 1 < chain.count else { return }
+            }
+            let next = chain[index + 1]
+            guard let first = columnModel(for: next).visibleItems.first else { return }
+            pickInColumn([first.id], at: next)
+        } else if index > 0 {
+            columnFocusStorage = Self.columnKey(chain[index - 1])
+        }
     }
 
 
@@ -347,7 +493,16 @@ final class PanelModel {
     /// moves the user's own selection.
     func selectFirstRowIfEmpty() {
         guard selection.isEmpty, let first = visibleItems.first else { return }
-        selection = [first.id]
+        // In the column browser the keyboard may sit in an ancestor column, which
+        // already shows its highlight (the child that leads onward); giving the last
+        // column a row too would show two homes. Only the last column can be the one
+        // without a home, and there the pick opens a folder like any other (issue 94).
+        if displayMode == .columns {
+            guard Self.columnKey(focusedColumn) == Self.columnKey(directory) else { return }
+            pickInColumn([first.id], at: directory)
+        } else {
+            selection = [first.id]
+        }
     }
     func invertSelection() {
         selection = Set(visibleItems.map(\.id)).subtracting(selection)

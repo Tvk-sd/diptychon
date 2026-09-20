@@ -107,6 +107,12 @@ set as one.
 | `⌘2` | Toggle column view in the Active Panel — one folder per column, contents of what's selected to the left |
 | `⌘K` | Command palette (run any action by name) |
 
+> Inside the column view the plain arrows are the navigation: ↑/↓ move within the
+> column that has the keyboard (the blue highlight), → moves the keyboard one column
+> right and picks the first row there, ← moves it one column back without closing
+> anything. Highlighting a folder opens its column to the right; you stay put until
+> you press →. Tab still switches Panels, not columns. See the user guide, §8.
+
 ---
 
 Prefer the mouse? Everything here is also reachable by click, context menu, the menu

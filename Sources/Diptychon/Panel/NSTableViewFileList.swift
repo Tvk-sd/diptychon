@@ -146,9 +146,14 @@ struct NSTableViewFileList: NSViewRepresentable, FileListView {
         // Claim keyboard focus for the Active Panel — but only from the other
         // panel's table (or from nothing), never from a text field, so typing in
         // Search/Filter or an inline rename is never interrupted.
+        // Claim keyboard focus for the Active Panel — from the other panel's list,
+        // table or brief/column collection view (issue 94: Tab out of a column pane
+        // never reached the table because only `FileTableView` counted), or from
+        // nothing; never from a text field.
         if claimsKeyFocus, let window = scroll.window,
            window.firstResponder !== table,
-           window.firstResponder === window || window.firstResponder is FileTableView {
+           window.firstResponder === window || window.firstResponder is FileTableView
+               || window.firstResponder is BriefCollectionView {
             window.makeFirstResponder(table)
         }
         // The claim above can't run while the view is detached: navigation swaps

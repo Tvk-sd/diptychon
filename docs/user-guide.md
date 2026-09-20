@@ -118,6 +118,24 @@ an Operation on the staged set.
   1–3 Columns"). Each Panel remembers its own mode, including across restarts. The
   sort order, filter, and selection carry over unchanged; in brief view `←`/`→` move
   across columns and `↑`/`↓` within a column.
+- **Column view:** `⌘2` switches the Active Panel to a Finder-style column browser —
+  one folder per column, each showing the contents of the folder highlighted to its
+  left. The rules, all of them:
+  - **Highlighting a folder opens it to the right.** Click or `↑`/`↓` onto a folder
+    and its contents appear in the next column at once. You stay where you are; the
+    keyboard does not follow. Highlighting a file, or several rows, closes the
+    columns to the right instead.
+  - **`↑`/`↓` move within the column that has the keyboard.** The blue highlight
+    marks that column; grey highlights in the other columns are the path you came
+    down, not where you are typing.
+  - **`→` moves the keyboard one column to the right** and picks its first row (a
+    folder there opens onward). **`←` moves it one column back** and changes nothing
+    else — the columns to the right stay, with their highlights. `←` in the first
+    column does nothing; use `⌘↑` to leave the tree.
+  - **`⇥` switches Panels, never columns.** Coming back, the keyboard lands in the
+    column it left.
+  - The Panel's folder — for the breadcrumb, the terminal, copy and move — is
+    always the last column. Copy/move/trash act on the last column's selection.
 
 ---
 
