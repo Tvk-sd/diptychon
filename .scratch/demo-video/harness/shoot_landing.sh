@@ -46,6 +46,13 @@ screencapture -x -R100,100,40,40 $S/.permcheck.png 2>/dev/null || {
 rm -f $S/.permcheck.png
 echo "preflight ok"
 
+# the sidebar belongs in the shots; the pinned list is seeded so it shows demo
+# folders rather than whatever the real app has pinned
+defaults write $DOMAIN sidebarVisible -bool YES
+defaults write $DOMAIN rightPanelVisible -bool YES
+defaults write $DOMAIN previewVisible -bool NO
+defaults write $DOMAIN pinnedFolders -array "$TREE/Shoots" "$TREE/Clients" "$TREE/Dev"
+
 typeset -A KC=(a 0 b 11 c 8 d 2 e 14 f 3 g 5 h 4 i 34 j 38 k 40 l 37 m 46 n 45
                o 31 p 35 q 12 r 15 s 1 t 17 u 32 v 9 w 13 x 7 y 6 z 16)
 
@@ -86,7 +93,7 @@ PY
 
 start() {  # start <light|dark>
   local mode=$1 style=()
-  "$APP" -AppleLocale en_US -AppleLanguages "(en)" >$S/app-$mode.log 2>&1 &
+  DIPTYCHON_NO_DEVICES=1 "$APP" -AppleLocale en_US -AppleLanguages "(en)" >$S/app-$mode.log 2>&1 &
   PID=$!
   local win=""
   for i in $(seq 1 20); do sleep 1; win=$($P winfo $PID) && [[ -n "$win" ]] && break; done
@@ -94,9 +101,23 @@ start() {  # start <light|dark>
   local front=""
   for i in 1 2 3 4 5; do $P activate $PID; sleep 1.0; front=$($P front); [[ "$front" == "Diptychon $PID" ]] && break; done
   guard
+  # Window size comes from the frame the app saved when it was sized by hand
+  # once (1668x933). It exposes no accessibility windows, so neither an AX
+  # resize nor a written frame key works; only its own saved state does.
+  echo "  window: $($P winfo $PID)"
 }
 
-stop() { kill $PID 2>/dev/null; PID=""; sleep 1.2 }
+stop() {   # wait for the process to be gone: a dying app writes its own state
+  [[ -n "$PID" ]] || return
+  kill $PID 2>/dev/null
+  for i in $(seq 1 20); do ps -p $PID >/dev/null 2>&1 || break; sleep 0.3; done
+  PID=""; sleep 1.0
+}
+
+verify_seed() {  # the seeded folders must be the ones the app reads back
+  local left=$(python3 $S/seedcheck.py $DOMAIN)
+  [[ "$left" == "$1" ]] || { echo "ABORT: seeded left pane is '$left', expected '$1'"; exit 1 }
+}
 
 shot() {   # shot <name> <mode>
   # -l keeps the window's rounded corners and gives a transparent surround, -o
@@ -118,7 +139,7 @@ run() {
   [[ $m == dark ]] && set_dark true || set_dark false
 
   # 1 table / tags: the plain two-pane state, tag colours in the tag column
-  seed "$SRC" "$DST" - 0; start $m
+  seed "$SRC" "$DST" - 0; verify_seed "$SRC"; start $m
   shot table $m; cp $OUT/table-$m.png $OUT/tags-$m.png; echo "  tags-$m.png"
   k 125; shot move $m          # one row selected
   # palette over the dimmed window
@@ -128,28 +149,27 @@ run() {
   k 40 cmd; sleep 0.7; typestr "undo"; sleep 0.5; k 36; sleep 0.8; shot undo $m
   stop
 
-  # 2 hero: the full window with the sidebar, for the top of the page
-  defaults write $DOMAIN sidebarVisible -bool YES
-  defaults write $DOMAIN pinnedFolders -array "$TREE/Shoots" "$TREE/Clients" "$TREE/Dev"
-  seed "$SRC" "$DST" - 0; start $m; k 125; sleep 0.4; shot hero $m; stop
-  defaults write $DOMAIN sidebarVisible -bool NO
+  # 2 hero: the photo folder, the one big still at the top of the page
+  seed "$TREE/Shoots/2026-06 Harbor Editorial/Selects" "$DST" - 0
+  verify_seed "$TREE/Shoots/2026-06 Harbor Editorial/Selects"
+  start $m; k 125; sleep 0.4; shot hero $m; stop
 
   # 3 brief view, three columns of names
-  seed "$SRC" "$DST" brief 0; start $m; shot brief $m; stop
+  seed "$SRC" "$DST" brief 0; verify_seed "$SRC"; start $m; shot brief $m; stop
 
   # 3 column browser, one folder per column
   # the browser only grows a second column once a folder is picked, and that
   # selection has no persisted form - so walk two steps into it
-  seed "$TREE/Clients" "$DST" columns 0; start $m
+  seed "$TREE/Clients" "$DST" columns 0; verify_seed "$TREE/Clients"; start $m
   k 125; sleep 0.5; k 124; sleep 0.5; k 125; sleep 0.6
   shot columns $m; stop
 
   # 4 embedded terminal
-  seed "$SRC" "$DST" - 1; start $m; shot terminal $m; stop
+  seed "$SRC" "$DST" - 1; verify_seed "$SRC"; start $m; shot terminal $m; stop
 
   # 5 staging: seed the set, then open the panel (no persisted form for it)
   seed "$SRC" "$DST" - 0 "$SRC/hero-v3.png" "$SRC/contract-draft.pdf" "$SRC/logo-final.svg" "$SRC/budget-Q3.xlsx"
-  start $m; k 11 cmd shift; sleep 0.8; shot stage $m; stop
+  verify_seed "$SRC"; start $m; k 11 cmd shift; sleep 0.8; shot stage $m; stop
   restore_appearance
 }
 

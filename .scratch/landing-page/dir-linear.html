@@ -36,7 +36,7 @@
     --gutter:clamp(18px, 6vw, 190px);
     --col:min(var(--maxw), 100vw - var(--gutter) * 2);
     /* screenshots never upscale past their capture width */
-    --shot-max:1280px;
+    --shot-max:1668px;
   }
   @media (prefers-color-scheme:dark){
     :root{
@@ -124,8 +124,8 @@
   .hero-shot .sh{max-width:var(--shot-max);margin-inline:0}
   .view .sh,.cell .sh{border-radius:6px}
   /* a capture is only as wide as it was shot; wider columns add air, not blur */
-  .view .sh{max-width:632px;margin-inline:auto}
-  .view .sh[src*="terminal"]{max-width:1000px}
+  .view .sh{max-width:735px;margin-inline:auto}
+  .view .sh[src*="terminal"]{max-width:640px}
   .cell .sh{width:auto;max-width:100%;margin-inline:auto}
 
   /* spec band: facts as big numbers, one cell each */
@@ -281,8 +281,8 @@
 
   <div class="shot-band">
     <div class="hero-shot">
-      <img class="sh sh-light" src="shots/hero-light.png" alt="Diptychon open on a folder of client files: the sidebar on the left, the Inbox folder in the middle with one file selected, the destination folder on the right." width="1280" height="720" fetchpriority="high">
-      <img class="sh sh-dark" src="shots/hero-dark.png" alt="" width="1280" height="720" fetchpriority="high">
+      <img class="sh sh-light" src="shots/hero-light.png" alt="Diptychon with the sidebar on the left, a photo shoot folder in the middle pane and the client folder it is being delivered to on the right." width="1668" height="933" fetchpriority="high">
+      <img class="sh sh-dark" src="shots/hero-dark.png" alt="" width="1668" height="933" fetchpriority="high">
     </div>
   </div>
 
@@ -306,8 +306,8 @@
     <div class="trio">
       <div class="cell">
         <div class="vis">
-          <img class="sh sh-light" src="shots/toast-light.png" alt="The undo toast reading “Undone — Copy 7 items”." width="250" height="64" loading="lazy">
-          <img class="sh sh-dark" src="shots/toast-dark.png" alt="" width="250" height="64" loading="lazy">
+          <img class="sh sh-light" src="shots/toast-light.png" alt="The undo toast reading “Undone — Copy 7 items”." width="215" height="50" loading="lazy">
+          <img class="sh sh-dark" src="shots/toast-dark.png" alt="" width="215" height="50" loading="lazy">
         </div>
         <h3>See everything. Undo anything.</h3>
         <p>Move, copy, rename and trash are all reversible. Multi-level <kbd>⌘Z</kbd>, with a toast that says exactly what was undone.</p>
@@ -326,8 +326,8 @@
       </div>
       <div class="cell">
         <div class="vis">
-          <img class="sh sh-light" src="shots/tags-light.png" alt="File rows with Finder tag colours: red, blue, yellow and green dots next to the file names." width="300" height="210" loading="lazy">
-          <img class="sh sh-dark" src="shots/tags-dark.png" alt="" width="300" height="210" loading="lazy">
+          <img class="sh sh-light" src="shots/tags-light.png" alt="File rows with Finder tag colours: red, blue, yellow and green dots next to the file names." width="430" height="270" loading="lazy">
+          <img class="sh sh-dark" src="shots/tags-dark.png" alt="" width="430" height="270" loading="lazy">
         </div>
         <h3>Rides the Mac, not against it.</h3>
         <p>Real Finder tags that round-trip both ways. Finder's own keys for copy, paste, go-to-folder and Quick Look.</p>
@@ -346,8 +346,8 @@
     </div>
     <div class="ch-vis">
       <div class="app-wrap">
-          <img class="sh sh-light" src="shots/move-light.png" alt="Diptychon showing two panes side by side: the Inbox folder on the left with hero-v3.png selected, the client folder Website Redesign on the right." width="1280" height="720" loading="lazy">
-          <img class="sh sh-dark" src="shots/move-dark.png" alt="" width="1280" height="720" loading="lazy">
+          <img class="sh sh-light" src="shots/move-light.png" alt="Diptychon showing two panes side by side: the Inbox folder on the left with hero-v3.png selected, the client folder Website Redesign on the right." width="1668" height="933" loading="lazy">
+          <img class="sh sh-dark" src="shots/move-dark.png" alt="" width="1668" height="933" loading="lazy">
         <div class="chord" aria-hidden="true"><span class="key">⌥</span><span class="key">⌘</span><span class="key">→</span></div>
       </div>
     </div>
@@ -364,8 +364,8 @@
       </div>
     </div>
     <div class="ch-vis">
-      <img class="sh sh-light" src="shots/stage-light.png" alt="The staging panel open beside the two folder panes, holding four files collected from different folders." width="1280" height="720" loading="lazy">
-      <img class="sh sh-dark" src="shots/stage-dark.png" alt="" width="1280" height="720" loading="lazy">
+      <img class="sh sh-light" src="shots/stage-light.png" alt="The staging panel open beside the two folder panes, holding four files collected from different folders." width="1668" height="933" loading="lazy">
+      <img class="sh sh-dark" src="shots/stage-dark.png" alt="" width="1668" height="933" loading="lazy">
     </div>
 
   </section>
@@ -383,23 +383,23 @@
       <div class="views">
         <div class="view">
           <div class="cap">Table <span class="key">default</span></div>
-          <img class="sh sh-light" src="shots/view-table-light.png" alt="A folder in table view: name, type, date and size columns." width="632" height="300" loading="lazy">
-          <img class="sh sh-dark" src="shots/view-table-dark.png" alt="" width="632" height="300" loading="lazy">
+          <img class="sh sh-light" src="shots/view-table-light.png" alt="A folder in table view: name, type, date and size columns." width="735" height="380" loading="lazy">
+          <img class="sh sh-dark" src="shots/view-table-dark.png" alt="" width="735" height="380" loading="lazy">
         </div>
         <div class="view">
           <div class="cap">Brief <span class="key">⌘1</span></div>
-          <img class="sh sh-light" src="shots/view-brief-light.png" alt="The same folder in brief view, names in three columns." width="632" height="300" loading="lazy">
-          <img class="sh sh-dark" src="shots/view-brief-dark.png" alt="" width="632" height="300" loading="lazy">
+          <img class="sh sh-light" src="shots/view-brief-light.png" alt="The same folder in brief view, names in three columns." width="735" height="380" loading="lazy">
+          <img class="sh sh-dark" src="shots/view-brief-dark.png" alt="" width="735" height="380" loading="lazy">
         </div>
         <div class="view">
           <div class="cap">Columns <span class="key">⌘2</span></div>
-          <img class="sh sh-light" src="shots/view-columns-light.png" alt="The same folder in the column browser, one folder per column." width="632" height="300" loading="lazy">
-          <img class="sh sh-dark" src="shots/view-columns-dark.png" alt="" width="632" height="300" loading="lazy">
+          <img class="sh sh-light" src="shots/view-columns-light.png" alt="The same folder in the column browser, one folder per column." width="735" height="380" loading="lazy">
+          <img class="sh sh-dark" src="shots/view-columns-dark.png" alt="" width="735" height="380" loading="lazy">
         </div>
         <div class="view">
           <div class="cap">Terminal <span class="key">⌘J</span></div>
-          <img class="sh sh-light" src="shots/view-terminal-light.png" alt="The embedded terminal open under the panes, in the folder that is shown." width="1000" height="240" loading="lazy">
-          <img class="sh sh-dark" src="shots/view-terminal-dark.png" alt="" width="1000" height="240" loading="lazy">
+          <img class="sh sh-light" src="shots/view-terminal-light.png" alt="The embedded terminal open under the panes, in the folder that is shown." width="640" height="200" loading="lazy">
+          <img class="sh sh-dark" src="shots/view-terminal-dark.png" alt="" width="640" height="200" loading="lazy">
         </div>
       </div>
     </div>
@@ -416,8 +416,8 @@
     </div>
     <div class="ch-vis">
       <div class="pal-band">
-        <img class="sh sh-light" src="shots/palette-light.png" alt="The command palette open over the app, filtered to “move”, listing Move to Trash and Move to Other Panel with their keys." width="1280" height="720" loading="lazy">
-        <img class="sh sh-dark" src="shots/palette-dark.png" alt="" width="1280" height="720" loading="lazy">
+        <img class="sh sh-light" src="shots/palette-light.png" alt="The command palette open over the app, filtered to “move”, listing Move to Trash and Move to Other Panel with their keys." width="1668" height="933" loading="lazy">
+        <img class="sh sh-dark" src="shots/palette-dark.png" alt="" width="1668" height="933" loading="lazy">
       </div>
     </div>
   </section>

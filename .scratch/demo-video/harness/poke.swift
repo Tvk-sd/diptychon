@@ -81,6 +81,23 @@ case "click":
     let down = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: p, mouseButton: .left)!
     let up = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: p, mouseButton: .left)!
     down.post(tap: .cghidEventTap); usleep(80_000); up.post(tap: .cghidEventTap)
+case "drag":
+    // press at (x1,y1), move to (x2,y2), release - used to resize a window by
+    // its edge when the app ignores an AX resize
+    let p1 = CGPoint(x: Double(args[2])!, y: Double(args[3])!)
+    let p2 = CGPoint(x: Double(args[4])!, y: Double(args[5])!)
+    CGWarpMouseCursorPosition(p1); usleep(120_000)
+    CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: p1, mouseButton: .left)!.post(tap: .cghidEventTap)
+    usleep(150_000)
+    let steps = 24
+    for i in 1...steps {
+        let t = Double(i) / Double(steps)
+        let p = CGPoint(x: p1.x + (p2.x - p1.x) * t, y: p1.y + (p2.y - p1.y) * t)
+        CGEvent(mouseEventSource: nil, mouseType: .leftMouseDragged, mouseCursorPosition: p, mouseButton: .left)!.post(tap: .cghidEventTap)
+        usleep(12_000)
+    }
+    usleep(120_000)
+    CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: p2, mouseButton: .left)!.post(tap: .cghidEventTap)
 case "move":
     CGWarpMouseCursorPosition(CGPoint(x: Double(args[2])!, y: Double(args[3])!))
 case "frame":
