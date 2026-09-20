@@ -1,7 +1,18 @@
 # 93 — Icon: eigene Kleinstgrößen-Zeichnung und Wortmarke
 
-Status: **OPEN** — `ready-for-agent`. Entstanden am 2026-09-20 beim Abnehmen des
-neuen Icons (Konzept 02, „frosted transfer"), siehe `docs/adr/0009-icon-brief-retired-icon-decided-in-the-dock.md`.
+Status: **OPEN** — `ready-for-human`. Teil 1 (Kleinstgrößen) ist am 2026-09-20
+geliefert; offen bleibt nur noch die Wortmarke, und die braucht eine Runde mit
+Till. Entstanden beim Abnehmen des neuen Icons (Konzept 02, „frosted transfer"),
+siehe `docs/adr/0009-icon-brief-retired-icon-decided-in-the-dock.md`.
+
+## Ergebnis Teil 1 (2026-09-20)
+
+`design/icon/alternatives/alt-02-frosted-small.svg` — dieselbe Aussage in ganzen
+Pixeln auf einem 16er Raster gezeichnet: drei flache Tonwerte, kein Verlauf,
+kein Weichzeichner. Sie besetzt im `.icns` die Slots 16, 16@2x und 32; ab 64 px
+übernimmt wieder die große Zeichnung. Gegengeprüft nicht per Augenmaß, sondern
+mit `NSWorkspace.icon(forFile:)` bei 16 und 32 px an einem frisch signierten
+Bundle mit eigener Bundle-ID (Icon-Caches lügen).
 
 ## Parent
 
