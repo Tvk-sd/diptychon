@@ -25,17 +25,28 @@ func flags(from tokens: ArraySlice<String>) -> CGEventFlags {
 
 switch args[1] {
 case "winfo":
+    // <appName> matches by owner name; a numeric argument matches by owner pid,
+    // which is the only safe form while a real instance of the app is running.
     let name = args[2]
+    let wantPid = Int(name)
     let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
+    // The largest window is the document window; a palette or sheet is smaller
+    // and would otherwise win just by being first in the list.
+    var best: (id: Int, b: [String: CGFloat], area: CGFloat)? = nil
     for w in list {
-        guard let owner = w[kCGWindowOwnerName as String] as? String, owner == name,
+        if let want = wantPid {
+            guard let owner = w[kCGWindowOwnerPID as String] as? Int, owner == want else { continue }
+        }
+        guard let owner = w[kCGWindowOwnerName as String] as? String, wantPid != nil || owner == name,
               let layer = w[kCGWindowLayer as String] as? Int, layer == 0,
               let b = w[kCGWindowBounds as String] as? [String: CGFloat],
               let id = w[kCGWindowNumber as String] as? Int else { continue }
-        print("\(id) \(Int(b["X"]!)) \(Int(b["Y"]!)) \(Int(b["Width"]!)) \(Int(b["Height"]!))")
-        exit(0)
+        let area = b["Width"]! * b["Height"]!
+        if best == nil || area > best!.area { best = (id, b, area) }
     }
-    exit(1)
+    guard let w = best else { exit(1) }
+    print("\(w.id) \(Int(w.b["X"]!)) \(Int(w.b["Y"]!)) \(Int(w.b["Width"]!)) \(Int(w.b["Height"]!))")
+    exit(0)
 case "front":
     let f = NSWorkspace.shared.frontmostApplication
     print(f?.localizedName ?? "none", f?.processIdentifier ?? -1)

@@ -164,6 +164,20 @@
   .ch-vis{margin-top:56px;border-top:1px solid var(--line-soft);position:relative;z-index:1}
   @media (max-width:860px){.ch-head{grid-template-columns:1fr;gap:18px}}
 
+  /* real screenshots, one per appearance; the toggle picks which one shows */
+  .sh{display:block;width:100%;height:auto}
+  /* a chapter screenshot spans the column, like the mock it replaced */
+  .ch-vis > .sh,.ch-vis .app-wrap{width:var(--col);margin-inline:auto}
+  .ch-vis .app-wrap{position:relative}
+  .sh-dark{display:none}
+  :root[data-theme="dark"] .sh-light{display:none}
+  :root[data-theme="dark"] .sh-dark{display:block}
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]) .sh-light{display:none}
+    :root:not([data-theme="light"]) .sh-dark{display:block}
+  }
+  .shot-frame{border-top:1px solid var(--line-soft)}
+
   /* app mock: two panes sharing one divider, drawn in the lattice */
   .app{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:1fr 1fr;background:var(--bg-inset);font-size:13.5px}
   .pane{min-width:0}
@@ -186,8 +200,10 @@
   @media (max-width:760px){.app{grid-template-columns:1fr}.pane + .pane{border-left:0;border-top:1px solid var(--line-soft)}.row{grid-template-columns:1fr 64px}.row .s{display:none}.chord{display:none}}
 
   /* chapter 3: four view cells */
-  .views{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:repeat(4,1fr);background:var(--bg-inset)}
-  .view{border-left:1px solid var(--line-soft);padding:22px 20px 20px;display:flex;flex-direction:column;gap:16px;min-height:250px}
+  .views{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:repeat(2,1fr);background:var(--bg-inset)}
+  .view{border-left:1px solid var(--line-soft);padding:22px 20px 20px;display:flex;flex-direction:column;gap:14px}
+  .view:nth-child(odd){border-left:0}
+  .view:nth-child(n+3){border-top:1px solid var(--line-soft)}
   .view:first-child{border-left:0}
   .view .cap{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600}
   .mini{flex:1;display:grid;gap:5px;align-content:start}
@@ -327,11 +343,8 @@
     <div class="trio">
       <div class="cell">
         <div class="vis">
-          <div class="stack" aria-hidden="true">
-            <div class="toast ghost2"><span>Undone — Rename 3 items</span></div>
-            <div class="toast ghost"><span>Undone — Move 2 items to Trash</span></div>
-            <div class="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undone — Move 12 items</span></div>
-          </div>
+          <img class="sh sh-light" src="shots/toast-light.png" alt="The undo toast reading “Undone — Copy 7 items”." width="250" height="64" loading="lazy">
+          <img class="sh sh-dark" src="shots/toast-dark.png" alt="" width="250" height="64" loading="lazy">
         </div>
         <h3>See everything. Undo anything.</h3>
         <p>Move, copy, rename and trash are all reversible. Multi-level <kbd>⌘Z</kbd>, with a toast that says exactly what was undone.</p>
@@ -350,11 +363,8 @@
       </div>
       <div class="cell">
         <div class="vis">
-          <div class="tags" aria-hidden="true">
-            <div class="tagrow"><span class="dot" style="background:#ff5f57"></span>Urgent<span class="side">Finder ⇄ Diptychon</span></div>
-            <div class="tagrow"><span class="dot" style="background:#0a84ff"></span>Review<span class="side">Finder ⇄ Diptychon</span></div>
-            <div class="tagrow"><span class="dot" style="background:#30d158"></span>Done<span class="side">Finder ⇄ Diptychon</span></div>
-          </div>
+          <img class="sh sh-light" src="shots/tags-light.png" alt="File rows with Finder tag colours: red, blue, yellow and green dots next to the file names." width="300" height="210" loading="lazy">
+          <img class="sh sh-dark" src="shots/tags-dark.png" alt="" width="300" height="210" loading="lazy">
         </div>
         <h3>Rides the Mac, not against it.</h3>
         <p>Real Finder tags that round-trip both ways. Finder's own keys for copy, paste, go-to-folder and Quick Look.</p>
@@ -373,35 +383,12 @@
     </div>
     <div class="ch-vis">
       <div class="app-wrap">
-        <div class="app" aria-hidden="true">
-          <div class="pane">
-            <div class="ph">Inbox <span class="meta">~/Inbox</span></div>
-            <div class="row head"><span>Name</span><span>Type</span><span class="s">Size</span></div>
-            <div class="row"><span class="f">budget-Q3.xlsx</span><span class="t">XLSX</span><span class="s">94 KB</span></div>
-            <div class="row"><span class="f">contract-draft.pdf</span><span class="t">PDF</span><span class="s">254 KB</span></div>
-            <div class="row"><span class="f">hero-v3.png</span><span class="t">PNG</span><span class="s">1.8 MB</span></div>
-            <div class="row sel"><span class="f">logo-final.svg</span><span class="t">SVG</span><span class="s">49 KB</span></div>
-            <div class="row"><span class="f">meeting-notes.md</span><span class="t">MD</span><span class="s">6 KB</span></div>
-            <div class="row"><span class="f">wireframes-v2.pdf</span><span class="t">PDF</span><span class="s">1.2 MB</span></div>
-            <div class="row"><span>&nbsp;</span></div>
-            <div class="row"><span>&nbsp;</span></div>
-          </div>
-          <div class="pane">
-            <div class="ph">Website Redesign <span class="meta">~/Clients/Website Redesign</span></div>
-            <div class="row head"><span>Name</span><span>Type</span><span class="s">Size</span></div>
-            <div class="row"><span class="d">01 Brief</span><span class="t">Folder</span><span class="s">—</span></div>
-            <div class="row"><span class="d">02 Design</span><span class="t">Folder</span><span class="s">—</span></div>
-            <div class="row"><span class="f">brand-guidelines.pdf</span><span class="t">PDF</span><span class="s">2.5 MB</span></div>
-            <div class="row new"><span class="f">logo-final.svg</span><span class="t">SVG</span><span class="s">49 KB</span></div>
-            <div class="row"><span class="f">README.md</span><span class="t">MD</span><span class="s">4 KB</span></div>
-            <div class="row"><span class="f">sitemap.png</span><span class="t">PNG</span><span class="s">840 KB</span></div>
-            <div class="row"><span>&nbsp;</span></div>
-            <div class="row"><span>&nbsp;</span></div>
-          </div>
-        </div>
+          <img class="sh sh-light" src="shots/move-light.png" alt="Diptychon showing two panes side by side: the Inbox folder on the left with hero-v3.png selected, the client folder Website Redesign on the right." width="1280" height="720" loading="lazy">
+          <img class="sh sh-dark" src="shots/move-dark.png" alt="" width="1280" height="720" loading="lazy">
         <div class="chord" aria-hidden="true"><span class="key">⌥</span><span class="key">⌘</span><span class="key">→</span></div>
       </div>
     </div>
+
   </section>
 
   <!-- 2.0 Stage -->
@@ -414,22 +401,10 @@
       </div>
     </div>
     <div class="ch-vis">
-      <div class="app" aria-hidden="true">
-        <div class="pane">
-          <div class="ph">Staging <span class="meta">4 items</span></div>
-          <div class="row head"><span>Name</span><span>Type</span><span class="s">Size</span></div>
-          <div class="row"><span class="f">contract-draft.pdf</span><span class="t">PDF</span><span class="s">254 KB</span></div>
-          <div class="row"><span class="f">brand-guidelines.pdf</span><span class="t">PDF</span><span class="s">2.5 MB</span></div>
-          <div class="row"><span class="f">hero-v3.png</span><span class="t">PNG</span><span class="s">1.8 MB</span></div>
-          <div class="row"><span class="f">copy-deck.docx</span><span class="t">DOCX</span><span class="s">123 KB</span></div>
-        </div>
-        <div class="pane">
-          <div class="ph">04 Handoff <span class="meta">destination</span></div>
-          <div class="row head"><span>Name</span><span>Type</span><span class="s">Size</span></div>
-          <div class="row"><span class="f">handoff-notes.md</span><span class="t">MD</span><span class="s">3 KB</span></div>
-        </div>
-      </div>
+      <img class="sh sh-light" src="shots/stage-light.png" alt="The staging panel open beside the two folder panes, holding four files collected from different folders." width="1280" height="720" loading="lazy">
+      <img class="sh sh-dark" src="shots/stage-dark.png" alt="" width="1280" height="720" loading="lazy">
     </div>
+
   </section>
 
   <!-- 3.0 View -->
@@ -442,26 +417,26 @@
       </div>
     </div>
     <div class="ch-vis">
-      <div class="views" aria-hidden="true">
+      <div class="views">
         <div class="view">
           <div class="cap">Table <span class="key">default</span></div>
-          <div class="mini"><div class="bar"></div><div class="bar"></div><div class="bar on"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+          <img class="sh sh-light" src="shots/view-table-light.png" alt="A folder in table view: name, type, date and size columns." width="632" height="300" loading="lazy">
+          <img class="sh sh-dark" src="shots/view-table-dark.png" alt="" width="632" height="300" loading="lazy">
         </div>
         <div class="view">
           <div class="cap">Brief <span class="key">⌘1</span></div>
-          <div class="mini brief"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar on"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+          <img class="sh sh-light" src="shots/view-brief-light.png" alt="The same folder in brief view, names in three columns." width="632" height="300" loading="lazy">
+          <img class="sh sh-dark" src="shots/view-brief-dark.png" alt="" width="632" height="300" loading="lazy">
         </div>
         <div class="view">
           <div class="cap">Columns <span class="key">⌘2</span></div>
-          <div class="mini cols">
-            <div><div class="bar"></div><div class="bar on"></div><div class="bar"></div><div class="bar"></div></div>
-            <div><div class="bar"></div><div class="bar"></div><div class="bar on"></div></div>
-            <div><div class="bar"></div><div class="bar"></div></div>
-          </div>
+          <img class="sh sh-light" src="shots/view-columns-light.png" alt="The same folder in the column browser, one folder per column." width="632" height="300" loading="lazy">
+          <img class="sh sh-dark" src="shots/view-columns-dark.png" alt="" width="632" height="300" loading="lazy">
         </div>
         <div class="view">
           <div class="cap">Terminal <span class="key">⌘J</span></div>
-          <div class="mini term"><div><span class="p">%</span> ls</div><div>01 Brief&nbsp; 02 Design</div><div><span class="p">%</span> <span class="caret"></span></div></div>
+          <img class="sh sh-light" src="shots/view-terminal-light.png" alt="The embedded terminal open under the panes, in the folder that is shown." width="1000" height="240" loading="lazy">
+          <img class="sh sh-dark" src="shots/view-terminal-dark.png" alt="" width="1000" height="240" loading="lazy">
         </div>
       </div>
     </div>
@@ -477,13 +452,9 @@
       </div>
     </div>
     <div class="ch-vis">
-      <div class="pal-band" aria-hidden="true">
-        <div class="palette">
-          <div class="pal-in"><span class="q">move</span><span class="caret"></span><span class="hint key">esc</span></div>
-          <div class="pal-row on"><span class="cat">File</span><span><mark>Move</mark> to Inactive Panel</span><span class="k">⌥⇧⌘→</span></div>
-          <div class="pal-row"><span class="cat">File</span><span><mark>Move</mark> to Trash</span><span class="k">⌘⌫</span></div>
-          <div class="pal-row"><span class="cat">Edit</span><span>Paste (<mark>Move</mark>)</span><span class="k">⌥⌘V</span></div>
-        </div>
+      <div class="pal-band">
+        <img class="sh sh-light" src="shots/palette-light.png" alt="The command palette open over the app, filtered to “move”, listing Move to Trash and Move to Other Panel with their keys." width="1280" height="720" loading="lazy">
+        <img class="sh sh-dark" src="shots/palette-dark.png" alt="" width="1280" height="720" loading="lazy">
       </div>
     </div>
   </section>
