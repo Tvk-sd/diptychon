@@ -158,12 +158,13 @@ final class DiptychonUITests: XCTestCase {
         leftTable.staticTexts["beta.txt"].click()
         app.typeKey(.tab, modifierFlags: [])
 
-        // ↓ must now act in the right panel: empty selection there → row 0 (delta
-        // under the newest-first default sort).
+        // Tab gives the right panel a home row (issue 86: row 0, delta under the
+        // newest-first default sort), so ↓ must now step to row 1 *there* — gamma —
+        // rather than keep driving the left panel's selection.
         app.typeKey(.downArrow, modifierFlags: [])
         app.typeKey("r", modifierFlags: .command)
-        XCTAssertTrue(rightTable.textFields["delta.txt"].waitForExistence(timeout: 5),
-                      "↓ after Tab should select in the right panel, not keep driving the left")
+        XCTAssertTrue(rightTable.textFields["gamma.txt"].waitForExistence(timeout: 5),
+                      "↓ after Tab should move the selection in the right panel, not keep driving the left")
         app.typeKey(.escape, modifierFlags: [])
     }
 
