@@ -418,6 +418,9 @@ final class WorkspaceModel {
     /// them (issue 59). Network shares are non-local and stay excluded, which
     /// issue 46 scopes out (see ADR 0003 / issue 47).
     static func mountedDeviceVolumes() -> [SidebarDevice] {
+        // A seeded run (landing-page captures, like `DIPTYCHON_DIR`) hides the
+        // real disks: their volume names are personal and would ship in a shot.
+        if ProcessInfo.processInfo.environment["DIPTYCHON_NO_DEVICES"] != nil { return [] }
         let keys: [URLResourceKey] = [
             .volumeNameKey, .volumeIsRemovableKey, .volumeIsEjectableKey,
             .volumeIsInternalKey, .volumeIsRootFileSystemKey, .volumeIsLocalKey,
