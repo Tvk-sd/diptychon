@@ -11,6 +11,13 @@
      defaults). Rank Alternate: never claim folders away from Finder unless
      the user opted in via those defaults. -->
 <dict>
+	<!-- The app icon ships as a loose icns, not through the asset catalogue.
+	     macOS 26 seats an asset-catalogue app icon on its own grey plate and
+	     shrinks it; a CFBundleIconFile icns is drawn edge to edge, masked to
+	     the system shape. Verified with NSWorkspace.icon(forFile:). -->
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
