@@ -30,8 +30,13 @@
     --mono:ui-monospace,"SF Mono",Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
     --display:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;
-    --maxw:1080px;
-    --col:min(var(--maxw), 100vw - 36px);
+    /* the lattice grows with the screen instead of sitting in a 1080px strip */
+    --maxw:1560px;
+    /* the side gutter grows with the screen, so the lattice never touches the edge */
+    --gutter:clamp(18px, 6vw, 190px);
+    --col:min(var(--maxw), 100vw - var(--gutter) * 2);
+    /* screenshots never upscale past their capture width */
+    --shot-max:1280px;
   }
   @media (prefers-color-scheme:dark){
     :root{
@@ -115,7 +120,13 @@
   /* the product shot starts at the left rail and bleeds to the viewport's right edge */
   .shot-band{border-block:1px solid var(--line-soft);overflow:hidden;position:relative;z-index:1;background:var(--bg)}
   .shot-in{margin-left:calc(50% - var(--col) / 2);width:calc(50% + var(--col) / 2);border-left:1px solid var(--line-soft)}
-  .shot-in video{display:block;width:100%;height:auto;background:#1e1e1e}
+  .hero-shot{width:var(--col);margin-inline:auto;padding:0 24px}
+  .hero-shot .sh{max-width:var(--shot-max);margin-inline:0}
+  .view .sh,.cell .sh{border-radius:6px}
+  /* a capture is only as wide as it was shot; wider columns add air, not blur */
+  .view .sh{max-width:632px;margin-inline:auto}
+  .view .sh[src*="terminal"]{max-width:1000px}
+  .cell .sh{width:auto;max-width:100%;margin-inline:auto}
 
   /* spec band: facts as big numbers, one cell each */
   .specs{display:grid;grid-template-columns:repeat(4,1fr)}
@@ -140,21 +151,10 @@
   .cell p{font-size:15.5px;color:var(--ink-dim);margin:0}
   @media (max-width:860px){.trio{grid-template-columns:1fr}.cell{border-left:0;border-top:1px solid var(--line-soft)}.cell:first-child{border-top:0}}
 
-  .toast{display:flex;align-items:center;gap:10px;font-size:14px;background:var(--bg-raise);border:1px solid var(--line);border-radius:9px;padding:10px 16px;color:var(--ink)}
-  .toast svg{width:15px;height:15px;color:var(--ink-dim)}
-  .stack{display:grid;gap:10px;justify-items:center}
-  .stack .ghost{opacity:.45;transform:scale(.94)}
-  .stack .ghost2{opacity:.2;transform:scale(.88)}
-
   .leaders{width:100%;max-width:280px;font-family:var(--mono);font-size:13px}
   .lr{display:flex;align-items:baseline;gap:8px;padding:7px 0}
   .lr .a{color:var(--ink-dim)}.lr .b{color:var(--ink)}
   .lr .l{flex:1;border-bottom:1px dotted var(--leader);transform:translateY(-4px)}
-
-  .tags{display:grid;gap:10px;font-size:14px;width:100%;max-width:260px}
-  .tagrow{display:flex;align-items:center;gap:10px}
-  .dot{width:10px;height:10px;border-radius:50%;flex:none}
-  .tagrow .side{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
 
   /* numbered chapters */
   .chapter{padding:96px 0 0}
@@ -167,7 +167,7 @@
   /* real screenshots, one per appearance; the toggle picks which one shows */
   .sh{display:block;width:100%;height:auto}
   /* a chapter screenshot spans the column, like the mock it replaced */
-  .ch-vis > .sh,.ch-vis .app-wrap{width:var(--col);margin-inline:auto}
+  .ch-vis > .sh,.ch-vis .app-wrap{width:min(var(--col),var(--shot-max));margin-left:calc(50% - var(--col) / 2);margin-right:auto}
   .ch-vis .app-wrap{position:relative}
   .sh-dark{display:none}
   :root[data-theme="dark"] .sh-light{display:none}
@@ -179,25 +179,9 @@
   .shot-frame{border-top:1px solid var(--line-soft)}
 
   /* app mock: two panes sharing one divider, drawn in the lattice */
-  .app{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:1fr 1fr;background:var(--bg-inset);font-size:13.5px}
-  .pane{min-width:0}
-  .pane + .pane{border-left:1px solid var(--line-soft)}
-  .ph{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;font-weight:600;border-bottom:1px solid var(--line-soft)}
-  .ph .meta{font-family:var(--mono);font-size:11.5px;font-weight:400;color:var(--ink-faint)}
-  .row{display:grid;grid-template-columns:1fr 64px 76px;gap:12px;padding:6px 18px;color:var(--ink-dim)}
-  .row:nth-child(odd){background:color-mix(in srgb,var(--bg) 55%,transparent)}
-  .row .t,.row .s{font-family:var(--mono);font-size:12px;color:var(--ink-faint)}
-  .row .s{text-align:right}
-  .row.head{font-size:11.5px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);background:transparent;border-bottom:1px dashed var(--line-soft)}
-  .row.sel{background:var(--accent);color:#fff}
-  .row.sel .t,.row.sel .s{color:rgba(255,255,255,.8)}
-  .row.new{background:var(--me-tint);color:var(--ink)}
-  .row .f::before{content:"";display:inline-block;width:11px;height:13px;border:1px solid currentColor;border-radius:2px;opacity:.5;margin-right:9px;vertical-align:-2px}
-  .row .d::before{content:"";display:inline-block;width:14px;height:11px;background:#5ab0f7;border-radius:2px;margin-right:9px;vertical-align:-1px}
-  .app-wrap{position:relative}
   .chord{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:6px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:9px;background:var(--bg-raise);z-index:2}
   .chord .key{font-size:18px;padding:5px 12px}
-  @media (max-width:760px){.app{grid-template-columns:1fr}.pane + .pane{border-left:0;border-top:1px solid var(--line-soft)}.row{grid-template-columns:1fr 64px}.row .s{display:none}.chord{display:none}}
+  @media (max-width:760px){.chord{display:none}}
 
   /* chapter 3: four view cells */
   .views{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:repeat(2,1fr);background:var(--bg-inset)}
@@ -206,29 +190,10 @@
   .view:nth-child(n+3){border-top:1px solid var(--line-soft)}
   .view:first-child{border-left:0}
   .view .cap{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600}
-  .mini{flex:1;display:grid;gap:5px;align-content:start}
-  .bar{height:7px;background:var(--line-soft);border-radius:2px}
-  .bar.on{background:var(--accent)}
-  .mini.brief{grid-template-columns:repeat(3,1fr);column-gap:10px}
-  .mini.cols{grid-template-columns:repeat(3,1fr);gap:0}
-  .mini.cols > div{display:grid;gap:5px;align-content:start;padding:0 8px;border-left:1px solid var(--line-soft)}
-  .mini.cols > div:first-child{border-left:0;padding-left:0}
-  .mini.term{font-family:var(--mono);font-size:12px;color:var(--ink-dim);gap:4px}
-  .mini.term .p{color:var(--ink-faint)}
-  .caret{display:inline-block;width:7px;height:13px;background:var(--ink-dim);vertical-align:-2px}
-  @media (max-width:860px){.views{grid-template-columns:1fr 1fr}.view:nth-child(3){border-left:0}.view:nth-child(n+3){border-top:1px solid var(--line-soft)}}
+  @media (max-width:760px){.views{grid-template-columns:1fr}.view{border-left:0}.view:nth-child(n+2){border-top:1px solid var(--line-soft)}}
 
   /* chapter 4: command palette */
   .pal-band{width:var(--col);margin-inline:auto;background:var(--bg-inset);padding:56px 24px;display:grid;place-items:center}
-  .palette{width:min(560px,100%);background:var(--bg-raise);border:1px solid var(--line);border-radius:9px;font-size:14px;overflow:hidden}
-  .pal-in{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line);font-size:16px}
-  .pal-in .q{color:var(--ink)}.pal-in .caret{height:17px;width:1.5px;background:var(--accent)}
-  .pal-in .hint{margin-left:auto}
-  .pal-row{display:flex;align-items:center;gap:12px;padding:9px 16px;color:var(--ink-dim)}
-  .pal-row .cat{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);width:52px}
-  .pal-row .k{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
-  .pal-row.on{background:var(--accent);color:#fff}.pal-row.on .cat,.pal-row.on .k{color:rgba(255,255,255,.8)}
-  .pal-row mark{background:none;color:inherit;font-weight:600}
 
   /* command panel (the app's panel as a page element) */
   .cmds{padding:96px 0 0}
@@ -315,11 +280,9 @@
   </header>
 
   <div class="shot-band">
-    <div class="shot-in">
-      <video src="demo.mp4" poster="demo-poster.jpg"
-             autoplay muted loop playsinline preload="auto"
-             width="1920" height="1080"
-             aria-label="23-second demo: navigating two folders side by side with the keyboard, selecting 10 images with Command-A, copying them to the other panel with Command-Option-Right-Arrow, then undoing the copy from the command palette. Each keystroke is shown on screen."></video>
+    <div class="hero-shot">
+      <img class="sh sh-light" src="shots/hero-light.png" alt="Diptychon open on a folder of client files: the sidebar on the left, the Inbox folder in the middle with one file selected, the destination folder on the right." width="1280" height="720" fetchpriority="high">
+      <img class="sh sh-dark" src="shots/hero-dark.png" alt="" width="1280" height="720" fetchpriority="high">
     </div>
   </div>
 

@@ -99,9 +99,13 @@ start() {  # start <light|dark>
 stop() { kill $PID 2>/dev/null; PID=""; sleep 1.2 }
 
 shot() {   # shot <name> <mode>
-  local b=($($P winfo $PID))
+  # -l keeps the window's rounded corners and gives a transparent surround, -o
+  # drops the shadow; the surround is then trimmed away. A -R region capture
+  # would square the corners off and bake the desktop into them.
+  local wid=$($P winfo $PID | awk '{print $1}')
   rm -f $OUT/$1-$2.png
-  if screencapture -x -R${b[2]},${b[3]},${b[4]},${b[5]} $OUT/$1-$2.png; then
+  if screencapture -x -o -l$wid $OUT/$1-$2.png; then
+    $S/trim $OUT/$1-$2.png $OUT/$1-$2.png >/dev/null
     echo "  ${1}-${2}.png"
   else
     echo "  FAILED ${1}-${2}"
@@ -124,7 +128,13 @@ run() {
   k 40 cmd; sleep 0.7; typestr "undo"; sleep 0.5; k 36; sleep 0.8; shot undo $m
   stop
 
-  # 2 brief view, three columns of names
+  # 2 hero: the full window with the sidebar, for the top of the page
+  defaults write $DOMAIN sidebarVisible -bool YES
+  defaults write $DOMAIN pinnedFolders -array "$TREE/Shoots" "$TREE/Clients" "$TREE/Dev"
+  seed "$SRC" "$DST" - 0; start $m; k 125; sleep 0.4; shot hero $m; stop
+  defaults write $DOMAIN sidebarVisible -bool NO
+
+  # 3 brief view, three columns of names
   seed "$SRC" "$DST" brief 0; start $m; shot brief $m; stop
 
   # 3 column browser, one folder per column
