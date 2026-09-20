@@ -16,4 +16,3 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 
 ## Offen — bei AI
 
-- **#97 Spaltenansicht zeigt Suchergebnisse nicht:** Option A (Trefferliste während der Suche, Spalten danach) — `.scratch/diptychon-mvp/issues/97-spaltenansicht-zeigt-suchergebnisse-nicht.md`

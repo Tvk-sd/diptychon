@@ -1,6 +1,6 @@
 # 97 — Spaltenansicht zeigt Suchergebnisse nicht
 
-Status: **OPEN** — `ready-for-agent`. Gefunden am 2026-09-20 bei der Analyse von
+Status: **CLOSED (2026-09-20)** — gemerged auf main als `73df9bc` (Commit `89c956b`), Release-Build nach `/Applications` installiert. Gefunden am 2026-09-20 bei der Analyse von
 #95; Till hat das Ticket angefordert („open an issue for the column view search").
 
 ## Parent
@@ -48,3 +48,21 @@ lassen): schmal, ohne Ort, und die beiden Leerzustände fehlen weiter.
 
 - Eine Suche, die innerhalb der Spalten lebt (Treffer als Spalteninhalt mit
   Pfadbrücke). Erst, wenn der Gebrauch danach ruft.
+
+## Outcome (2026-09-20, main `73df9bc`)
+
+Option A umgesetzt: `PanelModel.renderedMode` liefert, was der Inhaltsbereich
+zeichnet — `displayMode`, außer Spalten während einer Suche, dann die Tabelle.
+`PanelView` fragt an allen drei Stellen (28-pt-Abstandsstreifen, Column-Browser,
+Kurzansicht) `renderedMode` statt `displayMode`. Der gewählte Modus bleibt, der
+Umschalter zeigt weiter „Spalten", die Kette kommt beim Leeren der Suche zurück.
+
+Tests: `RenderedModeTests` (2 Fälle, Modellebene) und XCUITest
+`testSearchInColumnViewShowsResultListThenColumnsReturn` (Spalten → Ordner wählen
+→ suchen → Treffer mit Ort in der Tabelle, keine Spalten → leeren → Spalten zurück).
+Der UI-Test ist ohne die Änderung rot (geprüft gegen main). Suite: 312 Unit-Tests
+grün, UI 17/18 — die eine rote ist weiter #96.
+
+Nebenbefund beim Probieren von Hand: `osascript`-Mausklicks landeten hier nicht im
+Fenster, ⌘2 stirbt, solange das Suchfeld First Responder ist. Der XCUITest war
+der verlässliche Weg.
