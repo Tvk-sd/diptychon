@@ -1,6 +1,6 @@
 # 94 — Spaltenansicht: Ordner auswählen öffnet keine nächste Spalte
 
-Status: **GEBAUT, WARTET AUF ABNAHME (2026-09-20)** — `ready-for-human`. Gemeldet von Till am
+Status: **CLOSED (2026-09-20)** — abgenommen von Till („good, looks good"), gemerged auf main als `e606996`. Gemeldet von Till am
 2026-09-20 beim Gebrauch der Spaltenansicht aus #91: „selecting a folder (arrow
 keys or click) does not fill the next column. It stayed empty in every attempt."
 
@@ -140,5 +140,7 @@ lässt `standardizedFileURL` das Präfix fallen).
 Sonde (8 Tasten, je Screenshot) am 2026-09-20 nach den Fixes: alle acht wie oben.
 Unit-Suite 307/307 grün. Neue Tests: 17 in `ColumnFocusTests`.
 
-- Offen (Abnahme Runde 2): Till am Debug-Build — Klick, ↑/↓ gemischt, →/←, ⇥ hin
-  und zurück, Breadcrumb-Klick. Danach Commit + Merge.
+- Abnahme Runde 2 durch Till (2026-09-20): **bestanden** („good, looks good").
+  Fix-Commit `e606996` (rebased auf main, ohne den Icon-Commit `5ce6013` des
+  Ausgangs-Worktrees). Web-Docs unter diptychon.com/docs neu generiert und
+  deployt, damit Hilfe → User Guide die Regeln zeigt.
