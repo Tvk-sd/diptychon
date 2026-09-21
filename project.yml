@@ -12,8 +12,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.2.0"
+    CURRENT_PROJECT_VERSION: "2"
     # Local dev: ad-hoc sign, no team, sandbox off (ADR 0001). Signing /
     # notarization / hardened runtime are deferred to issue 10 (distribution).
     CODE_SIGN_STYLE: Manual
