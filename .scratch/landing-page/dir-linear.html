@@ -110,14 +110,15 @@
   .nav-cta{padding:7px 14px;font-size:13.5px}
   .beta-note{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
 
-  /* hero: headline left, sub + CTA bottom-right (Linear's split) */
+  /* hero */
   .hero{padding:104px 0 56px}
-  .hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:40px;align-items:end;margin-top:22px}
-  h1{font-family:var(--display);font-size:clamp(42px,7vw,80px);line-height:1.02;letter-spacing:-.035em;font-weight:600;margin:0;text-wrap:balance}
+  /* headline first, subhead directly under it, then the CTA: one column, top to bottom */
+  .hero-grid{display:grid;grid-template-columns:1fr;gap:28px;margin-top:22px}
+  h1{font-family:var(--display);font-size:clamp(42px,7vw,80px);line-height:1.02;letter-spacing:-.035em;font-weight:600;margin:0;text-wrap:balance;max-width:12em}
   h1 .dim{color:var(--ink-faint)}
-  .subhead{font-size:18px;color:var(--ink-dim);margin:0 0 22px;max-width:30em}
+  .subhead{font-size:19px;color:var(--ink-dim);margin:0 0 22px;max-width:30em}
   .cta-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  @media (max-width:860px){.hero{padding-top:72px}.hero-grid{grid-template-columns:1fr;gap:28px}}
+  @media (max-width:860px){.hero{padding-top:72px}.hero-grid{gap:22px}}
 
   /* the product shot starts at the left rail and bleeds to the viewport's right edge */
   .shot-band{border-block:1px solid var(--line-soft);overflow:hidden;position:relative;z-index:1;background:var(--bg)}
@@ -148,7 +149,9 @@
   .trio{display:grid;grid-template-columns:repeat(3,1fr);width:var(--col);margin-inline:auto;position:relative;z-index:1}
   .cell{padding:0 24px 36px;border-left:1px solid var(--line-soft);display:flex;flex-direction:column}
   .cell:first-child{border-left:0}
-  .cell .vis{height:210px;display:grid;place-items:center;border-bottom:1px dashed var(--line-soft);margin:0 -24px 26px;padding:0 24px}
+  /* the fragment sits inside its box: a fixed stage, image scaled to fit, nothing spills onto the text */
+  .cell .vis{height:250px;display:grid;place-items:center;border-bottom:1px dashed var(--line-soft);margin:0 -24px 26px;padding:24px;overflow:hidden}
+  .cell .vis .sh{width:auto;max-width:100%;max-height:202px;object-fit:contain}
   .cell h3{font-size:19px;font-weight:600;letter-spacing:-.01em;margin:0 0 8px}
   .cell p{font-size:15.5px;color:var(--ink-dim);margin:0}
   @media (max-width:860px){.trio{grid-template-columns:1fr}.cell{border-left:0;border-top:1px solid var(--line-soft)}.cell:first-child{border-top:0}}
@@ -160,11 +163,11 @@
 
   /* numbered chapters */
   .chapter{padding:96px 0 0}
-  .ch-head{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:end;margin-top:20px}
-  h2{font-family:var(--display);font-size:clamp(30px,4.4vw,48px);line-height:1.06;letter-spacing:-.03em;font-weight:600;margin:0;text-wrap:balance}
-  .ch-head p{color:var(--ink-dim);margin:0;font-size:16.5px}
+  /* chapter headline, then its subhead directly beneath */
+  .ch-head{display:grid;grid-template-columns:1fr;gap:18px;margin-top:20px}
+  h2{font-family:var(--display);font-size:clamp(30px,4.4vw,48px);line-height:1.06;letter-spacing:-.03em;font-weight:600;margin:0;text-wrap:balance;max-width:16em}
+  .ch-head p{color:var(--ink-dim);margin:0;font-size:17px;max-width:38em}
   .ch-vis{margin-top:56px;border-top:1px solid var(--line-soft);position:relative;z-index:1}
-  @media (max-width:860px){.ch-head{grid-template-columns:1fr;gap:18px}}
 
   /* real screenshots, one per appearance; the toggle picks which one shows */
   .sh{display:block;width:100%;height:auto}
@@ -251,14 +254,14 @@
       <a href="#move">Features</a>
       <a href="#shortcuts">Shortcuts</a>
       <a href="#compare">Compare</a>
-      <a href="/docs">Docs</a>
+      <a href="docs/">Docs</a>
     </span>
     <span class="nav-right">
       <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
         <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
         <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
       </button>
-      <a class="btn btn-primary nav-cta" href="/download?src=home-nav">Download free beta</a>
+      <a class="btn btn-primary nav-cta" href="/download?src=home-nav">Download for macOS</a>
     </span>
   </div>
 </nav>
@@ -274,7 +277,7 @@
           <p class="subhead">Two folders side by side. One keystroke moves a file across. Every action is undoable.</p>
           <div class="cta-row">
             <a class="btn btn-primary" href="/download?src=home-hero">Download for macOS</a>
-            <span class="beta-note">Free while in beta · notarized by Apple</span>
+            <span class="beta-note">Notarized by Apple</span>
           </div>
         </div>
       </div>
@@ -308,7 +311,7 @@
     <div class="trio">
       <div class="cell">
         <div class="vis">
-          <img class="sh sh-light" src="shots/toast-light.png" alt="The undo toast reading “Undone — Copy 7 items”." width="215" height="50" loading="lazy">
+          <img class="sh sh-light" src="shots/toast-light.png" alt="The undo toast reading “Undone — Copy 15 items”." width="215" height="50" loading="lazy">
           <img class="sh sh-dark" src="shots/toast-dark.png" alt="" width="215" height="50" loading="lazy">
         </div>
         <h3>See everything. Undo anything.</h3>
@@ -501,11 +504,11 @@
       <h2 style="margin-top:20px;max-width:18em">No clear winner among Mac file managers. We compared them honestly.</h2>
     </div>
     <div class="cmp-row">
-      <a class="cmp" href="/vs"><span class="k">/vs</span><span class="t">The full comparison, including where others beat Diptychon <span class="go">→</span></span></a>
-      <a class="cmp" href="/marta-alternative"><span class="k">coming from</span><span class="t">Marta <span class="go">→</span></span></a>
-      <a class="cmp" href="/forklift-alternative"><span class="k">coming from</span><span class="t">ForkLift <span class="go">→</span></span></a>
-      <a class="cmp" href="/path-finder-alternative"><span class="k">coming from</span><span class="t">Path Finder <span class="go">→</span></span></a>
-      <a class="cmp" href="/total-commander-for-mac"><span class="k">coming from</span><span class="t">Total Commander <span class="go">→</span></span></a>
+      <a class="cmp" href="vs.html"><span class="k">/vs</span><span class="t">The full comparison, including where others beat Diptychon <span class="go">→</span></span></a>
+      <a class="cmp" href="marta-alternative.html"><span class="k">coming from</span><span class="t">Marta <span class="go">→</span></span></a>
+      <a class="cmp" href="forklift-alternative.html"><span class="k">coming from</span><span class="t">ForkLift <span class="go">→</span></span></a>
+      <a class="cmp" href="path-finder-alternative.html"><span class="k">coming from</span><span class="t">Path Finder <span class="go">→</span></span></a>
+      <a class="cmp" href="total-commander-for-mac.html"><span class="k">coming from</span><span class="t">Total Commander <span class="go">→</span></span></a>
     </div>
   </section>
 
@@ -515,7 +518,7 @@
       <h2>Give your keyboard the file manager.</h2>
       <div class="cta-row">
         <a class="btn btn-primary" href="/download?src=home-final">Download for macOS</a>
-        <span class="beta-note">Free while in beta · 2.7&nbsp;MB · macOS&nbsp;13+</span>
+        <span class="beta-note">2.7&nbsp;MB · macOS&nbsp;13+</span>
       </div>
     </div>
   </section>
@@ -526,26 +529,26 @@
   <div class="foot">
     <div class="fcol">
       <a class="brand" href="#top" style="padding:0"><img src="icon-mark.png" alt="" width="26" height="26"><span>diptychon</span></a>
-      <p class="fine">Native macOS, 2.7&nbsp;MB. Free while in beta.<br>Built by Till von Krueger.</p>
+      <p class="fine">Native macOS, 2.7&nbsp;MB.<br>Built by Till von Krueger.</p>
     </div>
     <div class="fcol">
       <h4>Product</h4>
       <a href="/download?src=home-footer">Download</a>
       <a href="#shortcuts">Keyboard shortcuts</a>
-      <a href="/docs">Docs</a>
+      <a href="docs/">Docs</a>
     </div>
     <div class="fcol">
       <h4>Compare</h4>
-      <a href="/vs">All file managers</a>
-      <a href="/marta-alternative">Marta</a>
-      <a href="/forklift-alternative">ForkLift</a>
-      <a href="/path-finder-alternative">Path Finder</a>
-      <a href="/total-commander-for-mac">Total Commander</a>
+      <a href="vs.html">All file managers</a>
+      <a href="marta-alternative.html">Marta</a>
+      <a href="forklift-alternative.html">ForkLift</a>
+      <a href="path-finder-alternative.html">Path Finder</a>
+      <a href="total-commander-for-mac.html">Total Commander</a>
     </div>
     <div class="fcol">
       <h4>Legal</h4>
-      <a href="/impressum">Impressum</a>
-      <a href="/datenschutz">Datenschutz</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
     </div>
   </div>
 </footer>
