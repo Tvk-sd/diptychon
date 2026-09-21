@@ -16,47 +16,20 @@
     }catch(e){}
   })();
 </script>
+<link rel="stylesheet" href="/page.css" />
 <style>
-  :root{
-    color-scheme:light;
-    --bg:#f6f6f4;--bg-raise:#ffffff;
-    --line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;
-    --ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;
-    --accent:#0066d6;--accent-hover:#0a84ff;
-    --mono:ui-monospace,"SF Mono",Menlo,monospace;
-    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
-    --maxw:940px;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{color-scheme:dark;--bg:#0b0b0d;--bg-raise:#131316;--line:#232327;--line-soft:#303038;--line-strong:#33333a;--ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;--accent:#0a84ff;--accent-hover:#3a9bff}
-  }
-  :root[data-theme="dark"]{color-scheme:dark;--bg:#0b0b0d;--bg-raise:#131316;--line:#232327;--line-soft:#303038;--line-strong:#33333a;--ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;--accent:#0a84ff;--accent-hover:#3a9bff}
-  :root[data-theme="light"]{color-scheme:light;--bg:#f6f6f4;--bg-raise:#ffffff;--line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;--ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;--accent:#0066d6;--accent-hover:#0a84ff}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-  a{color:var(--accent);text-decoration:none}a:hover{color:var(--accent-hover)}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
-  .in{max-width:var(--maxw);margin-inline:auto;padding-inline:24px}
-  .rails{position:fixed;top:0;bottom:0;left:0;right:0;margin-inline:auto;width:min(var(--maxw),100% - 36px);border-inline:1px solid var(--line-soft);pointer-events:none;z-index:0}
-  body{transition:background-color .25s ease,color .25s ease}
-  @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
-  nav{border-bottom:1px solid var(--line-soft)}
-  .nav-in{display:flex;align-items:center;justify-content:space-between;height:60px}
-  .brand{display:flex;align-items:center;gap:11px;color:var(--ink);font-family:var(--mono);font-size:15px}
-  .brand img{width:26px;height:26px;border-radius:7px;display:block}
-  main{display:block;padding:64px 0 72px}
-  .label{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 18px}
-  h1{font-size:clamp(26px,4vw,36px);line-height:1.1;letter-spacing:-.02em;font-weight:600;margin:0 0 28px}
-  h2{font-size:18px;font-weight:600;margin:36px 0 8px}
-  h3{font-size:15.5px;font-weight:600;margin:20px 0 6px}
-  p,li{max-width:70ch;color:var(--ink-dim)}
-  p{margin:0 0 12px}
-  ul{margin:0 0 12px;padding-left:20px}
+  /* legal prose only; tokens, nav and footer come from page.css */
+  main{padding:104px 0 8px}
+  /* long German words must fit a phone */
+  main h1{font-size:clamp(36px,6vw,64px);hyphens:auto}
+  /* legal sections are short: ruled bands, but at text scale and without the number label */
+  main h2{font-size:22px;letter-spacing:-.015em;padding-top:40px;margin:56px 0 12px}
+  main h2::after{content:none}
   address{font-style:normal;color:var(--ink);max-width:68ch;margin:0 0 12px}
-  footer{border-top:1px solid var(--line-soft);padding:34px 0 48px}
-  .foot-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint)}
-  .foot-in a{color:var(--ink-dim)}.foot-in a:hover{color:var(--accent)}
-  .foot-links{display:flex;gap:22px;flex-wrap:wrap}
+  main h3{font-size:15.5px;font-weight:600;margin:20px 0 6px}
+  main p,main li{max-width:70ch;color:var(--ink-dim)}
+  main p{margin:0 0 12px}
+  main ul{margin:0 0 12px;padding-left:20px}
 </style>
 </head>
 <body>
@@ -65,7 +38,20 @@
 
 <nav>
   <div class="in nav-in">
-    <a class="brand" href="/"><img src="icon-mark.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <a class="brand" href="/" aria-label="Diptychon home"><img src="/icon-mark.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <span class="nav-links">
+      <a href="/#move">Features</a>
+      <a href="/#shortcuts">Shortcuts</a>
+      <a href="/vs">Compare</a>
+      <a href="/docs/">Docs</a>
+    </span>
+    <span class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
+        <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
+        <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
+      </button>
+      <a class="nav-cta" href="/download?src=datenschutz">Download for macOS</a>
+    </span>
   </div>
 </nav>
 
@@ -73,7 +59,7 @@
   <div class="in">
     <p class="label">Rechtliches</p>
     <h1>Datenschutzerklärung</h1>
-    <p>Stand: 12. Juli 2026. Diese Website kommt bewusst ohne Tracking, Werbe-Cookies und Analysedienste aus. Verarbeitet wird nur, was für den Betrieb der Seite und die Launch-Benachrichtigung nötig ist.</p>
+    <p>Stand: 21. September 2026. Diese Website kommt bewusst ohne Tracking, Werbe-Cookies und Analysedienste aus. Verarbeitet wird nur, was für den Betrieb der Seite und den Download der App nötig ist.</p>
 
     <h2>1. Verantwortlicher</h2>
     <address>
@@ -86,15 +72,14 @@
     <h2>2. Hosting (Cloudflare)</h2>
     <p>Diese Website wird über Cloudflare Workers betrieben (Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, USA). Beim Aufruf der Seite verarbeitet Cloudflare technisch notwendige Verbindungsdaten (u.&nbsp;a. IP-Adresse, Datum und Uhrzeit des Zugriffs, User-Agent), um die Seite auszuliefern und vor Angriffen zu schützen. Rechtsgrundlage ist Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO (berechtigtes Interesse an einem sicheren, performanten Betrieb). Mit Cloudflare besteht ein Auftragsverarbeitungsvertrag; die Übermittlung in die USA ist durch die EU-Standardvertragsklauseln und die Zertifizierung von Cloudflare unter dem EU-U.S. Data Privacy Framework abgesichert. Wir selbst betreiben keine darüber hinausgehende Server-Protokollierung.</p>
 
-    <h2>3. Launch-Benachrichtigung (E-Mail-Eintragung)</h2>
-    <p>Wenn Sie Ihre E-Mail-Adresse in das Benachrichtigungsformular eintragen, speichern wir:</p>
-    <ul>
-      <li>Ihre E-Mail-Adresse,</li>
-      <li>den Zeitpunkt der Eintragung,</li>
-      <li>optional Ihre angekreuzten Feature-Wünsche,</li>
-      <li>die Herkunftsquelle des Besuchs (z.&nbsp;B. „direct" oder ein Kampagnen-Kürzel aus dem Link, ohne Personenbezug darüber hinaus).</li>
-    </ul>
-    <p><strong>Zweck:</strong> eine einzelne E-Mail am Erscheinungstag von Diptychon. Kein Newsletter, keine Weitergabe an Dritte, keine werbliche Nutzung darüber hinaus. <strong>Rechtsgrundlage:</strong> Ihre Einwilligung (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;a DSGVO). Die Daten liegen in einem Cloudflare-KV-Speicher (Auftragsverarbeitung, siehe Ziffer&nbsp;2). <strong>Speicherdauer:</strong> bis zum Versand der Launch-E-Mail, längstens jedoch bis zum Widerruf. Sie können Ihre Einwilligung jederzeit formlos per E-Mail an <a href="mailto:feedback@diptychon.com">feedback@diptychon.com</a> widerrufen; wir löschen Ihren Eintrag dann umgehend.</p>
+    <h2>3. Download-Zähler</h2>
+    <p>Wenn Sie die App über den Download-Link laden, erhöhen wir drei Zähler: die Gesamtzahl, die Zahl des Tages und die Zahl für die Herkunftsquelle des Links (z.&nbsp;B. „direct" oder ein Kürzel wie „vs" für die Vergleichsseite). Gespeichert werden nur diese Zahlen. Wir speichern keine IP-Adresse, keine Kennung und nichts, was sich einer Person zuordnen lässt. Die Zähler liegen in einem Cloudflare-KV-Speicher (Auftragsverarbeitung, siehe Ziffer&nbsp;2). <strong>Zweck:</strong> zu sehen, wie oft und über welche Seite die App geladen wird. <strong>Rechtsgrundlage:</strong> Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO (berechtigtes Interesse an der Weiterentwicklung der App).</p>
+
+    <h3>Frühere Launch-Benachrichtigung</h3>
+    <p>Bis September 2026 konnten Sie sich auf dieser Website mit Ihrer E-Mail-Adresse für eine Benachrichtigung zum Erscheinen eintragen. Dieses Formular gibt es nicht mehr. Bestehende Einträge (E-Mail-Adresse, Zeitpunkt, optional angekreuzte Feature-Wünsche, Herkunftsquelle) liegen weiter im Cloudflare-KV-Speicher. Sie dienen nur einer einzelnen E-Mail zum Erscheinen von Diptychon, ohne Weitergabe an Dritte. <strong>Rechtsgrundlage:</strong> Ihre Einwilligung (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;a DSGVO). <strong>Speicherdauer:</strong> bis zum Versand dieser E-Mail, längstens bis zum Widerruf. Sie können Ihre Einwilligung jederzeit formlos per E-Mail an <a href="mailto:feedback@diptychon.com">feedback@diptychon.com</a> widerrufen; wir löschen Ihren Eintrag dann umgehend.</p>
+
+    <h3>Kontakt per E-Mail</h3>
+    <p>Wenn Sie an <a href="mailto:feedback@diptychon.com">feedback@diptychon.com</a> schreiben, leitet Cloudflare Email Routing die Nachricht an das Postfach des Verantwortlichen weiter. Wir nutzen Ihre Nachricht und Ihre Adresse nur, um zu antworten und Ihr Feedback in die Entwicklung aufzunehmen. <strong>Rechtsgrundlage:</strong> Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO. Auf Wunsch löschen wir die Nachricht.</p>
 
     <h2>4. Cookies, Tracking, lokale Speicherung</h2>
     <p>Diese Website setzt keine Cookies und nutzt keine Analyse- oder Tracking-Dienste. Einzige lokale Speicherung: Ihre Hell/Dunkel-Einstellung wird im localStorage Ihres Browsers abgelegt (Schlüssel „theme"). Dieser Wert verlässt Ihr Gerät nicht und enthält keine personenbezogenen Daten.</p>
@@ -103,19 +88,53 @@
     <p>Sie haben nach der DSGVO das Recht auf Auskunft (Art.&nbsp;15), Berichtigung (Art.&nbsp;16), Löschung (Art.&nbsp;17), Einschränkung der Verarbeitung (Art.&nbsp;18), Datenübertragbarkeit (Art.&nbsp;20) und Widerspruch (Art.&nbsp;21) sowie das Recht, eine erteilte Einwilligung jederzeit mit Wirkung für die Zukunft zu widerrufen (Art.&nbsp;7 Abs.&nbsp;3). Wenden Sie sich dafür an <a href="mailto:feedback@diptychon.com">feedback@diptychon.com</a>. Außerdem steht Ihnen ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde zu (Art.&nbsp;77 DSGVO), etwa bei der für Ihren Wohnort zuständigen Landesbeauftragten für Datenschutz.</p>
 
     <h2>6. Die App selbst</h2>
-    <p>Die Diptychon-App arbeitet vollständig lokal auf Ihrem Mac und enthält keine Telemetrie: Sie sendet keine Nutzungsdaten, Absturzberichte oder sonstigen Informationen an uns oder Dritte.</p>
+    <p>Diptychon ist in Entwicklung und während dieser Zeit kostenlos erhältlich. Für den Download brauchen Sie kein Konto. Die App arbeitet vollständig lokal auf Ihrem Mac und enthält keine Telemetrie: Sie sendet keine Nutzungsdaten, Absturzberichte oder sonstigen Informationen an uns oder Dritte.</p>
   </div>
 </main>
 
 <footer>
-  <div class="in foot-in">
-    <span>© Diptychon, native macOS, 2.7 MB</span>
-    <span class="foot-links">
-      <a href="/">Home</a>
+  <div class="foot">
+    <div class="fcol">
+      <a class="brand" href="/"><img src="/icon-mark.png" alt="" width="26" height="26"><span>diptychon</span></a>
+      <p class="fine">Native macOS, 2.7&nbsp;MB.<br>Built by Till von Krueger.</p>
+    </div>
+    <div class="fcol">
+      <h4>Product</h4>
+      <a href="/download?src=datenschutz-footer">Download</a>
+      <a href="/#shortcuts">Keyboard shortcuts</a>
+      <a href="/docs/">Docs</a>
+    </div>
+    <div class="fcol">
+      <h4>Compare</h4>
+      <a href="/vs">All file managers</a>
+      <a href="/marta-alternative">Marta</a>
+      <a href="/forklift-alternative">ForkLift</a>
+      <a href="/path-finder-alternative">Path Finder</a>
+      <a href="/total-commander-for-mac">Total Commander</a>
+    </div>
+    <div class="fcol">
+      <h4>Legal</h4>
       <a href="/impressum">Impressum</a>
-    </span>
+      <a href="/datenschutz">Datenschutz</a>
+    </div>
   </div>
 </footer>
+
+<script>
+  // Theme toggle, same behavior as the homepage.
+  (function(){
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var root = document.documentElement;
+      var effective = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = effective === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try{ localStorage.setItem('theme', next); }catch(e){}
+    });
+  })();
+</script>
 
 </body>
 </html>

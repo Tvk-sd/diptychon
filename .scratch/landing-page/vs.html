@@ -93,13 +93,19 @@
 
 <nav>
   <div class="in nav-in">
-    <a class="brand" href="/"><img src="icon-mark.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <a class="brand" href="/" aria-label="Diptychon home"><img src="/icon-mark.png" alt="" width="26" height="26"><span>diptychon</span></a>
+    <span class="nav-links">
+      <a href="/#move">Features</a>
+      <a href="/#shortcuts">Shortcuts</a>
+      <a href="/vs" aria-current="page">Compare</a>
+      <a href="/docs/">Docs</a>
+    </span>
     <span class="nav-right">
       <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch between light and dark theme">
         <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.4"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/></svg>
         <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z"/></svg>
       </button>
-      <a class="nav-cta" href="/download?src=vs">Download free beta</a>
+      <a class="nav-cta" href="/download?src=vs">Download for macOS</a>
     </span>
   </div>
 </nav>
@@ -206,15 +212,30 @@
 </main>
 
 <footer>
-  <div class="in foot-in">
-    <span>© Diptychon, native macOS, ~2.7 MB</span>
-    <span class="foot-links">
-      <a href="/">Home</a>
+  <div class="foot">
+    <div class="fcol">
+      <a class="brand" href="/"><img src="/icon-mark.png" alt="" width="26" height="26"><span>diptychon</span></a>
+      <p class="fine">Native macOS, 2.7&nbsp;MB.<br>Built by Till von Krueger.</p>
+    </div>
+    <div class="fcol">
+      <h4>Product</h4>
+      <a href="/download?src=vs-footer">Download</a>
       <a href="/#shortcuts">Keyboard shortcuts</a>
-      <a href="/download?src=vs">Download free beta</a>
+      <a href="/docs/">Docs</a>
+    </div>
+    <div class="fcol">
+      <h4>Compare</h4>
+      <a href="/vs">All file managers</a>
+      <a href="/marta-alternative">Marta</a>
+      <a href="/forklift-alternative">ForkLift</a>
+      <a href="/path-finder-alternative">Path Finder</a>
+      <a href="/total-commander-for-mac">Total Commander</a>
+    </div>
+    <div class="fcol">
+      <h4>Legal</h4>
       <a href="/impressum">Impressum</a>
       <a href="/datenschutz">Datenschutz</a>
-    </span>
+    </div>
   </div>
 </footer>
 
