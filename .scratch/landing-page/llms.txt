@@ -2,7 +2,7 @@
 
 > A fast, keyboard-first, dual-panel file manager for macOS. Two folders side by side, one keystroke to send files across, multi-level undo, native Finder tags, 2.7 MB download, native Swift, no telemetry.
 
-Diptychon is **available to download** at https://diptychon.com/download — signed and notarized by Apple. It is pre-1.0. The price is not decided; this site deliberately does not name a price. What is decided: a one-time purchase, never recurring billing, and no telemetry (ADR 0006 and 0007 in the project repository).
+Diptychon is **available to download** at https://diptychon.com/download — signed and notarized by Apple. It is pre-1.0. It is free: no price, no subscription, no account, and no telemetry.
 
 Every competitor figure on this site is dated and linked to the vendor's own page. Where a vendor does not document a feature, the comparison says "not documented" rather than asserting the feature is absent. Figures were last verified against vendor pages on 2026-07-11; two items are flagged on the pages themselves as pending re-verification.
 

@@ -1,5 +1,7 @@
 # One-time purchase, no subscription
 
+> **Superseded 2026-09-21 by ADR 0010: Diptychon is free.**
+
 Diptychon will be sold as a **one-time purchase** (currently free,
 un-notarized beta). Decided 2026-07-07 alongside the demand-test design. The
 anchor price used in the demand-test pay-probe is a *test input*, not part of
