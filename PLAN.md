@@ -7,6 +7,7 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 
 ## Offen — bei Till
 <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
+- [ ] **Signier-Schlüssel zurück in den Schlüsselbund (Release 0.2.0 blockiert):** am 2026-09-21 fehlten beide — kein „Developer ID Application"-Zertifikat, kein Notary-Profil `diptychon-notary` (Schlüsselbund-Ordner ist vom 2026-09-03/04, sieht nach Neuaufsetzen aus). Zertifikat: Xcode ▸ Settings ▸ Accounts ▸ Manage Certificates ▸ `+` ▸ Developer ID Application. Notary: `.p8` aus dem Passwort-Manager, dann `xcrun notarytool store-credentials diptychon-notary --key <pfad.p8> --key-id <KEY_ID> --issuer <ISSUER_UUID>` (eine Zeile). Danach `RELEASE_BRANCH=… ./scripts/release.sh` — Version 0.2.0 (Build 2) ist schon committet (`772cbaa`), Unit-Tests grün
 - [ ] **Doppelklick-Gegenprobe (#69, 2 Minuten):** der notarisierte Download ist live und per `spctl` abgenommen, aber vom selben Mac aus. Einmal `/Applications/Diptychon.app` von Hand starten und bestätigen, dass kein Gatekeeper-Dialog kam — oder idealerweise auf einem fremden Mac laden
 - [ ] **API-Key aus `~/Downloads` räumen (2 Minuten):** `AuthKey_8274WG2YD4.p8` liegt dort weltlesbar. In den Passwort-Manager, dann aus Downloads löschen — er erlaubt, in deinem Namen zu notarisieren. Nicht im Repo, dort ist nichts zu tun (Details in `context/notarization-runbook.md`)
 - [ ] **Lizenz klären (#66 Rest):** Diptychon ist gratis (ADR 0010), aber die PRD sagt noch „MIT license". Open Source ja oder nein, und wenn ja welche Lizenz? Bis dahin sagt die Website nur „free"
@@ -16,5 +17,8 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 - [ ] **Homepage, mittlere „Why“-Kachel („Small, native, private“):** hat kein Screenshot, nur die Textliste. Bild gewünscht, und wenn ja welches? (Tags-Light-Shot bleibt wie er ist, Tills Entscheidung 2026-09-21: das ist macOS-Standard-Icon in Light, Reshoot ändert nichts)
 
+- [ ] **Legal-Docs-Branch vor dem Deploy auf main aufsetzen:** `finalize/landing-legal-docs` (Worktree `scrawny-blowfish`, Wrangler-Dev auf 8799) hängt hinter `8f70219` (#98, View-Kapitel). Ein `npx wrangler deploy` aus diesem Worktree würde die Startseite auf das alte 2×2-Raster zurückdrehen. Erst `git merge main`, dann deployen
+
 ## Offen — bei AI
 
+- [ ] **#98 Homepage-Zustandswechsel (Paseo-Muster, echte Screenshots):** Plan liegt im Issue, Schritt 1 (View-Kapitel, vier Knöpfe, ein Bild) ist live; Schritt 2 (Move-Kapitel, Chord-Badge wird Knopf, zwei neue Shots) ist dran (`.scratch/diptychon-mvp/issues/98-homepage-zustandswechsel-in-kapiteln.md`)

@@ -184,14 +184,16 @@
   .chord .key{font-size:18px;padding:5px 12px}
   @media (max-width:760px){.chord{display:none}}
 
-  /* chapter 3: four view cells */
-  .views{width:var(--col);margin-inline:auto;display:grid;grid-template-columns:repeat(2,1fr);background:var(--bg-inset)}
-  .view{border-left:1px solid var(--line-soft);padding:22px 20px 20px;display:flex;flex-direction:column;gap:14px}
-  .view:nth-child(odd){border-left:0}
-  .view:nth-child(n+3){border-top:1px solid var(--line-soft)}
-  .view:first-child{border-left:0}
-  .view .cap{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600}
-  @media (max-width:760px){.views{grid-template-columns:1fr}.view{border-left:0}.view:nth-child(n+2){border-top:1px solid var(--line-soft)}}
+  /* chapter 3: one frame, four states; each view's key chip is its button */
+  .switch{width:var(--col);margin-inline:auto}
+  .sw-tabs{display:flex;border-bottom:1px solid var(--line-soft)}
+  .sw-tabs button{font:inherit;font-size:14px;font-weight:600;color:var(--ink-faint);background:transparent;border:0;border-right:1px solid var(--line-soft);padding:14px 20px;display:flex;align-items:center;gap:10px;cursor:pointer}
+  .sw-tabs button:hover{color:var(--ink-dim)}
+  .sw-tabs button[aria-pressed="true"]{color:var(--ink);background:var(--bg-inset)}
+  .sw-tabs button .key{font-size:12px}
+  .sw-state[hidden]{display:none}
+  .sw-state .sh{max-width:var(--shot-max)}
+  @media (max-width:760px){.sw-tabs button{padding:12px 14px;font-size:13px}.sw-tabs button .key{display:none}}
 
   /* chapter 4: command palette */
   .pal-band{width:var(--col);margin-inline:auto;background:var(--bg-inset);padding:56px 24px;display:grid;place-items:center}
@@ -470,26 +472,30 @@
       </div>
     </div>
     <div class="ch-vis">
-      <div class="views">
-        <div class="view">
-          <div class="cap">Table <span class="key">default</span></div>
-          <img class="sh sh-light" src="shots/view-table-light.png" alt="A folder in table view: name, type, date and size columns." width="735" height="380" loading="lazy">
-          <img class="sh sh-dark" src="shots/view-table-dark.png" alt="" width="735" height="380" loading="lazy">
+      <div class="switch" data-switch>
+        <div class="sw-tabs" role="group" aria-label="Views">
+          <button type="button" data-state="table" aria-pressed="true">Table <span class="key">default</span></button>
+          <button type="button" data-state="brief" aria-pressed="false">Brief <span class="key">⌘1</span></button>
+          <button type="button" data-state="columns" aria-pressed="false">Columns <span class="key">⌘2</span></button>
+          <button type="button" data-state="terminal" aria-pressed="false">Terminal <span class="key">⌘J</span></button>
         </div>
-        <div class="view">
-          <div class="cap">Brief <span class="key">⌘1</span></div>
-          <img class="sh sh-light" src="shots/view-brief-light.png" alt="The same folder in brief view, names in three columns." width="735" height="380" loading="lazy">
-          <img class="sh sh-dark" src="shots/view-brief-dark.png" alt="" width="735" height="380" loading="lazy">
-        </div>
-        <div class="view">
-          <div class="cap">Columns <span class="key">⌘2</span></div>
-          <img class="sh sh-light" src="shots/view-columns-light.png" alt="The same folder in the column browser, one folder per column." width="735" height="380" loading="lazy">
-          <img class="sh sh-dark" src="shots/view-columns-dark.png" alt="" width="735" height="380" loading="lazy">
-        </div>
-        <div class="view">
-          <div class="cap">Terminal <span class="key">⌘J</span></div>
-          <img class="sh sh-light" src="shots/view-terminal-light.png" alt="The embedded terminal open under the panes, in the folder that is shown." width="640" height="200" loading="lazy">
-          <img class="sh sh-dark" src="shots/view-terminal-dark.png" alt="" width="640" height="200" loading="lazy">
+        <div class="sw-stage">
+          <div class="sw-state" data-state="table">
+            <img class="sh sh-light" src="shots/table-light.png" alt="A folder in table view: name, type, date and size columns." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/table-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+          <div class="sw-state" data-state="brief" hidden>
+            <img class="sh sh-light" src="shots/brief-light.png" alt="The same folder in brief view, names in three columns." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/brief-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+          <div class="sw-state" data-state="columns" hidden>
+            <img class="sh sh-light" src="shots/columns-light.png" alt="The column browser, one folder per column." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/columns-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+          <div class="sw-state" data-state="terminal" hidden>
+            <img class="sh sh-light" src="shots/terminal-light.png" alt="The embedded terminal open under the panes, in the folder that is shown." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/terminal-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
         </div>
       </div>
     </div>
@@ -664,6 +670,32 @@
       });
     });
     mark();
+  })();
+</script>
+
+<script>
+  // State switch: buttons and panes inside a [data-switch] block share a
+  // data-state; the pressed button's pane is the only one shown. Hard cut,
+  // no fade: the page has no animation, and the picture is the point.
+  (function(){
+    document.querySelectorAll("[data-switch]").forEach(function(box){
+      var btns = box.querySelectorAll(".sw-tabs button");
+      var panes = box.querySelectorAll(".sw-state");
+      btns.forEach(function(b){
+        b.addEventListener("click", function(){
+          var s = b.dataset.state;
+          btns.forEach(function(x){ x.setAttribute("aria-pressed", x.dataset.state === s ? "true" : "false"); });
+          panes.forEach(function(p){ p.hidden = p.dataset.state !== s; });
+        });
+      });
+      // Hidden panes never load lazily, so the first click would show a blank
+      // frame. Warm the variant this appearance shows, after the page is done.
+      window.addEventListener("load", function(){
+        var shown = box.querySelector(".sw-state:not([hidden]) .sh-dark");
+        var cls = shown && getComputedStyle(shown).display !== "none" ? ".sh-dark" : ".sh-light";
+        box.querySelectorAll(".sw-state[hidden] " + cls).forEach(function(img){ new Image().src = img.src; });
+      });
+    });
   })();
 </script>
 
