@@ -101,7 +101,9 @@
   .nav-links{display:flex;gap:28px;font-size:14px}
   .nav-links a{color:var(--ink-dim)}.nav-links a:hover{color:var(--ink)}
   .nav-right{display:flex;align-items:center;gap:10px}
-  @media (max-width:760px){.nav-links{display:none}}
+  /* phones: the app is a Mac app, so the download button gives way to the ⌘K badge;
+     the palette still lists Download and stands in for the hidden nav links */
+  @media (max-width:760px){.nav-links,.nav-right .nav-cta{display:none}.pal .pal-foot{display:none}}
 
   /* buttons */
   .btn{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:500;border-radius:8px;padding:10px 18px;border:1px solid transparent;white-space:nowrap}
@@ -885,7 +887,11 @@
       build();
       input.value = "";
       pal.hidden = false;
+      // Lock the page scroll without a layout jump: the scrollbar's width is
+      // kept as padding while it is hidden, so nothing moves under the overlay.
+      var gutter = window.innerWidth - document.documentElement.clientWidth;
       document.documentElement.style.overflow = "hidden";
+      if (gutter > 0) document.documentElement.style.paddingRight = gutter + "px";
       render();
       input.focus();
     }
@@ -893,6 +899,7 @@
       if (pal.hidden) return;
       pal.hidden = true;
       document.documentElement.style.overflow = "";
+      document.documentElement.style.paddingRight = "";
       if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
 
