@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Impressum, Diptychon</title>
-<meta name="robots" content="noindex" />
+<title>Sponsor Diptychon</title>
+<meta name="description" content="Diptychon is free and built by one person, with no investors, no team and no ads. Sponsoring keeps it going." />
+<link rel="canonical" href="https://diptychon.com/sponsor" />
 <link rel="icon" type="image/png" sizes="16x16" href="icon-16.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png" />
 <link rel="icon" type="image/png" href="icon.png" />
@@ -18,15 +19,12 @@
 </script>
 <link rel="stylesheet" href="/page.css" />
 <style>
-  /* legal prose only; tokens, nav and footer come from page.css */
+  /* a short personal letter; tokens, nav and footer come from page.css */
   main{padding:104px 0 8px}
-  /* long German words must fit a phone */
-  main h1{font-size:clamp(36px,6vw,64px);hyphens:auto}
-  /* legal sections are short: ruled bands, but at text scale and without the number label */
-  main h2{font-size:22px;letter-spacing:-.015em;padding-top:40px;margin:56px 0 12px}
+  main p:not(.label){max-width:34em;font-size:19px;color:var(--ink-dim);margin:0 0 16px}
+  main h1 + p{color:var(--ink)}
   main h2::after{content:none}
-  address{font-style:normal;color:var(--ink);max-width:68ch;margin:0 0 12px}
-  main p{max-width:68ch;color:var(--ink-dim);margin:0 0 12px}
+  main h2{padding-top:72px;margin-top:72px}
 </style>
 </head>
 <body>
@@ -43,32 +41,24 @@
       <a href="/docs/">Docs</a>
     </span>
     <span class="nav-right">
-      <a class="nav-cta" href="/download?src=impressum">Download for macOS</a>
+      <a class="nav-cta" href="/download?src=sponsor">Download for macOS</a>
     </span>
   </div>
 </nav>
 
 <main>
   <div class="in">
-    <p class="label">Rechtliches</p>
-    <h1>Impressum</h1>
+    <p class="label">Sponsor</p>
+    <h1>Sponsor Diptychon</h1>
 
-    <h2>Angaben gemäß § 5 DDG</h2>
-    <address>
-      Till von Krueger<br>
-      Meisenstraße 1<br>
-      14195 Berlin<br>
-      Deutschland
-    </address>
+    <p>Hey, I'm Till.</p>
+    <p>Diptychon started as a personal project. I wanted a file manager I can drive with the keyboard alone, in a design I actually like to look at, and one that makes my everyday workflows simpler.</p>
+    <p>Diptychon is free. There are no investors, no team and no ads, just me building the tool I want to use and hoping it is useful to you too.</p>
+    <p>Sponsoring is what keeps that going. It is a simple way to say thanks if you enjoy it, it keeps me motivated, and it shows that small, private Mac tools have a place.</p>
+    <p>Thank you.</p>
 
-    <h2>Kontakt</h2>
-    <p>E-Mail: <a href="mailto:feedback@diptychon.com">feedback@diptychon.com</a></p>
-
-    <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
-    <p>Till von Krueger, Anschrift wie oben.</p>
-
-    <h2>Hinweis</h2>
-    <p>Diptychon ist ein Projekt einer Einzelperson. Die App ist in Entwicklung und während dieser Zeit kostenlos erhältlich. Diese Website informiert über die App und stellt sie zum Download bereit.</p>
+    <h2>Support Diptychon</h2>
+    <p><a class="btn" href="https://buymeacoffee.com/tillvonkrueger" rel="noopener">Buy me a coffee</a></p>
   </div>
 </main>
 
@@ -85,7 +75,7 @@
     </div>
     <div class="fcol">
       <h4>Product</h4>
-      <a href="/download?src=impressum-footer">Download</a>
+      <a href="/download?src=sponsor-footer">Download</a>
       <a href="/sponsor">Sponsor</a>
       <a href="/#shortcuts">Keyboard shortcuts</a>
       <a href="/docs/">Docs</a>

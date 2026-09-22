@@ -170,6 +170,7 @@ const footer = (src) => `
     <div class="fcol">
       <h4>Product</h4>
       <a href="/download?src=${src}-footer">Download</a>
+      <a href="/sponsor">Sponsor</a>
       <a href="/#shortcuts">Keyboard shortcuts</a>
       <a href="/docs/">Docs</a>
     </div>
