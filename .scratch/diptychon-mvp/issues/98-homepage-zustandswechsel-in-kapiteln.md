@@ -1,6 +1,6 @@
 # 98 — Homepage: Zustandswechsel in den Kapiteln (Paseo-Muster, Screenshots bleiben echt)
 
-Status: **ready-for-agent** — Schritte 1–3 (View, Move, Stage) abgenommen und live (2026-09-22); Schritt 4 (Finder-Umschalter in der Tag-Kachel) ist dran
+Status: **CLOSED (2026-09-22)** — Schritte 1–3 (View, Move, Stage) abgenommen und live; Schritt 4 (Tag-Kachel) von Till verworfen und zurückgenommen
 Category: gtm / landing-page
 
 ## Herkunft
@@ -172,3 +172,32 @@ Bildschirm entsperrt und „go“ gesagt, der Harness-Lauf `ONLY=moves` lief dur
   (Tastatur während des Laufs). Light-Reshoot sauber. Devices-Block in allen
   sechs Shots per `patch.swift` überdeckt.
 - Mit dem Commit fliegen `shots/stage-light.png`/`stage-dark.png` + dist-Kopien.
+
+**2026-09-22, Schritt 4 gebaut (nicht committet):**
+- Die Kachel war inzwischen von der anderen Session auf gezeichnete Zeilen
+  umgestellt (`21272fb`, „undo and tags cards drawn in code, not screenshots“);
+  die alten `tags-*.png` gibt es nicht mehr. Deshalb kein Finder-Screenshot:
+  der zweite Zustand ist dieselbe Zeilenliste, so wie Finder sie zeigt — Punkt
+  hinter dem Namen, Finders „Kind“-Namen (PNG image, JPEG image, Markdown, …).
+  Gezeichnet neben gezeichnet; ein Foto neben einer Zeichnung hätte gebrochen.
+- Umschalter „Diptychon | Finder“ als `.sw-tabs.mini` im selben `[data-switch]`-
+  Block, kein Skript-Zusatz. Zeilen enger (3 px), damit beide Listen in die
+  feste 250-px-Bühne der Kachel passen (193 von 201 px).
+- Kein Harness-Lauf, nichts auf der Platte, keine neuen Bilder.
+
+## Outcome (2026-09-22)
+
+- **Live:** View-, Move- und Stage-Kapitel schalten je in einem Rahmen zwischen
+  ihren Zuständen (Commits `8f70219`, `425e55b`, `6ac14fe`), alle Shots volle
+  Fenster aus dem Harness, Light und Dark. Hero bleibt ein Bild (Option 1).
+- **Verworfen:** Schritt 4, der Diptychon/Finder-Umschalter in der Tag-Kachel.
+  Till nach Sichtprüfung: „reverse step 4 i dont like it“. Die zwei HTML-Dateien
+  sind per `git checkout` auf `6ac14fe` zurück; nichts davon ist committet oder
+  deployt. Die Kachel bleibt die gezeichnete Zeilenliste aus `21272fb`.
+- Nebenbei behoben: der alte Stage-Shot zeigte kein Staging-Panel; die
+  Terminal-Shots trugen Tills echte Suchtreffer; der Columns-Shot eine leere
+  zweite Spalte. Harness kann jetzt `ONLY=<szene>`, klickt statt Pfeiltasten,
+  und `patch.swift` flickt Panes zwischen gleich großen Shots.
+- Offen geblieben, nicht Teil dieses Tickets: Extend-Kapitel (Palette/Gadgets),
+  Filterfeld über der Shortcut-Liste, Komplett-Reshoot nach frischen Demo-Daten
+  (Columns zeigt „Sep 19/20“, der Rest „Today/Yesterday“).

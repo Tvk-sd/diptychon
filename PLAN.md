@@ -20,4 +20,3 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 
 ## Offen — bei AI
 
-- [ ] **#98 Homepage-Zustandswechsel (Paseo-Muster, echte Screenshots):** Plan liegt im Issue, Schritte 1–3 (View, Move, Stage) sind live; Schritt 4 (Diptychon/Finder-Umschalter in der Tag-Kachel, ein Finder-Shot) ist dran (`.scratch/diptychon-mvp/issues/98-homepage-zustandswechsel-in-kapiteln.md`)
