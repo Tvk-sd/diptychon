@@ -1,6 +1,6 @@
 # 98 — Homepage: Zustandswechsel in den Kapiteln (Paseo-Muster, Screenshots bleiben echt)
 
-Status: **ready-for-agent** — Schritte 1 (View) und 2 (Move) abgenommen und live (2026-09-22); Schritt 3 (Stage) ist dran
+Status: **ready-for-agent** — Schritte 1–3 (View, Move, Stage) abgenommen und live (2026-09-22); Schritt 4 (Finder-Umschalter in der Tag-Kachel) ist dran
 Category: gtm / landing-page
 
 ## Herkunft
@@ -152,3 +152,23 @@ Bildschirm entsperrt und „go“ gesagt, der Harness-Lauf `ONLY=moves` lief dur
   überholt und geht mit dem Commit.
 - Mit dem Commit fliegen `shots/move-light.png`/`move-dark.png` + dist-Kopien
   (nur vom alten Move-Kapitel referenziert).
+
+**2026-09-22, Schritt 3 gebaut (nicht committet):**
+- Befund vorab: der bisherige `stage-*.png` zeigte **kein** Staging-Panel — der
+  `⌘⇧B`-Tastendruck im alten Harness-Lauf war nie angekommen (gleiche Fokus-
+  Flakiness wie bei Columns). Alt-Text versprach vier gesammelte Dateien, das
+  Bild zeigte zwei nackte Panes. Schritt 3 repariert das nebenbei.
+- Drei Zustände, das Set wächst über drei Ordner: Shoots `⌘⇧S` (1 Datei) ·
+  Inbox `⌘⇧S` (2) · Portraits `⌘⇧S` (4). Abweichung vom Plan („⌘⇧B zeigt das
+  Set“ als dritter Zustand): `addToStaging` blendet das Panel ohnehin ein, also
+  ist das Set in jedem Zustand sichtbar; ein eigener ⌘⇧B-Zustand hätte nichts
+  Neues gezeigt.
+- Harness-Szene `stages`: Set wird geseedet (`workspaceState.staging`, persistiert),
+  die „gerade hinzugefügte“ Datei per Klick auf ihre Zeile markiert, das Panel
+  per Klick auf den Tray-Knopf in der Fußleiste (`toggle-staging`, Fenster +1614/+916)
+  geöffnet. Keine Tasten, nichts auf der Platte.
+- Erster Light-Lauf unbrauchbar: „ov“ stand im Suchfeld, 1.000 Treffer aus Tills
+  Home. Der Harness sendet in dieser Szene keine Tasten — die kamen von außen
+  (Tastatur während des Laufs). Light-Reshoot sauber. Devices-Block in allen
+  sechs Shots per `patch.swift` überdeckt.
+- Mit dem Commit fliegen `shots/stage-light.png`/`stage-dark.png` + dist-Kopien.
