@@ -1,6 +1,6 @@
 # 98 — Homepage: Zustandswechsel in den Kapiteln (Paseo-Muster, Screenshots bleiben echt)
 
-Status: **ready-for-agent** — Schritt 1 abgenommen („looks very good“, 2026-09-22) und deployt; Schritt 2 (Move) ist dran
+Status: **needs-info** — Schritt 1 abgenommen („looks very good“, 2026-09-22) und deployt; Schritt 2 (Move) am 2026-09-22 auf Tills Wunsch **geparkt** (Seitenteil gebaut, Shots fehlen, siehe Outcome unten)
 Category: gtm / landing-page
 
 ## Herkunft
@@ -124,3 +124,9 @@ Mobil unter 760 px bricht nichts, Lighthouse-LCP des Heros unverändert.
   Komplett-Reshoot nach `make_demo_data.py` würde es glätten.
 - Alte `shots/view-*.png` + `dist/shots/view-*.png` (16 Dateien) gelöscht,
   nichts referenziert sie mehr.
+
+## Outcome Schritt 2 (Stand 2026-09-22, geparkt)
+
+- Seitenteil ist gebaut, aber **nicht committet**: Move-Kapitel als Drei-Zustands-Switch (Before · Copy `⌥⌘→` · Move `⌥⇧⌘→`) in `.scratch/landing-page/index.html`, dazu die Szene `moves` in `.scratch/demo-video/harness/shoot_landing.sh`. Liegt als uncommitteter Diff im Working Tree von main; Sicherungskopie: `98-step2-move-uncommitted.patch` neben dieser Datei (`git apply`).
+- Blocker: die drei Shots `move-before/-copy/-move-{light,dark}.png` existieren nicht. Der Harness-Lauf scheiterte am gesperrten Bildschirm. Ohne die Shots zeigt der Switch nichts; live ist weiter das alte Move-Kapitel mit einem Shot.
+- Till am 2026-09-22: „the shoots are not important anymore“, dann „park it“. Wiederaufnahme = Bildschirm entsperren, `ONLY=moves ./shoot_landing.sh both`, dann committen und `dist/` spiegeln. Oder Schritt 2 als wontfix schließen und die beiden Dateien per `git checkout` zurücksetzen.

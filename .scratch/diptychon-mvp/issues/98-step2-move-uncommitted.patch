@@ -1,0 +1,122 @@
+diff --git a/.scratch/demo-video/harness/shoot_landing.sh b/.scratch/demo-video/harness/shoot_landing.sh
+old mode 100644
+new mode 100755
+index edb0e58..93af310
+--- a/.scratch/demo-video/harness/shoot_landing.sh
++++ b/.scratch/demo-video/harness/shoot_landing.sh
+@@ -3,7 +3,7 @@
+ # staged Diptychon.
+ #
+ #   ./shoot_landing.sh [light|dark|both]
+-#   ONLY=columns ./shoot_landing.sh both     # one scene: table hero brief columns terminal stage
++#   ONLY=columns ./shoot_landing.sh both     # one scene: table hero brief columns terminal stage moves
+ #
+ # Needs Screen Recording + Accessibility for the app that owns this terminal.
+ #
+@@ -182,6 +182,26 @@ run() {
+   seed "$SRC" "$DST" - 1; verify_seed "$SRC"; start $m; shot terminal $m; stop
+   fi
+ 
++  # 6 move chapter, three states of one keystroke: the newest Inbox file is
++  # picked by a click on row 1 (focus at launch is not persisted), then ⌥⌘→
++  # copies it across, then ⌥⇧⌘→ moves it. Each op really touches the demo
++  # tree, so the disk is checked and put back after every shot.
++  if want moves; then
++  local f="hero-v3.png"
++  [[ -f "$SRC/$f" && ! -e "$DST/$f" ]] || { echo "ABORT: demo tree not in start state for $f"; exit 1 }
++  seed "$SRC" "$DST" - 0; verify_seed "$SRC"; start $m
++  local wx wy; read -r _ wx wy _ _ <<< "$($P winfo $PID)"; guard; $P click $((wx+300)) $((wy+108)); sleep 0.6
++  shot move-before $m
++  k 124 cmd opt; sleep 1.6; shot move-copy $m; stop
++  [[ -f "$SRC/$f" && -f "$DST/$f" ]] || { echo "ABORT: copy did not land as expected"; exit 1 }
++  rm "$DST/$f"
++  seed "$SRC" "$DST" - 0; verify_seed "$SRC"; start $m
++  read -r _ wx wy _ _ <<< "$($P winfo $PID)"; guard; $P click $((wx+300)) $((wy+108)); sleep 0.6
++  k 124 cmd opt shift; sleep 1.6; shot move-move $m; stop
++  [[ ! -e "$SRC/$f" && -f "$DST/$f" ]] || { echo "ABORT: move did not land as expected"; exit 1 }
++  mv "$DST/$f" "$SRC/$f"
++  fi
++
+   # 5 staging: seed the set, then open the panel (no persisted form for it)
+   if want stage; then
+   seed "$SRC" "$DST" - 0 "$SRC/hero-v3.png" "$SRC/contract-draft.pdf" "$SRC/logo-final.svg" "$SRC/budget-Q3.xlsx"
+diff --git a/.scratch/landing-page/index.html b/.scratch/landing-page/index.html
+index 0fbdebc..820cd8a 100644
+--- a/.scratch/landing-page/index.html
++++ b/.scratch/landing-page/index.html
+@@ -50,7 +50,7 @@
+       --line:#232327;--line-soft:#303038;--line-strong:#33333a;--leader:#2a2a2f;
+       --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
+       --accent:#0a84ff;--accent-hover:#3a9bff;--me-tint:rgba(10,132,255,.08);
+-      --tag-blue:#0a84ff;--tag-red:#ff453a;--tag-yellow:#ffd60a;--tag-green:#30d158;
++    --tag-blue:#0a84ff;--tag-red:#ff453a;--tag-yellow:#ffd60a;--tag-green:#30d158;
+       --nav-bg:rgba(11,11,13,.78);--selection:rgba(10,132,255,.28);--selection-ink:#fff;
+     }
+   }
+@@ -199,8 +199,7 @@
+   /* real screenshots, one per appearance; the toggle picks which one shows */
+   .sh{display:block;width:100%;height:auto}
+   /* a chapter screenshot spans the column, like the mock it replaced */
+-  .ch-vis > .sh,.ch-vis .app-wrap{width:min(var(--col),var(--shot-max));margin-left:calc(50% - var(--col) / 2);margin-right:auto}
+-  .ch-vis .app-wrap{position:relative}
++  .ch-vis > .sh{width:min(var(--col),var(--shot-max));margin-left:calc(50% - var(--col) / 2);margin-right:auto}
+   .sh-dark{display:none}
+   :root[data-theme="dark"] .sh-light{display:none}
+   :root[data-theme="dark"] .sh-dark{display:block}
+@@ -210,12 +209,7 @@
+   }
+   .shot-frame{border-top:1px solid var(--line-soft)}
+ 
+-  /* app mock: two panes sharing one divider, drawn in the lattice */
+-  .chord{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:6px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:9px;background:var(--bg-raise);z-index:2}
+-  .chord .key{font-size:18px;padding:5px 12px}
+-  @media (max-width:760px){.chord{display:none}}
+-
+-  /* chapter 3: one frame, four states; each view's key chip is its button */
++  /* chapters 1 and 3: one frame, several states; the key chip of each state is its button */
+   .switch{width:var(--col);margin-inline:auto}
+   .sw-tabs{display:flex;border-bottom:1px solid var(--line-soft)}
+   .sw-tabs button{font:inherit;font-size:14px;font-weight:600;color:var(--ink-faint);background:transparent;border:0;border-right:1px solid var(--line-soft);padding:14px 20px;display:flex;align-items:center;gap:10px;cursor:pointer}
+@@ -480,10 +474,26 @@
+       </div>
+     </div>
+     <div class="ch-vis">
+-      <div class="app-wrap">
+-          <img class="sh sh-light" src="shots/move-light.png" alt="Diptychon showing two panes side by side: the Inbox folder on the left with hero-v3.png selected, the client folder Website Redesign on the right." width="1668" height="933" loading="lazy">
+-          <img class="sh sh-dark" src="shots/move-dark.png" alt="" width="1668" height="933" loading="lazy">
+-        <div class="chord" aria-hidden="true"><span class="key">⌥</span><span class="key">⌘</span><span class="key">→</span></div>
++      <div class="switch" data-switch>
++        <div class="sw-tabs" role="group" aria-label="One keystroke, three states">
++          <button type="button" data-state="before" aria-pressed="true">Before</button>
++          <button type="button" data-state="copy" aria-pressed="false">Copy <span class="key">⌥⌘→</span></button>
++          <button type="button" data-state="move" aria-pressed="false">Move <span class="key">⌥⇧⌘→</span></button>
++        </div>
++        <div class="sw-stage">
++          <div class="sw-state" data-state="before">
++            <img class="sh sh-light" src="shots/move-before-light.png" alt="Diptychon showing two panes side by side: the Inbox folder on the left with hero-v3.png selected, the client folder Website Redesign on the right." width="1668" height="933" loading="lazy">
++            <img class="sh sh-dark" src="shots/move-before-dark.png" alt="" width="1668" height="933" loading="lazy">
++          </div>
++          <div class="sw-state" data-state="copy" hidden>
++            <img class="sh sh-light" src="shots/move-copy-light.png" alt="After ⌥⌘→: hero-v3.png now also sits in Website Redesign on the right, Inbox on the left is unchanged." width="1668" height="933" loading="lazy">
++            <img class="sh sh-dark" src="shots/move-copy-dark.png" alt="" width="1668" height="933" loading="lazy">
++          </div>
++          <div class="sw-state" data-state="move" hidden>
++            <img class="sh sh-light" src="shots/move-move-light.png" alt="After ⌥⇧⌘→: hero-v3.png has left Inbox and sits in Website Redesign." width="1668" height="933" loading="lazy">
++            <img class="sh sh-dark" src="shots/move-move-dark.png" alt="" width="1668" height="933" loading="lazy">
++          </div>
++        </div>
+       </div>
+     </div>
+ 
+diff --git a/PLAN.md b/PLAN.md
+index 771866a..b50cc8b 100644
+--- a/PLAN.md
++++ b/PLAN.md
+@@ -7,6 +7,7 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
+ 
+ ## Offen — bei Till
+ <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
++- [ ] **⌘K-Palette mergen (Branch `feat/landing-cmdk`, Commit `ed252fc`):** fertig und im Browser abgenommen, aber der Merge nach main ist blockiert — eine andere Session hat `.scratch/landing-page/index.html` ungesichert geändert (Copy/Move-Umschalter, Stand 2026-09-22 13:33). Sobald die Änderung committet ist: `git merge --no-ff feat/landing-cmdk`, dann `dist/` prüfen und per `npx wrangler deploy` aus `.scratch/landing-page` deployen. Worktree: `~/.paseo/worktrees/cmdk-palette`, Vorschau auf Port 8811
+ - [ ] **Signier-Schlüssel zurück in den Schlüsselbund (Release 0.2.0 blockiert):** am 2026-09-21 fehlten beide — kein „Developer ID Application"-Zertifikat, kein Notary-Profil `diptychon-notary` (Schlüsselbund-Ordner ist vom 2026-09-03/04, sieht nach Neuaufsetzen aus). Zertifikat: Xcode ▸ Settings ▸ Accounts ▸ Manage Certificates ▸ `+` ▸ Developer ID Application. Notary: `.p8` aus dem Passwort-Manager, dann `xcrun notarytool store-credentials diptychon-notary --key <pfad.p8> --key-id <KEY_ID> --issuer <ISSUER_UUID>` (eine Zeile). Danach `RELEASE_BRANCH=… ./scripts/release.sh` — Version 0.2.0 (Build 2) ist schon committet (`772cbaa`), Unit-Tests grün
+ - [ ] **Doppelklick-Gegenprobe (#69, 2 Minuten):** der notarisierte Download ist live und per `spctl` abgenommen, aber vom selben Mac aus. Einmal `/Applications/Diptychon.app` von Hand starten und bestätigen, dass kein Gatekeeper-Dialog kam — oder idealerweise auf einem fremden Mac laden
+ - [ ] **API-Key aus `~/Downloads` räumen (2 Minuten):** `AuthKey_8274WG2YD4.p8` liegt dort weltlesbar. In den Passwort-Manager, dann aus Downloads löschen — er erlaubt, in deinem Namen zu notarisieren. Nicht im Repo, dort ist nichts zu tun (Details in `context/notarization-runbook.md`)
