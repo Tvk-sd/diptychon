@@ -19,3 +19,4 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 
 ## Offen — bei AI
 
+- [ ] **#98 Homepage-Zustandswechsel (Paseo-Muster, echte Screenshots):** Plan liegt im Issue, Schritt 1 (View-Kapitel, vier Knöpfe, ein Bild) ist live; Schritt 2 (Move-Kapitel, Chord-Badge wird Knopf, zwei neue Shots) ist dran (`.scratch/diptychon-mvp/issues/98-homepage-zustandswechsel-in-kapiteln.md`)

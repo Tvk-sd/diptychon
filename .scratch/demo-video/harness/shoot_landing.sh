@@ -3,6 +3,7 @@
 # staged Diptychon.
 #
 #   ./shoot_landing.sh [light|dark|both]
+#   ONLY=columns ./shoot_landing.sh both     # one scene: table hero brief columns terminal stage
 #
 # Needs Screen Recording + Accessibility for the app that owns this terminal.
 #
@@ -133,12 +134,15 @@ shot() {   # shot <name> <mode>
   fi
 }
 
+want() { [[ -z ${ONLY:-} || " $ONLY " == *" $1 "* ]] }
+
 run() {
   local m=$1
   echo "== $m =="
   [[ $m == dark ]] && set_dark true || set_dark false
 
   # 1 table / tags: the plain two-pane state, tag colours in the tag column
+  if want table; then
   seed "$SRC" "$DST" - 0; verify_seed "$SRC"; start $m
   shot table $m; cp $OUT/table-$m.png $OUT/tags-$m.png; echo "  tags-$m.png"
   k 125; shot move $m          # one row selected
@@ -148,28 +152,41 @@ run() {
   k 0 cmd; k 124 cmd opt; sleep 1.6
   k 40 cmd; sleep 0.7; typestr "undo"; sleep 0.5; k 36; sleep 0.8; shot undo $m
   stop
+  fi
 
   # 2 hero: the photo folder, the one big still at the top of the page
+  if want hero; then
   seed "$TREE/Shoots/2026-06 Harbor Editorial/Selects" "$DST" - 0
   verify_seed "$TREE/Shoots/2026-06 Harbor Editorial/Selects"
   start $m; k 125; sleep 0.4; shot hero $m; stop
+  fi
 
   # 3 brief view, three columns of names
+  if want brief; then
   seed "$SRC" "$DST" brief 0; verify_seed "$SRC"; start $m; shot brief $m; stop
+  fi
 
   # 3 column browser, one folder per column
-  # the browser only grows a second column once a folder is picked, and that
-  # selection has no persisted form - so walk two steps into it
+  # Since #94 picking a folder opens its column at once, so one click on the
+  # first row is the whole walk. Arrow keys were flaky here: which pane starts
+  # focused is not persisted, so they went to the right pane or nowhere.
+  # Seeding the child as the directory does not draw the parent chain either.
+  if want columns; then
   seed "$TREE/Clients" "$DST" columns 0; verify_seed "$TREE/Clients"; start $m
-  k 125; sleep 0.5; k 124; sleep 0.5; k 125; sleep 0.6
+  local wx wy; read -r _ wx wy _ _ <<< "$($P winfo $PID)"; guard; $P click $((wx+300)) $((wy+108)); sleep 0.8
   shot columns $m; stop
+  fi
 
   # 4 embedded terminal
+  if want terminal; then
   seed "$SRC" "$DST" - 1; verify_seed "$SRC"; start $m; shot terminal $m; stop
+  fi
 
   # 5 staging: seed the set, then open the panel (no persisted form for it)
+  if want stage; then
   seed "$SRC" "$DST" - 0 "$SRC/hero-v3.png" "$SRC/contract-draft.pdf" "$SRC/logo-final.svg" "$SRC/budget-Q3.xlsx"
   verify_seed "$SRC"; start $m; k 11 cmd shift; sleep 0.8; shot stage $m; stop
+  fi
   restore_appearance
 }
 
