@@ -156,6 +156,12 @@
   .lr{display:flex;align-items:baseline;gap:8px;padding:7px 0}
   .lr .a{color:var(--ink-dim)}.lr .b{color:var(--ink)}
   .lr .l{flex:1;border-bottom:1px dotted var(--leader);transform:translateY(-4px)}
+  /* undo stack: the rows already taken back are struck and dim, the key sits at the end */
+  .lr.undone .a,.lr.undone .b{color:var(--ink-faint);text-decoration:line-through;text-decoration-color:var(--ink-faint)}
+  .lr .b kbd{display:inline-block;margin-left:6px}
+  /* tag rows: Finder's own tag colours, the tag name on the right */
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:9px;vertical-align:0;flex:none}
+  .dot.blue{background:var(--tag-blue)}.dot.red{background:var(--tag-red)}.dot.yellow{background:var(--tag-yellow)}.dot.green{background:var(--tag-green)}
 
   /* numbered chapters */
   .chapter{padding:96px 0 0}
@@ -398,9 +404,8 @@
     <div class="trio">
       <div class="cell">
         <div class="vis">
-          <img class="sh sh-light" src="shots/toast-light.png" alt="The undo toast reading “Undone — Copy 15 items”." width="215" height="50" loading="lazy">
-          <img class="sh sh-dark" src="shots/toast-dark.png" alt="" width="215" height="50" loading="lazy">
-        </div>
+          <div class="leaders" aria-hidden="true">
+            <div class="lr undone"><span class="a">trash</span><span class="l"></span><span class="b">draft.md <kbd>⌘Z</kbd></span></div>
         <h3>See everything. Undo anything.</h3>
         <p>Move, copy, rename and trash are all reversible. Multi-level <kbd>⌘Z</kbd>, with a toast that says exactly what was undone.</p>
       </div>
@@ -418,9 +423,8 @@
       </div>
       <div class="cell">
         <div class="vis">
-          <img class="sh sh-light" src="shots/tags-light.png" alt="File rows with Finder tag colours: red, blue, yellow and green dots next to the file names." width="430" height="270" loading="lazy">
-          <img class="sh sh-dark" src="shots/tags-dark.png" alt="" width="430" height="270" loading="lazy">
-        </div>
+          <div class="leaders" aria-hidden="true">
+            <div class="lr"><span class="dot blue"></span><span class="a">hero-v3.png</span><span class="l"></span><span class="b">Blue</span></div>
         <h3>Rides the Mac, not against it.</h3>
         <p>Real Finder tags that round-trip both ways. Finder's own keys for copy, paste, go-to-folder and Quick Look.</p>
       </div>

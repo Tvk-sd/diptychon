@@ -144,7 +144,7 @@ run() {
   # 1 table / tags: the plain two-pane state, tag colours in the tag column
   if want table; then
   seed "$SRC" "$DST" - 0; verify_seed "$SRC"; start $m
-  shot table $m; cp $OUT/table-$m.png $OUT/tags-$m.png; echo "  tags-$m.png"
+  shot table $m
   k 125; shot move $m          # one row selected
   # palette over the dimmed window
   k 40 cmd; sleep 0.7; typestr "move"; sleep 0.5; shot palette $m; k 53; sleep 0.4
