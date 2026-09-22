@@ -50,7 +50,7 @@
       --line:#232327;--line-soft:#303038;--line-strong:#33333a;--leader:#2a2a2f;
       --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
       --accent:#0a84ff;--accent-hover:#3a9bff;--me-tint:rgba(10,132,255,.08);
-      --tag-blue:#0a84ff;--tag-red:#ff453a;--tag-yellow:#ffd60a;--tag-green:#30d158;
+    --tag-blue:#0a84ff;--tag-red:#ff453a;--tag-yellow:#ffd60a;--tag-green:#30d158;
       --nav-bg:rgba(11,11,13,.78);--selection:rgba(10,132,255,.28);--selection-ink:#fff;
     }
   }
@@ -201,8 +201,7 @@
   /* real screenshots, one per appearance; the toggle picks which one shows */
   .sh{display:block;width:100%;height:auto}
   /* a chapter screenshot spans the column, like the mock it replaced */
-  .ch-vis > .sh,.ch-vis .app-wrap{width:min(var(--col),var(--shot-max));margin-left:calc(50% - var(--col) / 2);margin-right:auto}
-  .ch-vis .app-wrap{position:relative}
+  .ch-vis > .sh{width:min(var(--col),var(--shot-max));margin-left:calc(50% - var(--col) / 2);margin-right:auto}
   .sh-dark{display:none}
   :root[data-theme="dark"] .sh-light{display:none}
   :root[data-theme="dark"] .sh-dark{display:block}
@@ -212,12 +211,7 @@
   }
   .shot-frame{border-top:1px solid var(--line-soft)}
 
-  /* app mock: two panes sharing one divider, drawn in the lattice */
-  .chord{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:6px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:9px;background:var(--bg-raise);z-index:2}
-  .chord .key{font-size:18px;padding:5px 12px}
-  @media (max-width:760px){.chord{display:none}}
-
-  /* chapter 3: one frame, four states; each view's key chip is its button */
+  /* chapters 1 and 3: one frame, several states; the key chip of each state is its button */
   .switch{width:var(--col);margin-inline:auto}
   .sw-tabs{display:flex;border-bottom:1px solid var(--line-soft)}
   .sw-tabs button{font:inherit;font-size:14px;font-weight:600;color:var(--ink-faint);background:transparent;border:0;border-right:1px solid var(--line-soft);padding:14px 20px;display:flex;align-items:center;gap:10px;cursor:pointer}
@@ -505,10 +499,26 @@
       </div>
     </div>
     <div class="ch-vis">
-      <div class="app-wrap">
-          <img class="sh sh-light" src="shots/move-light.png" alt="Diptychon showing two panes side by side: the Inbox folder on the left with hero-v3.png selected, the client folder Website Redesign on the right." width="1668" height="933" loading="lazy">
-          <img class="sh sh-dark" src="shots/move-dark.png" alt="" width="1668" height="933" loading="lazy">
-        <div class="chord" aria-hidden="true"><span class="key">⌥</span><span class="key">⌘</span><span class="key">→</span></div>
+      <div class="switch" data-switch>
+        <div class="sw-tabs" role="group" aria-label="One keystroke, three states">
+          <button type="button" data-state="before" aria-pressed="true">Before</button>
+          <button type="button" data-state="copy" aria-pressed="false">Copy <span class="key">⌥⌘→</span></button>
+          <button type="button" data-state="move" aria-pressed="false">Move <span class="key">⌥⇧⌘→</span></button>
+        </div>
+        <div class="sw-stage">
+          <div class="sw-state" data-state="before">
+            <img class="sh sh-light" src="shots/move-before-light.png" alt="Diptychon showing two panes side by side: the Inbox folder on the left with hero-v3.png selected, the client folder Website Redesign on the right." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/move-before-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+          <div class="sw-state" data-state="copy" hidden>
+            <img class="sh sh-light" src="shots/move-copy-light.png" alt="After ⌥⌘→: hero-v3.png now also sits in Website Redesign on the right, Inbox on the left is unchanged." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/move-copy-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+          <div class="sw-state" data-state="move" hidden>
+            <img class="sh sh-light" src="shots/move-move-light.png" alt="After ⌥⇧⌘→: hero-v3.png has left Inbox and sits in Website Redesign." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/move-move-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+        </div>
       </div>
     </div>
 

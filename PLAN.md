@@ -7,7 +7,6 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 
 ## Offen — bei Till
 <!-- persistent; Zeile löschen, sobald entschieden/erledigt -->
-- [ ] **#98 Schritt 2 (Move-Kapitel) geparkt:** uncommitteter Diff liegt im Working Tree (Sicherung: `.scratch/diptychon-mvp/issues/98-step2-move-uncommitted.patch`). Entscheiden: Shots nachholen (Bildschirm entsperren, `ONLY=moves ./shoot_landing.sh both`) oder wontfix + `git checkout` der zwei Dateien
 - [ ] **Signier-Schlüssel zurück in den Schlüsselbund (Release 0.2.0 blockiert):** am 2026-09-21 fehlten beide — kein „Developer ID Application"-Zertifikat, kein Notary-Profil `diptychon-notary` (Schlüsselbund-Ordner ist vom 2026-09-03/04, sieht nach Neuaufsetzen aus). Zertifikat: Xcode ▸ Settings ▸ Accounts ▸ Manage Certificates ▸ `+` ▸ Developer ID Application. Notary: `.p8` aus dem Passwort-Manager, dann `xcrun notarytool store-credentials diptychon-notary --key <pfad.p8> --key-id <KEY_ID> --issuer <ISSUER_UUID>` (eine Zeile). Danach `RELEASE_BRANCH=… ./scripts/release.sh` — Version 0.2.0 (Build 2) ist schon committet (`772cbaa`), Unit-Tests grün
 - [ ] **Doppelklick-Gegenprobe (#69, 2 Minuten):** der notarisierte Download ist live und per `spctl` abgenommen, aber vom selben Mac aus. Einmal `/Applications/Diptychon.app` von Hand starten und bestätigen, dass kein Gatekeeper-Dialog kam — oder idealerweise auf einem fremden Mac laden
 - [ ] **API-Key aus `~/Downloads` räumen (2 Minuten):** `AuthKey_8274WG2YD4.p8` liegt dort weltlesbar. In den Passwort-Manager, dann aus Downloads löschen — er erlaubt, in deinem Namen zu notarisieren. Nicht im Repo, dort ist nichts zu tun (Details in `context/notarization-runbook.md`)
@@ -21,4 +20,4 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 
 ## Offen — bei AI
 
-- [ ] **#98 Homepage-Zustandswechsel (Paseo-Muster, echte Screenshots):** Plan liegt im Issue, Schritt 1 (View-Kapitel, vier Knöpfe, ein Bild) ist live; Schritt 2 (Move-Kapitel, Chord-Badge wird Knopf, zwei neue Shots) ist dran (`.scratch/diptychon-mvp/issues/98-homepage-zustandswechsel-in-kapiteln.md`)
+- [ ] **#98 Homepage-Zustandswechsel (Paseo-Muster, echte Screenshots):** Plan liegt im Issue, Schritte 1 (View) und 2 (Move) sind live; Schritt 3 (Stage-Kapitel, drei Shots der ⌘⇧S-Sequenz) ist dran (`.scratch/diptychon-mvp/issues/98-homepage-zustandswechsel-in-kapiteln.md`)

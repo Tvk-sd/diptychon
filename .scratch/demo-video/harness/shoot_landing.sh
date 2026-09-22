@@ -3,7 +3,7 @@
 # staged Diptychon.
 #
 #   ./shoot_landing.sh [light|dark|both]
-#   ONLY=columns ./shoot_landing.sh both     # one scene: table hero brief columns terminal stage
+#   ONLY=columns ./shoot_landing.sh both     # one scene: table hero brief columns terminal stage moves
 #
 # Needs Screen Recording + Accessibility for the app that owns this terminal.
 #
@@ -180,6 +180,26 @@ run() {
   # 4 embedded terminal
   if want terminal; then
   seed "$SRC" "$DST" - 1; verify_seed "$SRC"; start $m; shot terminal $m; stop
+  fi
+
+  # 6 move chapter, three states of one keystroke: the newest Inbox file is
+  # picked by a click on row 1 (focus at launch is not persisted), then ⌥⌘→
+  # copies it across, then ⌥⇧⌘→ moves it. Each op really touches the demo
+  # tree, so the disk is checked and put back after every shot.
+  if want moves; then
+  local f="hero-v3.png"
+  [[ -f "$SRC/$f" && ! -e "$DST/$f" ]] || { echo "ABORT: demo tree not in start state for $f"; exit 1 }
+  seed "$SRC" "$DST" - 0; verify_seed "$SRC"; start $m
+  local wx wy; read -r _ wx wy _ _ <<< "$($P winfo $PID)"; guard; $P click $((wx+300)) $((wy+108)); sleep 0.6
+  shot move-before $m
+  k 124 cmd opt; sleep 1.6; shot move-copy $m; stop
+  [[ -f "$SRC/$f" && -f "$DST/$f" ]] || { echo "ABORT: copy did not land as expected"; exit 1 }
+  rm "$DST/$f"
+  seed "$SRC" "$DST" - 0; verify_seed "$SRC"; start $m
+  read -r _ wx wy _ _ <<< "$($P winfo $PID)"; guard; $P click $((wx+300)) $((wy+108)); sleep 0.6
+  k 124 cmd opt shift; sleep 1.6; shot move-move $m; stop
+  [[ ! -e "$SRC/$f" && -f "$DST/$f" ]] || { echo "ABORT: move did not land as expected"; exit 1 }
+  mv "$DST/$f" "$SRC/$f"
   fi
 
   # 5 staging: seed the set, then open the panel (no persisted form for it)

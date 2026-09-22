@@ -1,6 +1,6 @@
 # 98 — Homepage: Zustandswechsel in den Kapiteln (Paseo-Muster, Screenshots bleiben echt)
 
-Status: **needs-info** — Schritt 1 abgenommen („looks very good“, 2026-09-22) und deployt; Schritt 2 (Move) am 2026-09-22 auf Tills Wunsch **geparkt** (Seitenteil gebaut, Shots fehlen, siehe Outcome unten)
+Status: **ready-for-agent** — Schritte 1 (View) und 2 (Move) abgenommen und live (2026-09-22); Schritt 3 (Stage) ist dran
 Category: gtm / landing-page
 
 ## Herkunft
@@ -125,8 +125,30 @@ Mobil unter 760 px bricht nichts, Lighthouse-LCP des Heros unverändert.
 - Alte `shots/view-*.png` + `dist/shots/view-*.png` (16 Dateien) gelöscht,
   nichts referenziert sie mehr.
 
-## Outcome Schritt 2 (Stand 2026-09-22, geparkt)
+## Outcome Schritt 2 (Stand 2026-09-22, nachmittags)
 
-- Seitenteil ist gebaut, aber **nicht committet**: Move-Kapitel als Drei-Zustands-Switch (Before · Copy `⌥⌘→` · Move `⌥⇧⌘→`) in `.scratch/landing-page/index.html`, dazu die Szene `moves` in `.scratch/demo-video/harness/shoot_landing.sh`. Liegt als uncommitteter Diff im Working Tree von main; Sicherungskopie: `98-step2-move-uncommitted.patch` neben dieser Datei (`git apply`).
-- Blocker: die drei Shots `move-before/-copy/-move-{light,dark}.png` existieren nicht. Der Harness-Lauf scheiterte am gesperrten Bildschirm. Ohne die Shots zeigt der Switch nichts; live ist weiter das alte Move-Kapitel mit einem Shot.
-- Till am 2026-09-22: „the shoots are not important anymore“, dann „park it“. Wiederaufnahme = Bildschirm entsperren, `ONLY=moves ./shoot_landing.sh both`, dann committen und `dist/` spiegeln. Oder Schritt 2 als wontfix schließen und die beiden Dateien per `git checkout` zurücksetzen.
+Die Parkung von 13:49 ist überholt: Till hat in der ursprünglichen Session den
+Bildschirm entsperrt und „go“ gesagt, der Harness-Lauf `ONLY=moves` lief durch.
+
+- Move-Kapitel ist derselbe `[data-switch]`-Block wie View, drei Zustände:
+  Before · Copy `⌥⌘→` · Move `⌥⇧⌘→`. Abweichung vom Plan: nicht der schwebende
+  Chord-Badge wurde zum Knopf, sondern die Knopfleiste trägt die Chords — ein
+  Bauteil für alle Kapitel, und es funktioniert unter 760 px (der Badge war dort
+  ausgeblendet). `.chord`/`.app-wrap` samt CSS entfernt.
+- Harness: Szene `moves`. Klick auf Zeile 1 wählt die neueste Inbox-Datei, dann
+  `⌥⌘→` bzw. `⌥⇧⌘→`; jede Operation läuft echt gegen den Demo-Baum, wird vor und
+  nach dem Shot auf der Platte geprüft und zurückgesetzt (`rm` der Kopie, `mv`
+  zurück). Kein `⌘A`, genau eine Datei. Baum nach dem Lauf im Startzustand.
+- Sechs Shots `move-{before,copy,move}-{light,dark}.png` per Sichtprüfung
+  korrekt (Auswahl bleibt, Kopie erscheint rechts, Move leert links). Devices-
+  Block per `patch.swift` überdeckt (`0 300 199 90`). In `shots/` und `dist/shots/`.
+- Demo-Baum-Daten um zwei Tage verschoben (`os.utime` über `~/Studio`, 137
+  Einträge), damit die neuen Shots „Today/Yesterday“ zeigen wie Hero und Stage.
+- Blocker unterwegs: gesperrter Bildschirm → `screencapture` meldet „could not
+  create image from rect“, Preflight stoppt. Prüfbar über
+  `ioreg -n Root -d1 -a | grep -A1 CGSSessionScreenIsLocked`.
+- Der Working Tree liegt jetzt auf main nach dem ⌘K-Merge (`8ab84ed`), ohne
+  Konflikt; die Sicherungskopie `98-step2-move-uncommitted.patch` ist damit
+  überholt und geht mit dem Commit.
+- Mit dem Commit fliegen `shots/move-light.png`/`move-dark.png` + dist-Kopien
+  (nur vom alten Move-Kapitel referenziert).
