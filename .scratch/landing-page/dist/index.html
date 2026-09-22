@@ -887,7 +887,11 @@
       build();
       input.value = "";
       pal.hidden = false;
+      // Lock the page scroll without a layout jump: the scrollbar's width is
+      // kept as padding while it is hidden, so nothing moves under the overlay.
+      var gutter = window.innerWidth - document.documentElement.clientWidth;
       document.documentElement.style.overflow = "hidden";
+      if (gutter > 0) document.documentElement.style.paddingRight = gutter + "px";
       render();
       input.focus();
     }
@@ -895,6 +899,7 @@
       if (pal.hidden) return;
       pal.hidden = true;
       document.documentElement.style.overflow = "";
+      document.documentElement.style.paddingRight = "";
       if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
 
