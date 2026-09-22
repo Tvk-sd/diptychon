@@ -274,6 +274,28 @@
   .theme-switch button[aria-pressed="true"]{color:var(--ink)}
   .theme-switch svg{width:12px;height:12px}
   @media (max-width:760px){.foot{grid-template-columns:1fr 1fr}.fcol:first-child{grid-column:1 / -1}.fcol:nth-child(2),.fcol:nth-child(4){border-left:0}.fcol:nth-child(n+2){border-top:1px solid var(--line-soft)}}
+
+  /* ⌘K palette: the nav badge and the overlay. Same lattice as the rest of the
+     page — one border, no shadow, no motion. Rows come from the #shortcuts
+     table at open time, so the palette and the table can never disagree. */
+  .nav-k{display:inline-flex;background:transparent;border:0;padding:0;cursor:pointer;font:inherit}
+  .nav-k .key{font-size:12.5px;padding:3px 8px;color:var(--ink-dim)}
+  .nav-k:hover .key{color:var(--ink);border-color:var(--ink-faint)}
+  .pal[hidden]{display:none}
+  .pal{position:fixed;inset:0;z-index:50}
+  .pal-scrim{position:absolute;inset:0;background:rgba(0,0,0,.38)}
+  .pal-box{position:relative;width:min(640px,calc(100vw - 32px));margin:12vh auto 0;background:var(--bg-raise);border:1px solid var(--line-strong);border-radius:6px;overflow:hidden}
+  .pal-in{display:block;width:100%;box-sizing:border-box;border:0;border-bottom:1px solid var(--line-soft);background:transparent;color:var(--ink);font:inherit;font-size:16px;padding:14px 16px;outline:0}
+  .pal-in::placeholder{color:var(--ink-faint)}
+  .pal-list{max-height:min(440px,60vh);overflow-y:auto;padding:6px 0}
+  .pal-h{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);padding:12px 16px 4px}
+  .pal-row{display:flex;align-items:center;gap:12px;padding:8px 16px;cursor:pointer;color:var(--ink);font-size:14px}
+  .pal-row .pal-k{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);white-space:nowrap}
+  .pal-row[aria-selected="true"]{background:var(--me-tint)}
+  .pal-empty{padding:18px 16px;color:var(--ink-faint);font-size:14px}
+  .pal-foot{display:flex;gap:18px;padding:8px 16px;border-top:1px solid var(--line-soft);font-size:12px;color:var(--ink-faint)}
+  .pal-foot kbd{font-size:11px;padding:0 5px;margin-right:4px}
+  .sc-row.is-hit{background:var(--me-tint)}
 </style>
 <script type="application/ld+json">
 {
@@ -379,6 +401,7 @@
       <a href="docs/">Docs</a>
     </span>
     <span class="nav-right">
+      <button type="button" class="nav-k" id="cmdk-open" aria-label="Open command palette" title="Command palette (⌘K)" aria-haspopup="dialog"><span class="key">⌘K</span></button>
       <a class="btn btn-primary nav-cta" href="/download?src=home-nav">Download for macOS</a>
     </span>
   </div>
@@ -742,5 +765,151 @@
   })();
 </script>
 
+
+<div class="pal" id="cmdk" hidden>
+  <div class="pal-scrim" data-pal-close></div>
+  <div class="pal-box" role="dialog" aria-modal="true" aria-label="Command palette">
+    <input class="pal-in" id="cmdk-input" type="text" placeholder="Type a command or a section…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search commands" aria-controls="cmdk-list">
+    <div class="pal-list" id="cmdk-list" role="listbox"></div>
+    <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd>move</span><span><kbd>↩</kbd>run</span><span><kbd>esc</kbd>close</span></div>
+  </div>
+</div>
+
+<script>
+  // ⌘K palette. Two sources: SITE (hand-written, below) and the app-command
+  // rows already on the page under #shortcuts (read live, never duplicated).
+  // Picking an app command scrolls to its row and tints it for a moment, so
+  // the visitor lands exactly where the key is listed.
+  (function(){
+    var SITE = [
+      {label:"Download for macOS", key:"free", run:function(){ location.href="/download?src=home-cmdk"; }},
+      {label:"Go to Features", key:"#move", run:function(){ jump("#move"); }},
+      {label:"Go to Shortcuts", key:"#shortcuts", run:function(){ jump("#shortcuts"); }},
+      {label:"Go to Compare", key:"#compare", run:function(){ jump("#compare"); }},
+      {label:"Open Docs", key:"docs/", run:function(){ location.href="docs/"; }},
+      {label:"Docs: User guide", key:"docs/", run:function(){ location.href="docs/user-guide.html"; }},
+      {label:"Docs: Keyboard reference", key:"docs/", run:function(){ location.href="docs/keyboard-reference.html"; }},
+      {label:"Docs: Gadgets", key:"docs/", run:function(){ location.href="docs/gadgets.html"; }},
+      {label:"Appearance: Light", key:"theme", run:function(){ setTheme("light"); }},
+      {label:"Appearance: Dark", key:"theme", run:function(){ setTheme("dark"); }},
+      {label:"Appearance: System", key:"theme", run:function(){ setTheme("system"); }}
+    ];
+
+    var pal = document.getElementById("cmdk");
+    var input = document.getElementById("cmdk-input");
+    var list = document.getElementById("cmdk-list");
+    var opener = document.getElementById("cmdk-open");
+    if (!pal || !input || !list || !opener) return;
+
+    var items = [], shown = [], sel = 0, lastFocus = null;
+
+    function jump(hash){
+      var el = document.querySelector(hash);
+      if (el){ el.scrollIntoView({block:"start"}); history.replaceState(null, "", hash); }
+    }
+    function setTheme(v){
+      var b = document.querySelector('.theme-switch button[data-set="' + v + '"]');
+      if (b) b.click();
+    }
+    function appCommands(){
+      var out = [], group = "";
+      document.querySelectorAll("#shortcuts .cmd-group > *").forEach(function(el){
+        if (el.classList.contains("sc-h")){ group = el.textContent.trim(); return; }
+        if (!el.classList.contains("sc-row")) return;
+        var act = el.querySelector(".sc-act"), key = el.querySelector(".sc-key");
+        if (!act) return;
+        out.push({label:act.textContent.trim(), key:key ? key.textContent.trim() : "", group:group, row:el,
+          run:function(){
+            jump("#shortcuts");
+            el.scrollIntoView({block:"center"});
+            el.classList.add("is-hit");
+            setTimeout(function(){ el.classList.remove("is-hit"); }, 1600);
+          }});
+      });
+      return out;
+    }
+    function build(){
+      items = SITE.map(function(x){ x.group = "Site"; return x; }).concat(appCommands());
+    }
+    // Substring beats subsequence; both case-insensitive. Group headers ride along.
+    function score(q, s){
+      s = s.toLowerCase();
+      if (!q) return 1;
+      var i = s.indexOf(q);
+      if (i === 0) return 3; if (i > 0) return 2;
+      var j = 0;
+      for (var k = 0; k < s.length && j < q.length; k++) if (s[k] === q[j]) j++;
+      return j === q.length ? 1 : 0;
+    }
+    function render(){
+      var q = input.value.trim().toLowerCase();
+      shown = items.map(function(it){ return {it:it, sc:score(q, it.label + " " + it.group)}; })
+        .filter(function(x){ return x.sc > 0; })
+        .sort(function(a,b){ return b.sc - a.sc; })
+        .map(function(x){ return x.it; });
+      sel = 0;
+      list.innerHTML = "";
+      if (!shown.length){
+        var e = document.createElement("div"); e.className = "pal-empty"; e.textContent = "No command matches “" + input.value + "”.";
+        list.appendChild(e); return;
+      }
+      var lastGroup = null;
+      shown.forEach(function(it, i){
+        if (it.group !== lastGroup){
+          var h = document.createElement("div"); h.className = "pal-h"; h.textContent = it.group === "Site" ? "Site" : "App · " + it.group;
+          list.appendChild(h); lastGroup = it.group;
+        }
+        var r = document.createElement("div");
+        r.className = "pal-row"; r.setAttribute("role", "option"); r.dataset.i = i;
+        r.innerHTML = '<span></span><span class="pal-k"></span>';
+        r.firstChild.textContent = it.label; r.lastChild.textContent = it.key;
+        r.addEventListener("mousemove", function(){ if (sel !== i){ sel = i; mark(false); } });
+        r.addEventListener("click", function(){ sel = i; run(); });
+        list.appendChild(r);
+      });
+      mark(false);
+    }
+    function mark(scroll){
+      var rows = list.querySelectorAll(".pal-row");
+      rows.forEach(function(r, i){ r.setAttribute("aria-selected", i === sel ? "true" : "false"); });
+      if (scroll && rows[sel]) rows[sel].scrollIntoView({block:"nearest"});
+    }
+    function run(){
+      var it = shown[sel]; if (!it) return;
+      close();
+      it.run();
+    }
+    function open(){
+      if (!pal.hidden) return;
+      lastFocus = document.activeElement;
+      build();
+      input.value = "";
+      pal.hidden = false;
+      document.documentElement.style.overflow = "hidden";
+      render();
+      input.focus();
+    }
+    function close(){
+      if (pal.hidden) return;
+      pal.hidden = true;
+      document.documentElement.style.overflow = "";
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    opener.addEventListener("click", open);
+    pal.querySelector("[data-pal-close]").addEventListener("click", close);
+    input.addEventListener("input", render);
+    document.addEventListener("keydown", function(e){
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k"){
+        e.preventDefault(); pal.hidden ? open() : close(); return;
+      }
+      if (pal.hidden) return;
+      if (e.key === "Escape"){ e.preventDefault(); close(); }
+      else if (e.key === "ArrowDown"){ e.preventDefault(); if (shown.length){ sel = (sel + 1) % shown.length; mark(true); } }
+      else if (e.key === "ArrowUp"){ e.preventDefault(); if (shown.length){ sel = (sel - 1 + shown.length) % shown.length; mark(true); } }
+      else if (e.key === "Enter"){ e.preventDefault(); run(); }
+    });
+  })();
+</script>
 </body>
 </html>
