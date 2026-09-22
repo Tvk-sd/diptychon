@@ -30,6 +30,7 @@
     --line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;--leader:#d8d8d3;
     --ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;
     --accent:#0066d6;--accent-hover:#0a84ff;--me-tint:rgba(10,132,255,.11);
+    --tag-blue:#007aff;--tag-red:#ff3b30;--tag-yellow:#ffcc00;--tag-green:#34c759;
     --nav-bg:rgba(246,246,244,.8);--selection:rgba(10,132,255,.22);--selection-ink:#1a1a1c;
     --mono:ui-monospace,"SF Mono",Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
@@ -49,6 +50,7 @@
       --line:#232327;--line-soft:#303038;--line-strong:#33333a;--leader:#2a2a2f;
       --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
       --accent:#0a84ff;--accent-hover:#3a9bff;--me-tint:rgba(10,132,255,.08);
+      --tag-blue:#0a84ff;--tag-red:#ff453a;--tag-yellow:#ffd60a;--tag-green:#30d158;
       --nav-bg:rgba(11,11,13,.78);--selection:rgba(10,132,255,.28);--selection-ink:#fff;
     }
   }
@@ -58,6 +60,7 @@
     --line:#232327;--line-soft:#303038;--line-strong:#33333a;--leader:#2a2a2f;
     --ink:#f2f1ec;--ink-dim:#a4a3a0;--ink-faint:#6d6c6a;
     --accent:#0a84ff;--accent-hover:#3a9bff;--me-tint:rgba(10,132,255,.08);
+    --tag-blue:#0a84ff;--tag-red:#ff453a;--tag-yellow:#ffd60a;--tag-green:#30d158;
     --nav-bg:rgba(11,11,13,.78);--selection:rgba(10,132,255,.28);--selection-ink:#fff;
   }
   :root[data-theme="light"]{
@@ -66,6 +69,7 @@
     --line:#d9d9d4;--line-soft:#d8d8d2;--line-strong:#c9c9c4;--leader:#d8d8d3;
     --ink:#1a1a1c;--ink-dim:#52525a;--ink-faint:#6b6b70;
     --accent:#0066d6;--accent-hover:#0a84ff;--me-tint:rgba(10,132,255,.11);
+    --tag-blue:#007aff;--tag-red:#ff3b30;--tag-yellow:#ffcc00;--tag-green:#34c759;
     --nav-bg:rgba(246,246,244,.8);--selection:rgba(10,132,255,.22);--selection-ink:#1a1a1c;
   }
 
@@ -156,11 +160,32 @@
   .lr{display:flex;align-items:baseline;gap:8px;padding:7px 0}
   .lr .a{color:var(--ink-dim)}.lr .b{color:var(--ink)}
   .lr .l{flex:1;border-bottom:1px dotted var(--leader);transform:translateY(-4px)}
-  /* undo stack: the rows already taken back are struck and dim, the key sits at the end */
-  .lr.undone .a,.lr.undone .b{color:var(--ink-faint);text-decoration:line-through;text-decoration-color:var(--ink-faint)}
-  .lr .b kbd{display:inline-block;margin-left:6px}
-  /* tag rows: Finder's own tag colours, the tag name on the right */
-  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:9px;vertical-align:0;flex:none}
+  /* the three fragments are drawn, not shot: a toast stack, a download row, tagged file rows */
+  .frag{width:100%;max-width:300px}
+  /* 1 undo: the newest toast in front, the two before it stacked behind and fading */
+  .toasts{position:relative;height:112px}
+  .toast{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--bg-raise);border:1px solid var(--line);border-radius:7px;font-size:13.5px;color:var(--ink);box-shadow:0 6px 18px rgba(0,0,0,.07);transform-origin:50% 100%}
+  .toast svg{width:14px;height:14px;flex:none;color:var(--ink-dim)}
+  .toast .op{color:var(--ink-dim)}
+  .toast.t2{bottom:26px;transform:scale(.94);opacity:.5;z-index:-1}
+  .toast.t3{bottom:50px;transform:scale(.88);opacity:.22;z-index:-2}
+  .toasts .count{position:absolute;right:0;top:-2px;font-family:var(--mono);font-size:11.5px;color:var(--ink-faint)}
+  /* 2 native: the download as a file row, the three "none" lines under it */
+  .pkg{display:flex;align-items:center;gap:13px;padding:11px 13px;background:var(--bg-raise);border:1px solid var(--line-soft);border-radius:7px}
+  .pkg img{width:40px;height:40px;border-radius:9px;flex:none}
+  .pkg .pn{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3}
+  .pkg .pm{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);white-space:nowrap}
+  .frag .leaders{max-width:none;margin-top:10px}
+  .frag .lr{padding:5px 0}
+  /* 3 tags: file rows as the table draws them, Finder's own tag colours */
+  .rows{border:1px solid var(--line-soft);border-radius:7px;overflow:hidden;background:var(--bg-raise);font-size:13px}
+  .row{display:flex;align-items:center;gap:10px;padding:6px 12px;color:var(--ink)}
+  .row:nth-child(odd){background:var(--bg-inset)}
+  .row.hd{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);background:var(--bg-raise);border-bottom:1px solid var(--line-soft);padding:5px 12px}
+  .row .n{flex:1}
+  .row .t{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);width:34px;text-align:right}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+  .dot.none{background:transparent}
   .dot.blue{background:var(--tag-blue)}.dot.red{background:var(--tag-red)}.dot.yellow{background:var(--tag-yellow)}.dot.green{background:var(--tag-green)}
 
   /* numbered chapters */
@@ -404,38 +429,42 @@
     <div class="trio">
       <div class="cell">
         <div class="vis">
-          <div class="leaders" aria-hidden="true">
-            <div class="lr undone"><span class="a">trash</span><span class="l"></span><span class="b">draft.md <kbd>⌘Z</kbd></span></div>
-            <div class="lr undone"><span class="a">rename</span><span class="l"></span><span class="b">3 files <kbd>⌘Z</kbd></span></div>
-            <div class="lr undone"><span class="a">copy</span><span class="l"></span><span class="b">15 items <kbd>⌘Z</kbd></span></div>
-            <div class="lr"><span class="a">move</span><span class="l"></span><span class="b">hero-v3.png</span></div>
+          <div class="frag toasts" aria-hidden="true">
+            <span class="count">⌘Z ×3</span>
+            <div class="toast t3"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 2.5 7 6 10.5"/><path d="M2.5 7h7a4 4 0 0 1 0 8H8"/></svg><span>Undone <span class="op">— Move hero-v3.png</span></span></div>
+            <div class="toast t2"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 2.5 7 6 10.5"/><path d="M2.5 7h7a4 4 0 0 1 0 8H8"/></svg><span>Undone <span class="op">— Rename 3 files</span></span></div>
+            <div class="toast t1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 2.5 7 6 10.5"/><path d="M2.5 7h7a4 4 0 0 1 0 8H8"/></svg><span>Undone <span class="op">— Copy 15 items</span></span></div>
           </div>
         </div>
-        <h3>See everything. Undo anything.</h3>
+<h3>See everything. Undo anything.</h3>
         <p>Move, copy, rename and trash are all reversible. Multi-level <kbd>⌘Z</kbd>, with a toast that says exactly what was undone.</p>
       </div>
       <div class="cell">
         <div class="vis">
-          <div class="leaders" aria-hidden="true">
-            <div class="lr"><span class="a">telemetry</span><span class="l"></span><span class="b">none</span></div>
-            <div class="lr"><span class="a">account</span><span class="l"></span><span class="b">none</span></div>
-            <div class="lr"><span class="a">subscription</span><span class="l"></span><span class="b">none</span></div>
-            <div class="lr"><span class="a">runs on</span><span class="l"></span><span class="b">your Mac</span></div>
+          <div class="frag" aria-hidden="true">
+            <div class="pkg"><img src="icon-mark.png" alt="" width="64" height="64"><div><div class="pn">Diptychon.zip</div><div class="pm">2.7 MB · native Swift</div></div></div>
+            <div class="leaders">
+              <div class="lr"><span class="a">telemetry</span><span class="l"></span><span class="b">none</span></div>
+              <div class="lr"><span class="a">account</span><span class="l"></span><span class="b">none</span></div>
+              <div class="lr"><span class="a">subscription</span><span class="l"></span><span class="b">none</span></div>
+            </div>
           </div>
         </div>
-        <h3>Small, native, private.</h3>
+<h3>Small, native, private.</h3>
         <p>Native Swift, 2.7&nbsp;MB to download. No telemetry, no account, no subscription. Everything runs on your Mac.</p>
       </div>
       <div class="cell">
         <div class="vis">
-          <div class="leaders" aria-hidden="true">
-            <div class="lr"><span class="dot blue"></span><span class="a">hero-v3.png</span><span class="l"></span><span class="b">Blue</span></div>
-            <div class="lr"><span class="dot red"></span><span class="a">shoot-cover.jpg</span><span class="l"></span><span class="b">Red</span></div>
-            <div class="lr"><span class="dot yellow"></span><span class="a">meeting-notes.md</span><span class="l"></span><span class="b">Yellow</span></div>
-            <div class="lr"><span class="dot green"></span><span class="a">logo-final.svg</span><span class="l"></span><span class="b">Green</span></div>
+          <div class="frag rows" aria-hidden="true">
+            <div class="row hd"><span class="n">Name</span><span class="t">Type</span></div>
+            <div class="row"><span class="n">hero-v3.png</span><span class="dot blue"></span><span class="t">PNG</span></div>
+            <div class="row"><span class="n">shoot-cover.jpg</span><span class="dot red"></span><span class="t">JPG</span></div>
+            <div class="row"><span class="n">meeting-notes.md</span><span class="dot yellow"></span><span class="t">MD</span></div>
+            <div class="row"><span class="n">scan-2026-09-18.pdf</span><span class="dot none"></span><span class="t">PDF</span></div>
+            <div class="row"><span class="n">logo-final.svg</span><span class="dot green"></span><span class="t">SVG</span></div>
           </div>
         </div>
-        <h3>Rides the Mac, not against it.</h3>
+<h3>Rides the Mac, not against it.</h3>
         <p>Real Finder tags that round-trip both ways. Finder's own keys for copy, paste, go-to-folder and Quick Look.</p>
       </div>
     </div>
