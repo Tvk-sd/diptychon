@@ -17,6 +17,8 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 - [ ] **Homepage, mittlere „Why“-Kachel („Small, native, private“):** hat kein Screenshot, nur die Textliste. Bild gewünscht, und wenn ja welches? (Tags-Light-Shot bleibt wie er ist, Tills Entscheidung 2026-09-21: das ist macOS-Standard-Icon in Light, Reshoot ändert nichts)
 
+- [ ] **Legal-Docs-Branch vor dem Deploy auf main aufsetzen:** `finalize/landing-legal-docs` (Worktree `scrawny-blowfish`, Wrangler-Dev auf 8799) hängt hinter `8f70219` (#98, View-Kapitel). Ein `npx wrangler deploy` aus diesem Worktree würde die Startseite auf das alte 2×2-Raster zurückdrehen. Erst `git merge main`, dann deployen
+
 ## Offen — bei AI
 
 - [ ] **#98 Homepage-Zustandswechsel (Paseo-Muster, echte Screenshots):** Plan liegt im Issue, Schritt 1 (View-Kapitel, vier Knöpfe, ein Bild) ist live; Schritt 2 (Move-Kapitel, Chord-Badge wird Knopf, zwei neue Shots) ist dran (`.scratch/diptychon-mvp/issues/98-homepage-zustandswechsel-in-kapiteln.md`)
