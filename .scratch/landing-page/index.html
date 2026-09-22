@@ -211,7 +211,7 @@
   }
   .shot-frame{border-top:1px solid var(--line-soft)}
 
-  /* chapters 1 and 3: one frame, several states; the key chip of each state is its button */
+  /* chapters 1 to 3: one frame, several states; the key chip of each state is its button */
   .switch{width:var(--col);margin-inline:auto}
   .sw-tabs{display:flex;border-bottom:1px solid var(--line-soft)}
   .sw-tabs button{font:inherit;font-size:14px;font-weight:600;color:var(--ink-faint);background:transparent;border:0;border-right:1px solid var(--line-soft);padding:14px 20px;display:flex;align-items:center;gap:10px;cursor:pointer}
@@ -534,8 +534,27 @@
       </div>
     </div>
     <div class="ch-vis">
-      <img class="sh sh-light" src="shots/stage-light.png" alt="The staging panel open beside the two folder panes, holding four files collected from different folders." width="1668" height="933" loading="lazy">
-      <img class="sh sh-dark" src="shots/stage-dark.png" alt="" width="1668" height="933" loading="lazy">
+      <div class="switch" data-switch>
+        <div class="sw-tabs" role="group" aria-label="The staging set grows across three folders">
+          <button type="button" data-state="shoots" aria-pressed="true">Shoots <span class="key">⌘⇧S</span></button>
+          <button type="button" data-state="inbox" aria-pressed="false">Inbox <span class="key">⌘⇧S</span></button>
+          <button type="button" data-state="portraits" aria-pressed="false">Portraits <span class="key">⌘⇧S</span></button>
+        </div>
+        <div class="sw-stage">
+          <div class="sw-state" data-state="shoots">
+            <img class="sh sh-light" src="shots/stage-shoots-light.png" alt="A photo from the Selects folder selected, the Staging pane open on the right holding that one file." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/stage-shoots-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+          <div class="sw-state" data-state="inbox" hidden>
+            <img class="sh sh-light" src="shots/stage-inbox-light.png" alt="The Inbox folder with contract-draft.pdf selected, the Staging pane now holding two files from two folders." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/stage-inbox-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+          <div class="sw-state" data-state="portraits" hidden>
+            <img class="sh sh-light" src="shots/stage-portraits-light.png" alt="A third folder, Studio Portraits, with the Staging pane holding four files collected from three folders." width="1668" height="933" loading="lazy">
+            <img class="sh sh-dark" src="shots/stage-portraits-dark.png" alt="" width="1668" height="933" loading="lazy">
+          </div>
+        </div>
+      </div>
     </div>
 
   </section>

@@ -3,7 +3,7 @@
 # staged Diptychon.
 #
 #   ./shoot_landing.sh [light|dark|both]
-#   ONLY=columns ./shoot_landing.sh both     # one scene: table hero brief columns terminal stage moves
+#   ONLY=columns ./shoot_landing.sh both     # one scene: table hero brief columns terminal stage moves stages
 #
 # Needs Screen Recording + Accessibility for the app that owns this terminal.
 #
@@ -200,6 +200,26 @@ run() {
   k 124 cmd opt shift; sleep 1.6; shot move-move $m; stop
   [[ ! -e "$SRC/$f" && -f "$DST/$f" ]] || { echo "ABORT: move did not land as expected"; exit 1 }
   mv "$DST/$f" "$SRC/$f"
+  fi
+
+  # 7 stage chapter, the set growing across three folders. The set itself is
+  # seeded (persisted), the pane is opened by a click on its bottom-bar toggle
+  # (tray icon, right of the seam), and the file just "added" is picked by a
+  # click on its row: ⌘⇧S would need key focus, which is not persisted.
+  if want stages; then
+  local SEL="$TREE/Shoots/2026-06 Harbor Editorial/Selects" POR="$TREE/Shoots/2026-07 Studio Portraits/Selects"
+  local p1="$SEL/harbor-editorial-32.jpg" p2="$SRC/contract-draft.pdf" p3="$SRC/logo-final.svg" p4="$POR/$(ls -t "$POR" | head -1)"
+  for f in "$p1" "$p2" "$p3" "$p4"; do [[ -f "$f" ]] || { echo "ABORT: no $f"; exit 1 }; done
+  local wx wy
+  seed "$SEL" "$DST" - 0 "$p1"; verify_seed "$SEL"; start $m
+  read -r _ wx wy _ _ <<< "$($P winfo $PID)"; guard; $P click $((wx+300)) $((wy+108)); sleep 0.5; $P click $((wx+1614)) $((wy+916)); sleep 0.9
+  shot stage-shoots $m; stop
+  seed "$SRC" "$DST" - 0 "$p1" "$p2"; verify_seed "$SRC"; start $m
+  read -r _ wx wy _ _ <<< "$($P winfo $PID)"; guard; $P click $((wx+300)) $((wy+323)); sleep 0.5; $P click $((wx+1614)) $((wy+916)); sleep 0.9
+  shot stage-inbox $m; stop
+  seed "$POR" "$DST" - 0 "$p1" "$p2" "$p3" "$p4"; verify_seed "$POR"; start $m
+  read -r _ wx wy _ _ <<< "$($P winfo $PID)"; guard; $P click $((wx+300)) $((wy+108)); sleep 0.5; $P click $((wx+1614)) $((wy+916)); sleep 0.9
+  shot stage-portraits $m; stop
   fi
 
   # 5 staging: seed the set, then open the panel (no persisted form for it)
