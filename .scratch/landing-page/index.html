@@ -101,7 +101,9 @@
   .nav-links{display:flex;gap:28px;font-size:14px}
   .nav-links a{color:var(--ink-dim)}.nav-links a:hover{color:var(--ink)}
   .nav-right{display:flex;align-items:center;gap:10px}
-  @media (max-width:760px){.nav-links{display:none}}
+  /* phones: the app is a Mac app, so the download button gives way to the ⌘K badge;
+     the palette still lists Download and stands in for the hidden nav links */
+  @media (max-width:760px){.nav-links,.nav-cta{display:none}.pal-foot{display:none}}
 
   /* buttons */
   .btn{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:500;border-radius:8px;padding:10px 18px;border:1px solid transparent;white-space:nowrap}
