@@ -1,0 +1,54 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "diptychon",
+  "title": "Diptychon",
+  "description": "Open a folder in Diptychon, the keyboard-first dual-panel file manager for macOS.",
+  "icon": "icon.png",
+  "author": "till",
+  "categories": [
+    "Applications",
+    "Productivity"
+  ],
+  "license": "UNLICENSED",
+  "private": true,
+  "commands": [
+    {
+      "name": "open-in-diptychon",
+      "title": "Open Finder Selection",
+      "subtitle": "Diptychon",
+      "description": "Open what is selected in Finder in Diptychon's Active Panel.",
+      "mode": "no-view"
+    },
+    {
+      "name": "pinned-folders",
+      "title": "Pinned Folders",
+      "subtitle": "Diptychon",
+      "description": "Jump to a folder pinned in Diptychon's sidebar.",
+      "mode": "view"
+    },
+    {
+      "name": "resume-diptychon",
+      "title": "Workspace",
+      "subtitle": "Diptychon",
+      "description": "Show the folders Diptychon has open and jump to either panel.",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.100.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.2.0",
+    "@types/node": "^22.13.10",
+    "@types/react": "^19.0.10",
+    "eslint": "^9.22.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "lint": "ray lint",
+    "fix-lint": "ray lint --fix"
+  }
+}
