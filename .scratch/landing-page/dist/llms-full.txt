@@ -25,7 +25,7 @@ Optional — it decides what gets built first. Skipping changes nothing.
 
 Read by a human, steers the roadmap. Talk soon.
 
-Apple Silicon & Intel · macOS 13+ · native Swift
+Apple Silicon & Intel · macOS 14+ · native Swift
 
 Why it's different
 
@@ -53,7 +53,7 @@ Coming from one tool in particular? Marta · ForkLift · Path Finder · Total Co
 
 ## Give your keyboard the file manager.
 
-Apple Silicon & Intel · macOS 13+ · native Swift
+Apple Silicon & Intel · macOS 14+ · native Swift
 
 
 ---

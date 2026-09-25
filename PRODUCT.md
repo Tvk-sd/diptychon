@@ -4,19 +4,19 @@
 
 brand
 
-> Scope note: this repo holds both the Diptychon macOS app (SwiftUI — impeccable doesn't touch it) and its web surfaces under `.scratch/landing-page/` (diptychon.com). Design work here targets the web surfaces, which are brand-register: they exist to earn trust and a launch-email signup.
+> Scope note: this repo holds both the Diptychon macOS app (SwiftUI — impeccable doesn't touch it) and its web surfaces under `.scratch/landing-page/` (diptychon.com). Design work here targets the web surfaces, which are brand-register: they exist to earn trust and a download.
 
 ## Users
 
-Keyboard-first Mac power users — developers, PMs, writers who live in shortcuts and find Finder slow for file work. They evaluate tools skeptically, notice craft, and are allergic to marketing speak. Context when visiting: they arrived from an ad, a comparison search ("Marta vs ForkLift"), or a roundup, deciding in under a minute whether this tool is worth an email address.
+Keyboard-first Mac power users — developers, PMs, writers who live in shortcuts and find Finder slow for file work. They evaluate tools skeptically, notice craft, and are allergic to marketing speak. Context when visiting: they arrived from an ad, a comparison search ("Marta vs ForkLift"), or a roundup, deciding in under a minute whether this tool is worth downloading.
 
 ## Product Purpose
 
-Diptychon is a fast, keyboard-first dual-panel file manager for macOS: native Swift, ~1.4 MB, one-time purchase, no telemetry, undo anything. Pre-launch: the site's single job is capturing launch-email signups (KV-backed, `?src` attribution) to validate reach before paid notarization. Success = a visitor understands in one screen what the app is, that it isn't out yet, and exactly what leaving an email gets them (one email, launch day).
+Diptychon is a fast, keyboard-first dual-panel file manager for macOS: native Swift, ~2.7 MB, free, no telemetry, undo anything. The site distributes and learns (ADR 0008): its single job is a notarized download, counted first-party in KV with `?src` attribution. Success = a visitor understands in one screen what the app is, what it deliberately does not do, and leaves with it on their Mac.
 
 ## Brand Personality
 
-Ehrlich · präzise · handwerklich (honest, precise, crafted). The voice states facts with units (1.4 MB, macOS 13+), concedes what competitors do better, and never uses superlatives it can't measure. Emotional goal: the quiet confidence of a well-made tool — Zed/Linear craft bar.
+Ehrlich · präzise · handwerklich (honest, precise, crafted). The voice states facts with units (2.7 MB, macOS 14+), concedes what competitors do better, and never uses superlatives it can't measure. Emotional goal: the quiet confidence of a well-made tool — Zed/Linear craft bar.
 
 ## Anti-references
 
@@ -29,8 +29,8 @@ Ehrlich · präzise · handwerklich (honest, precise, crafted). The voice states
 
 1. **Say the number.** Claims carry units and dates or they don't ship.
 2. **The keyboard is the brand.** Mono type, keycaps, and command-palette motifs are identity, not decoration.
-3. **Concede honestly.** Pages admit trade-offs (no remote drives, pre-launch status) — trust is the conversion lever.
-4. **One action per page.** Everything funnels to the launch-email signup; no competing CTAs.
+3. **Concede honestly.** Pages admit trade-offs (no remote drives, no archive browsing) — trust is the conversion lever.
+4. **One action per page.** Everything funnels to the download; the sponsor note is the one deliberate exception.
 5. **Native-Apple grammar.** SF Pro/SF Mono, Apple-blue accent, system light/dark — the site should feel like the app.
 
 ## Accessibility & Inclusion
