@@ -186,3 +186,22 @@ unverändert.
 Offen bleibt nur die Lizenzfrage: gratis ist nicht Open Source. Die PRD nennt
 weiter „MIT license" — ob der Code veröffentlicht wird und unter welcher Lizenz,
 entscheidet ADR 0010 bewusst nicht.
+
+## Outcome (2026-09-26) — Lizenzfrage geschlossen
+
+Till hat entschieden: **MIT** (ADR 0011). `LICENSE` liegt im Repo-Root,
+Copyright Till von Krueger. Commit `f691219` auf `plan/diptychon-license`.
+
+Gegen das Copyleft-Argument oben: es stand unter der Annahme eines bezahlten
+Produkts ("MIT gibt den Bezahl-Binary-Weg für Dritte frei"). Seit ADR 0010 ist
+Diptychon gratis, damit gibt es keinen Bezahlweg mehr zu schützen.
+
+Neuer Befund bei der Prüfung: `github.com/Tvk-sd/diptychon` war die ganze Zeit
+**public ohne LICENSE** — lesbar für alle, nutzbar für niemanden. Die Frage war
+also nie "veröffentlichen ja/nein", sondern nur, ob die Erlaubnis nachkommt.
+
+Zweiter Befund, unabhängig von der Entscheidung: SwiftTerm 1.11.2 (MIT) steckt
+im Terminal-Panel, und das ausgelieferte `Diptychon.zip` enthielt keinen
+einzigen Lizenzhinweis. `Resources/THIRD-PARTY-NOTICES.txt` liefert ihn jetzt
+mit, über `project.yml` bei jedem Build ins Bundle kopiert (Release-Build und
+Unit-Suite grün). Wirksam wird das erst mit dem nächsten Release.

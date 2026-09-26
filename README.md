@@ -137,6 +137,8 @@ Measured on Apple M1 / macOS 26.5.1 / arm64, Release build, warm cache:
 | Path | What |
 |------|------|
 | `Sources/Diptychon/` | App source (Swift/SwiftUI/AppKit) |
+| `LICENSE` | MIT licence for Diptychon's own source |
+| `Resources/THIRD-PARTY-NOTICES.txt` | Licences of bundled third-party code, shipped inside the app |
 | `Tests/` | Unit + UI tests |
 | `CONTEXT.md` | Domain language — the canonical vocabulary (Panel, Active/Inactive, Operation, Tag…) |
 | `docs/adr/` | Architecture Decision Records |
@@ -156,4 +158,16 @@ Measured on Apple M1 / macOS 26.5.1 / arm64, Release build, warm cache:
   aligned to it.
 - **New `.swift` files are auto-globbed** by XcodeGen — after adding one, run
   `xcodegen generate`; never hand-edit the `.xcodeproj`.
+- **New dependencies carry a licence obligation.** Add the dependency's notice to
+  [`Resources/THIRD-PARTY-NOTICES.txt`](Resources/THIRD-PARTY-NOTICES.txt) in the same
+  change; the file ships inside the app bundle.
 - Issues and PRDs live as markdown under `.scratch/diptychon-mvp/`.
+
+---
+
+## Licence
+
+Diptychon is free and MIT-licensed — see [`LICENSE`](LICENSE) and
+[ADR 0011](docs/adr/0011-diptychon-is-mit-licensed.md). Bundled third-party code keeps
+its own licence; the notices are in
+[`Resources/THIRD-PARTY-NOTICES.txt`](Resources/THIRD-PARTY-NOTICES.txt).

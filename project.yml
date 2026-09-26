@@ -35,6 +35,7 @@ targets:
       - Sources/Diptychon
       - Resources/Assets.xcassets
       - Resources/AppIcon.icns
+      - Resources/THIRD-PARTY-NOTICES.txt
     dependencies:
       - package: SwiftTerm
     settings:
