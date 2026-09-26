@@ -120,7 +120,7 @@ gescheitert.
 Danach liegen die Zugangsdaten im Schlüsselbund. Das Skript kennt nur den
 Profilnamen; die `.p8` wird nie wieder gelesen.
 
-**Offen (Stand 2026-08-16):** `~/Downloads/AuthKey_8274WG2YD4.p8` liegt noch im
+**Offen (Stand 2026-08-16):** `~/Downloads/AuthKey_XXXXXXXX.p8` liegt noch im
 Download-Ordner, weltlesbar (`-rw-r--r--`). Nicht im Repository — dort ist
 nichts zu bereinigen. Sobald der Key im Passwort-Manager liegt, aus `~/Downloads`
 entfernen; wer eine Kopie auf der Platte behalten will, legt sie nach
