@@ -47,7 +47,7 @@ Diptychon's UI is two panels sharing one divider; the site borrows that anatomy.
 6. **Three stroke words, one weight (1px):** solid `--line-soft` = structure (rails, cross rules, dividers) · dotted `--leader` = in-row leaders · dashed = intra-cell subdivision (group headers). Solid `--line` stays reserved for control edges. Weight hierarchy is inverted on purpose: the lattice (`--line-soft`) is *stronger* than control borders — the net is the loudest chrome, controls sit beneath it.
 7. **Adjacent cells share one line.** Never two parallel rules side by side; no double borders.
 
-Canonical applications: the hero signup is a full-bleed band between two cross rules; the command reference is a **scrollable command panel** (fixed-height cell, internal scroll, sticky group headers) — the app's panel as a page element.
+Canonical applications: the hero download CTA is a full-bleed band between two cross rules; the command reference is a **scrollable command panel** (fixed-height cell, internal scroll, sticky group headers) — the app's panel as a page element.
 
 ## Components
 
