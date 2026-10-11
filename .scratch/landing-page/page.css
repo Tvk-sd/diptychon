@@ -162,6 +162,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:96px;position:relative;z
 .fcol a{display:block;color:var(--ink-dim);padding:3px 0}.fcol a:hover{color:var(--ink)}
 .fcol a.brand{display:flex;color:var(--ink);padding:0}
 .fcol .fine{color:var(--ink-faint);font-size:13px;margin:14px 0 0;line-height:1.55}
+.fcol .fine a{display:inline;color:var(--ink);padding:0}.fcol .fine a:hover,.fcol .fine a:focus-visible{text-decoration:underline}
 @media(max-width:760px){body{font-size:16px}header{padding:72px 0 16px}h2{padding-top:92px}h2::after{top:64px}footer{margin-top:72px}.foot{grid-template-columns:1fr 1fr}.fcol:first-child{grid-column:1 / -1}.fcol:nth-child(2),.fcol:nth-child(4){border-left:0}.fcol:nth-child(n+2){border-top:1px solid var(--line-soft)}}
 
 /* ---- Added for the comparison pages ------------------------------------ */

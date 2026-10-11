@@ -74,7 +74,7 @@ By Till von Krueger · published 2026-07-11, last updated 2026-08-11 · competit
 |---|---|---|---|---|---|
 | Price model | free | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
 | Footprint (download) | 2.7 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
-| Native / open-source | Swift, native | Swift, native | Swift, native | C++, open-source | native |
+| Native / open-source | Swift, native, open-source | Swift, native | Swift, native | C++, open-source | native |
 | Dual-pane | Yes | Yes | Yes | Yes | Yes |
 | Undo a file operation | Yes, multi-level | No | Partial (undocumented) | No | Partial (moves) |
 | Remembers your session | Yes | Yes | Yes (setting) | Yes | Partial (manual save) |
@@ -396,7 +396,7 @@ Written 2026-08-02, updated 2026-08-11 · competitor figures verified 2026-07-11
 | Undo a file operation | Partial (moves) | Yes, multi-level | Partial (undocumented) | No |
 | Keyboard-first | Partial | Every action bound | Partial | 100+ hotkeys |
 | Feature depth | Deepest of the five | Deliberately narrow | Deep (remote) | Deep |
-| Open source | No | No | No | Yes |
+| Open source | No | Yes | No | Yes |
 | Available today | Yes | Yes | Yes | Yes |
 
 **Sources & verification (including what we could not re-check)**
