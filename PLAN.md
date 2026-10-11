@@ -16,6 +16,7 @@ Readiness-Gate (#68) → Notarisierung + echter Download (#69) → Startseite au
 - [ ] **#58 triagieren:** Rename des aktuellen Ordners/Devices via Breadcrumb — 4 offene Fragen im Issue beantworten (Interaktion, Scope, Devices, Watcher-Folgen) oder Grill-Session starten (`.scratch/diptychon-mvp/issues/58-rename-in-place-via-breadcrumb.md`)
 - [ ] **Homepage, mittlere „Why“-Kachel („Small, native, private“):** hat kein Screenshot, nur die Textliste. Bild gewünscht, und wenn ja welches? (Tags-Light-Shot bleibt wie er ist, Tills Entscheidung 2026-09-21: das ist macOS-Standard-Icon in Light, Reshoot ändert nichts)
 - [ ] **Raycast-Extension eine Woche benutzen (#56):** gebaut und grün in `sandbox/raycast-extension/`, Raycast 2.5.2.0 ist installiert. Dein Teil: Raycast starten, Onboarding durchlaufen, dann `cd sandbox/raycast-extension && npm run dev` — solange das läuft, sind die drei Kommandos in Raycast da. Achte nicht auf „Open Finder Selection" (braucht Finder im Vordergrund, du bist in Diptychon); das Signal kommt aus „Pinned Folders" und „Workspace". Wenn dich stört, dass Raycast deine Diptychon-Auswahl nicht sieht, ist das der Befund — dann lohnt die `.sdef` (Option A im Issue)
+- [ ] **Darf `ultracite fix` auf den Worker (#99):** Ultracite steht und ist auf `src/worker.js` begrenzt (Commit `dac6fe4`). Der Fix ist verhaltensneutral, fasst aber Download-Counter und Notify-Handler an — also einmal `npx wrangler dev` dagegen, dann ja oder nein
 
 
 ## Offen — bei AI
