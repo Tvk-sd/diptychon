@@ -1,6 +1,6 @@
 # 100 — The site says Diptychon is open source
 
-Status: **ready-for-human** — built and rendered locally, not committed, not deployed. Till reviews, then it deploys.
+Status: **CLOSED (2026-10-11)** — shipped as `4898e9f`, pushed, deployed and verified live on diptychon.com and www.diptychon.com.
 Category: landing page
 
 ## Parent
@@ -85,7 +85,13 @@ live page, and no repo doc, carries a claim that contradicts it.
   pages therefore also show `2026-09-22` → `2026-10-11`. Content is otherwise
   unchanged. Pre-existing behaviour, not introduced here.
 
-## Open
+## Outcome
 
-Deploy. From `.scratch/landing-page`, bare `npx wrangler deploy` — a deploy with
-CLI flags drops the `www` custom domain.
+Commit `4898e9f` on `main`, pushed. Deployed with a bare `npx wrangler deploy`
+from `.scratch/landing-page` (16 assets changed, version
+`7ef01b75-6d4f-49c3-ba5a-ed6c9f7d066b`); both custom domains took the trigger.
+Verified by `curl` against diptychon.com and www.diptychon.com: the footer line,
+the corrected Open-source rows in the page and in `llms-full.txt`, and the new
+CSS rule in `page.css` are all live.
+
+Nothing is left open here.
