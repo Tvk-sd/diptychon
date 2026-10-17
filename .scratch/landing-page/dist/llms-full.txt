@@ -13,7 +13,7 @@ Keyboard-first · macOS
 
 Two folders side by side, so you see where a file is and where it's going. One keystroke moves it across. Every action is undoable.
 
-2.7 MB download · 9 MB installed
+3.1 MB download · 10 MB installed
 
 Two panels, one workspace. Select a file in the left panel, press ⌥⌘→, it lands in the right. No dragging, no new windows.
 
@@ -35,7 +35,7 @@ Both panes show where files come from and where they go. A staging area collects
 
 ### Small, native, private.
 
-Native Swift, 2.7 MB to download. No telemetry, no account, no subscription: everything runs on your Mac.
+Native Swift, 3.1 MB to download. No telemetry, no account, no subscription: everything runs on your Mac.
 
 ### Rides the Mac, not against it.
 
@@ -66,14 +66,14 @@ Compare · macOS file managers
 
 There's no clear winner among Mac file managers. This segment tool-hops for a reason. Here's an honest read of where Diptychon fits, and where these (genuinely good) tools still beat it.
 
-Diptychon is a fast, keyboard-first dual-panel file manager: native, ~2.7 MB, no telemetry, undo anything. It is pre-1.0. This page is about fit, not a claim that it's finished.
+Diptychon is a fast, keyboard-first dual-panel file manager: native, ~3.1 MB, no telemetry, undo anything. It is pre-1.0. This page is about fit, not a claim that it's finished.
 
 By Till von Krueger · published 2026-07-11, last updated 2026-08-11 · competitor figures verified against vendor pages 2026-07-11
 
 |  | Diptychon | Marta | ForkLift 4 | Nimble Commander | Path Finder |
 |---|---|---|---|---|---|
 | Price model | free | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
-| Footprint (download) | 2.7 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
+| Footprint (download) | 3.1 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
 | Native / open-source | Swift, native, open-source | Swift, native | Swift, native | C++, open-source | native |
 | Dual-pane | Yes | Yes | Yes | Yes | Yes |
 | Undo a file operation | Yes, multi-level | No | Partial (undocumented) | No | Partial (moves) |
@@ -83,7 +83,7 @@ By Till von Krueger · published 2026-07-11, last updated 2026-08-11 · competit
 
 **Sources & verification, 2026-07-11 (every number linked)**
 
-Verified 2026-07-11 against the vendors: ForkLift $19.95 (binarynights.com) · Path Finder $32.95/yr (cocoatech.io) · Nimble Commander free & open-source, 15.0 MB (GitHub release). Download sizes for Marta (10.7 MB), ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 2.7 MB is the zip of the current notarized build, measured 2026-08-10. Prices change. Check the vendor before you buy.
+Verified 2026-07-11 against the vendors: ForkLift $19.95 (binarynights.com) · Path Finder $32.95/yr (cocoatech.io) · Nimble Commander free & open-source, 15.0 MB (GitHub release). Download sizes for Marta (10.7 MB), ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 3.1 MB is the zip of the current notarized build, measured 2026-08-10. Prices change. Check the vendor before you buy.
 
 Undo & session, verified 2026-07-11: Marta has no file-operation undo (open request since 2018) but documented session restore; ForkLift's release notes show undo for Trash & Multi-Rename, full scope undocumented, restore via its "Restore Windows and Tabs on Startup" setting; Nimble Commander's manual documents no undo, session restore is on by default; Path Finder added an "undo panel" for moves, extent undocumented, and layout restore is a manual "Save As Default". Diptychon's undo is multi-level across move, copy, trash and rename; overwrites are destructive and excluded. Batch rename: documented for ForkLift (Multi-Rename), Nimble Commander (Batch Rename) and Path Finder (Batch Renaming); Marta's file-operations reference lists only single-item rename. Diptychon's batch rename covers Finder-style modes (replace, add text, format with counter, change case) as one undoable operation; regex patterns are planned.
 
@@ -99,7 +99,7 @@ Diptychon's edge: undo-anything and real Finder tags.
 
 Wins: the remote powerhouse (SFTP/FTP/WebDAV/S3/cloud/SMB), folder sync, multi-rename.
 
-Diptychon's edge: built keyboard-first: every action has a binding, one chord moves files between panels, all in a 2.7 MB download.
+Diptychon's edge: built keyboard-first: every action has a binding, one chord moves files between panels, all in a 3.1 MB download.
 
 ### Nimble Commander
 
@@ -148,12 +148,12 @@ Written 2026-08-02, updated 2026-08-11 · competitor figures verified 2026-07-11
 | FTP / SFTP built in | No — local-only in v1 | No | Yes | Yes | Limited |
 | Plugin ecosystem | No — gadgets instead | Yes | No | No | Modules |
 | Price model | free | free | one-time $19.95 | free / $29.99 one-time Pro | subscription $32.95/yr |
-| Download size | 2.7 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
+| Download size | 3.1 MB | 10.7 MB | 16.3 MB | 15.0 MB | 19.4 MB |
 | Available today | Yes | Yes | Yes | Yes | Yes |
 
 **Sources & verification (read this before trusting a number)**
 
-Prices and download sizes verified 2026-07-11 against the vendors: ForkLift $19.95 (binarynights.com) · Path Finder $32.95 / 1-year licence (cocoatech.io) · Nimble Commander free & open-source, 15.0 MB (GitHub release asset). Sizes for Marta (10.7 MB), ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 2.7 MB is the measured zip of the current notarized build (2026-08-10).
+Prices and download sizes verified 2026-07-11 against the vendors: ForkLift $19.95 (binarynights.com) · Path Finder $32.95 / 1-year licence (cocoatech.io) · Nimble Commander free & open-source, 15.0 MB (GitHub release asset). Sizes for Marta (10.7 MB), ForkLift (16.3 MB) and Path Finder (19.4 MB) via MacUpdate; Nimble Pro $29.99 and Marta free as of 2026-07-07. Diptychon's 3.1 MB is the measured zip of the current notarized build (2026-08-10).
 
 Total Commander's platform support is per the vendor: the ghisler.com download page lists Windows (and a separate Android app) only. Prices change and vendors re-price without notice — check the vendor's own page before you buy anything here.
 
@@ -187,7 +187,7 @@ Yes. Marta is free (though not open source), and Nimble Commander is free and op
 
 ### Where does Diptychon fit?
 
-Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 2.7 MB download. It is free and collects no telemetry.
+Diptychon is a native macOS dual-panel manager built keyboard-first: two panels, one chord to send files across, multi-level undo on move, copy, trash and rename, real Finder tags, and a 3.1 MB download. It is free and collects no telemetry.
 
 What it does not do matters for anyone coming from Total Commander, and the reasons differ — worth separating, because one of them is permanent and the others are not:
 
@@ -240,14 +240,14 @@ Written 2026-08-02, updated 2026-08-11 · competitor figures verified 2026-07-11
 | Finder tags | Not documented | Yes, round-trip | Not documented | Not documented |
 | Remembers your session | Yes, strong | Yes | Yes, default on | Yes (setting) |
 | Plugins | Yes | No | No | No |
-| Download size | 10.7 MB | 2.7 MB | 15.0 MB | 16.3 MB |
+| Download size | 10.7 MB | 3.1 MB | 15.0 MB | 16.3 MB |
 | Available today | Yes | Yes | Yes | Yes |
 
 **Sources & verification (every claim about Marta is linked)**
 
 Undo: Marta has no file-operation undo — issue #230 has been open since 2018, with #705 as a later duplicate; the docs describe delete as permanent. Batch rename: Marta's file-operations reference lists single-item Rename (⇧F6) only. Session restore: documented and automatic — windows, tabs, folders and cursor position (reset doc). Verified 2026-07-11.
 
-Price and size: Marta free and 10.7 MB via MacUpdate, checked 2026-07-07/11 (marta.sh does not show a price). Diptychon's 2.7 MB is the measured zip of the current notarized build (2026-08-10). "Not documented" in the Finder-tags row means exactly that — the vendor's docs do not cover it, and we are not going to assert a competitor lacks a feature we could not verify.
+Price and size: Marta free and 10.7 MB via MacUpdate, checked 2026-07-07/11 (marta.sh does not show a price). Diptychon's 3.1 MB is the measured zip of the current notarized build (2026-08-10). "Not documented" in the Finder-tags row means exactly that — the vendor's docs do not cover it, and we are not going to assert a competitor lacks a feature we could not verify.
 
 ## Questions people actually ask
 
@@ -269,7 +269,7 @@ No. Marta's file-operations reference documents single-item rename (⇧F6) only.
 
 By philosophy, Nimble Commander — native, keyboard-heavy, free, and open source, so continuity is not a single-developer bet. It is faster still (C++) and has 100+ hotkeys, but the learning curve is steeper and it has no undo either.
 
-By feel, Diptychon is the closer match: same keyboard-first two-panel model, smaller (2.7 MB vs 10.7 MB), with undo and real Finder tags added. It has no plugin system and is pre-1.0.
+By feel, Diptychon is the closer match: same keyboard-first two-panel model, smaller (3.1 MB vs 10.7 MB), with undo and real Finder tags added. It has no plugin system and is pre-1.0.
 
 ### Is Marta open source?
 
@@ -306,7 +306,7 @@ Compare · ForkLift
 
 If you need remote access, ForkLift 4 is still the right answer and nothing here beats it. SFTP, FTP, WebDAV, S3, Backblaze B2, Google Drive, OneDrive, Dropbox, SMB, AFP, NFS, plus folder sync and multi-rename — that is a genuinely deep feature set for a one-time $19.95.
 
-People look for an alternative when they realise they never use any of it. If your files live on local and mounted drives, you are carrying a 16.3 MB remote-transfer suite to move things between two folders. The lighter native options are Marta (free), Nimble Commander (free, open source) and Diptychon (2.7 MB).
+People look for an alternative when they realise they never use any of it. If your files live on local and mounted drives, you are carrying a 16.3 MB remote-transfer suite to move things between two folders. The lighter native options are Marta (free), Nimble Commander (free, open source) and Diptychon (3.1 MB).
 
 Written 2026-08-02, updated 2026-08-11 · competitor figures verified 2026-07-11 · Diptychon is pre-1.0, under active development
 
@@ -314,7 +314,7 @@ Written 2026-08-02, updated 2026-08-11 · competitor figures verified 2026-07-11
 |---|---|---|---|---|
 | Remote (SFTP / WebDAV / S3) | Yes — the whole point | No | No | Yes (mounts) |
 | Folder sync | Yes | No | No | Partial |
-| Download size | 16.3 MB | 2.7 MB | 10.7 MB | 15.0 MB |
+| Download size | 16.3 MB | 3.1 MB | 10.7 MB | 15.0 MB |
 | Price | one-time $19.95 | free | free | free / $29.99 one-time Pro |
 | Keyboard-first | Partial — mouse-forward | Every action bound | Yes | 100+ hotkeys |
 | Undo a file operation | Partial (Trash, Multi-Rename) | Yes, multi-level | No | No |
@@ -349,7 +349,7 @@ Partly. ForkLift has shortcuts, but the workflow it is designed around is mouse-
 
 ### What does Diptychon give up compared to ForkLift?
 
-A lot, and mostly on purpose. No remote protocols, no folder sync, no cloud-storage integration — that is a deliberate boundary, not a gap waiting to be filled, and it is the reason the download is 2.7 MB instead of 16.3 MB. Archive handling is the one genuinely open item: not in v1, parked until the people using it ask for it.
+A lot, and mostly on purpose. No remote protocols, no folder sync, no cloud-storage integration — that is a deliberate boundary, not a gap waiting to be filled, and it is the reason the download is 3.1 MB instead of 16.3 MB. Archive handling is the one genuinely open item: not in v1, parked until the people using it ask for it.
 
 What you get back: every action on a key binding, multi-level undo across move, copy, trash and rename, real Finder tags, and no telemetry. Diptychon is pre-1.0 and under active development, so the feature list will grow — but it will grow inside that boundary, not across it. Both are real downloads today: ForkLift is $19.95 one-time, Diptychon is free.
 
@@ -391,7 +391,7 @@ Written 2026-08-02, updated 2026-08-11 · competitor figures verified 2026-07-11
 |  | Path Finder | Diptychon | ForkLift 4 | Nimble Commander |
 |---|---|---|---|---|
 | Price model | recurring — $32.95 / 1-year licence | free | one-time $19.95 | free / $29.99 one-time Pro |
-| Download size | 19.4 MB | 2.7 MB | 16.3 MB | 15.0 MB |
+| Download size | 19.4 MB | 3.1 MB | 16.3 MB | 15.0 MB |
 | Remembers your layout | Partial — manual "Save As Default" | Yes, automatic | Yes (setting) | Yes, default on |
 | Undo a file operation | Partial (moves) | Yes, multi-level | Partial (undocumented) | No |
 | Keyboard-first | Partial | Every action bound | Partial | 100+ hotkeys |

@@ -1,6 +1,6 @@
 # Diptychon
 
-> A fast, keyboard-first, dual-panel file manager for macOS. Two folders side by side, one keystroke to send files across, multi-level undo, native Finder tags, 2.7 MB download, native Swift, no telemetry.
+> A fast, keyboard-first, dual-panel file manager for macOS. Two folders side by side, one keystroke to send files across, multi-level undo, native Finder tags, 3.1 MB download, native Swift, no telemetry.
 
 Diptychon is **available to download** at https://diptychon.com/download — signed and notarized by Apple. It is pre-1.0. It is free: no price, no subscription, no account, and no telemetry. Its own source is open source under the MIT licence at https://github.com/Tvk-sd/diptychon; bundled third-party licences ship inside the app.
 

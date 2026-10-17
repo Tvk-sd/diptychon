@@ -12,6 +12,25 @@ unsignierte Dev-Builds relevant.
 
 ## Status
 
+> **Schlüssel neu ausgestellt am 2026-10-17 (#101).** Der Keychain-Reset vom
+> 2026-09-03/04 hatte beide Credentials vernichtet. Jetzt gilt: Zertifikat
+> `Developer ID Application: Till von Krueger (XDCAAWJ75G)`, gültig bis
+> **2031-09-17** (fünf Jahre, kein Cloud-Zertifikat mehr), Notary-Profil
+> `diptychon-notary` mit einem **neuen** Key — der alte stand mit seiner Key ID
+> monatelang öffentlich im Repo und ist am 2026-10-11 widerrufen. Die Identität
+> liegt zusätzlich als `.p12` in Tills Passwort-Manager; ein weiterer Reset ist
+> damit ein Import statt eines Nachmittags.
+>
+> **Zwei Fallen, die 2026-10-17 Zeit gekostet haben:** Xcodes
+> *Manage Certificates ▸ +* erzeugt auf Xcode 26 nur noch **cloud-managed**
+> Zertifikate — Apple behält die private Hälfte, `codesign` findet nichts, und
+> Xcode meldet dabei keinen Fehler. Und Keychain Access existiert auf macOS 26
+> nicht mehr, der Certificate Assistant also auch nicht. Der Weg, der
+> funktioniert, steht unten in **Einrichtung Schritt 1**.
+>
+> Die Tabelle unten beschreibt weiterhin den Stand vom August 2026; die Zeilen
+> zu Fristen sind durch das neue Zertifikat überholt.
+
 | | Stand |
 |---|---|
 | Apple-Developer-Mitgliedschaft | aktiv |
@@ -79,22 +98,61 @@ ablaufen oder widerrufen werden.
 
 ### 1. Zertifikat
 
-Xcode ▸ Settings ▸ Accounts ▸ Manage Certificates ▸ `+` ▸ **Developer ID
-Application**.
+**Nicht über Xcode.** Auf Xcode 26 / macOS 26 liefert *Settings ▸ Apple Accounts
+▸ Team ▸ Manage Certificates ▸ `+`* nur ein cloud-managed Zertifikat: es taucht
+in Xcodes Liste auf, erzeugt aber keinen privaten Schlüssel im Schlüsselbund.
+`security find-identity` bleibt bei `0 valid identities`, `codesign` sagt
+`no identity found`, und Xcode meldet nichts. Jeder Klick auf `+` verbraucht
+dabei ein Zertifikat aus dem Team-Kontingent.
 
-Nicht „Apple Development" (nur lokale Geräte) und nicht „Apple Distribution"
-(nur App Store). Für ein Zip auch nicht „Developer ID Installer", das ist für
-`.pkg`.
+Stattdessen CSR von Hand, Zertifikat aus dem Portal. Keychain Access gibt es auf
+macOS 26 nicht mehr, der CSR kommt also aus `openssl`:
 
-Prüfen:
+```bash
+CERTDIR="$(mktemp -d)"; chmod 700 "$CERTDIR"      # NICHT im Repo, das ist public
+/usr/bin/openssl req -new -newkey rsa:2048 -nodes \
+  -keyout "$CERTDIR/signing.key" -out "$CERTDIR/signing.csr" \
+  -subj "/CN=Till von Krueger/emailAddress=<apple-id-email>/C=DE"
+chmod 600 "$CERTDIR/signing.key"
+```
+
+Dann `developer.apple.com/account` ▸ Certificates, Identifiers and Profiles ▸
+Certificates ▸ `+` ▸ **Developer ID Application** ▸ Profiltyp **G2 Sub-CA** ▸ CSR
+hochladen ▸ `.cer` herunterladen. Die Auswahl steht in der Gruppe **Software**,
+ganz oben auf der Seite — über **Services**, wo man beim Scrollen zuerst landet.
+
+Vor dem Import einmal das Zwischenzertifikat sicherstellen, sonst gilt ein
+korrektes Leaf-Zertifikat als ungültig und der Fehler liest sich wie ein zweites
+Scheitern:
+
+```bash
+curl -fsSL -o "$CERTDIR/g2.cer" https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+security import "$CERTDIR/g2.cer" -k ~/Library/Keychains/login.keychain-db
+```
+
+Import des eigenen Zertifikats als `.p12` — `/usr/bin/openssl` benutzen, nicht
+das aus Homebrew: dessen PKCS#12-Default lehnt `security import` ab.
+
+```bash
+/usr/bin/openssl x509 -inform DER -in "$CERTDIR/leaf.cer" -out "$CERTDIR/leaf.pem"
+/usr/bin/openssl pkcs12 -export -inkey "$CERTDIR/signing.key" -in "$CERTDIR/leaf.pem" \
+  -out "$CERTDIR/identity.p12" -passout "pass:$P12PASS"
+security import "$CERTDIR/identity.p12" -k ~/Library/Keychains/login.keychain-db \
+  -P "$P12PASS" -T /usr/bin/codesign
+```
+
+Prüfen — und zwar beides, `find-identity` allein genügt nicht:
 
 ```bash
 security find-identity -v -p codesigning
 # erwartet: "Developer ID Application: Till von Krueger (XDCAAWJ75G)"
+codesign -s "Developer ID Application" --options runtime --timestamp -f /tmp/testbin
 ```
 
-Die Klammer ist die Team-ID. Das Skript liest sie von hier, sie steht nirgends
-fest verdrahtet.
+Die **erste** echte Signatur blockiert auf einem Schlüsselbund-Dialog, bis
+jemand **Immer erlauben** klickt — am Rechner selbst, nicht über SSH. Danach nie
+wieder. Anschließend die Identität als `.p12` in den Passwort-Manager und das
+Klartext-Material löschen.
 
 ### 2. Notary-Credentials
 
@@ -119,6 +177,25 @@ gescheitert.
 
 Danach liegen die Zugangsdaten im Schlüsselbund. Das Skript kennt nur den
 Profilnamen; die `.p8` wird nie wieder gelesen.
+
+**Aus der Ferne scheitert der letzte Schritt.** `store-credentials` validiert den
+Key erst bei Apple und schreibt ihn dann in den Schlüsselbund. Läuft der Befehl
+ohne Zugriff auf die GUI-Sitzung des Rechners, kommt genau das zurück:
+
+```
+Error: An error occurred while accessing the keychain. User interaction is not allowed.
+...
+Success. Credentials validated.
+```
+
+Der Key ist dann in Ordnung — nur das Speichern fiel aus. Per Screen Sharing auf
+den Rechner (über Tailscale: `vnc://<tailscale-ip>`), Befehl wiederholen, Dialog
+bestätigen. Dasselbe gilt für die erste Signatur mit einem frisch importierten
+Zertifikat.
+
+Die `.p8` ist reiner **Text**. Wer sie nicht als Datei ablegen kann, kopiert den
+Inhalt in eine sichere Notiz — daraus lässt sich die Datei jederzeit wieder
+herstellen. Am 2026-10-17 war das die Rettung: die Datei war weg, der Text nicht.
 
 **Offen (Stand 2026-08-16):** `~/Downloads/AuthKey_XXXXXXXX.p8` liegt noch im
 Download-Ordner, weltlesbar (`-rw-r--r--`). Nicht im Repository — dort ist
