@@ -181,7 +181,7 @@ should be folded into this issue and dropped from `PLAN.md`.
 ## Outcome
 
 **Shipped 2026-10-17.** Both credentials were re-issued and 0.2.0 replaced the
-August 0.1.x artefact on diptychon.com. Committed as `2f335bf`.
+August 0.1.x artefact on diptychon.com. Shipped on `50ed70f`.
 
 | Step | Result |
 |---|---|
